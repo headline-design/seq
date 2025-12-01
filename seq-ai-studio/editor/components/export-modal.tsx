@@ -10,7 +10,9 @@ interface ExportModalProps {
   downloadUrl: string | null;
   totalDuration: number;
   selectionBounds: { start: number; end: number } | null;
-  maxSourceHeight: number;
+  loaded: boolean;
+  loading: boolean;
+  loadFFmpeg: () => Promise<void>;
 }
 
 export const ExportModal: React.FC<ExportModalProps> = ({
@@ -22,15 +24,21 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   downloadUrl,
   totalDuration,
   selectionBounds,
-  maxSourceHeight
+  loaded,
+  loading,
+  loadFFmpeg
 }) => {
   const [resolution, setResolution] = useState<'720p' | '1080p'>('1080p');
   const [source, setSource] = useState<'all' | 'selection'>('all');
+  const [isInitializing, setIsInitializing] = useState(false);
 
-  // Reset source if selection becomes invalid or on open
   useEffect(() => {
       if (isOpen && !selectionBounds) {
           setSource('all');
+      }
+      // Reset initialization state when opening
+      if (isOpen) {
+          setIsInitializing(false);
       }
   }, [isOpen, selectionBounds]);
 
@@ -40,26 +48,24 @@ export const ExportModal: React.FC<ExportModalProps> = ({
       ? totalDuration
       : (selectionBounds ? selectionBounds.end - selectionBounds.start : totalDuration);
 
-  // Estimation: 1080p ~ 1.5MB/s, 720p ~ 0.8MB/s
-  const bitrate = resolution === '1080p' ? 1.5 : 0.8;
-  const estimatedSize = (exportDuration * bitrate).toFixed(1);
-
   const formatTime = (s: number) => {
       const mins = Math.floor(s / 60);
       const secs = Math.floor(s % 60);
       return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const getBadge = (targetResHeight: number) => {
-      if (targetResHeight === 720) {
-          if (maxSourceHeight <= 720) return <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Native</span>;
-          return <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">Compressed</span>;
+  const handleStartClick = async () => {
+      if (!loaded) {
+          setIsInitializing(true);
+          try {
+              await loadFFmpeg();
+          } catch (e) {
+              console.error("Failed to load engine on demand", e);
+              setIsInitializing(false);
+              return;
+          }
       }
-      if (targetResHeight === 1080) {
-          if (maxSourceHeight <= 720) return <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">Upscale</span>;
-          return <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Native</span>;
-      }
-      return null;
+      onStartExport(resolution, source);
   };
 
   return (
@@ -74,141 +80,100 @@ export const ExportModal: React.FC<ExportModalProps> = ({
            </button>
         </div>
 
-        {/* Body */}
-        <div className="p-6 flex flex-col gap-6">
-
+        {/* Content */}
+        <div className="p-6">
           {downloadUrl ? (
-             <div className="flex flex-col items-center gap-4 py-4">
+             <div className="flex flex-col items-center gap-4 py-4 animate-in zoom-in-95">
                  <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-2">
                     <CheckCircleIcon className="w-8 h-8" />
                  </div>
                  <h4 className="text-lg font-semibold text-white">Export Complete!</h4>
-                 <p className="text-sm text-neutral-400 text-center">Your video has been rendered and is ready for download.</p>
 
                  <a
                    href={downloadUrl}
-                   download="veo-project.mp4"
-                   className="mt-4 flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-all shadow-lg shadow-indigo-900/40"
+                   download="project_export.mp4"
+                   className="mt-2 w-full flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-all shadow-lg"
                  >
-                    <DownloadIcon className="w-5 h-5" />
+                    <DownloadIcon className="w-4 h-4" />
                     Download MP4
                  </a>
-
-                 <button
-                   onClick={onClose}
-                   className="text-xs text-neutral-500 hover:text-neutral-300 mt-2"
-                 >
-                    Close
-                 </button>
+                 <button onClick={onClose} className="text-sm text-neutral-500 hover:text-white">Close</button>
              </div>
-          ) : isExporting ? (
+          ) : isExporting || isInitializing ? (
              <div className="flex flex-col gap-4 py-6">
-                <div className="flex items-center justify-between text-sm">
-                   <span className="text-neutral-200 font-medium">Rendering...</span>
-                   <span className="text-indigo-400 font-mono">{Math.round(progress)}%</span>
+                <div className="flex justify-between text-sm mb-1">
+                   <span className="text-neutral-300">
+                       {isInitializing ? "Initializing Engine..." : "Rendering..."}
+                   </span>
+                   {!isInitializing && <span className="text-indigo-400">{Math.round(progress)}%</span>}
                 </div>
-
-                <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
-                   <div
-                      className="h-full bg-indigo-500 transition-all duration-100 ease-out"
-                      style={{ width: `${progress}%` }}
-                   ></div>
+                <div className="h-2 w-full bg-neutral-800 rounded-full overflow-hidden">
+                    {isInitializing ? (
+                        <div className="h-full bg-indigo-500/50 w-full animate-pulse"></div>
+                    ) : (
+                        <div className="h-full bg-indigo-500 transition-all duration-300" style={{ width: `${progress}%` }}></div>
+                    )}
                 </div>
-
-                <div className="flex items-center gap-3 mt-2 text-xs text-neutral-500 justify-center">
-                   <SpinnerIcon className="w-4 h-4 animate-spin" />
-                   <span>Processing frames and mixing audio...</span>
-                </div>
-
-                <div className="flex justify-center mt-4">
-                    <button
-                        onClick={onClose}
-                        className="text-xs text-red-400 hover:text-red-300 border border-red-900/30 bg-red-900/10 px-3 py-1.5 rounded transition-colors"
-                    >
-                        Cancel Export
-                    </button>
-                </div>
+                <p className="text-xs text-center text-neutral-500">
+                    {isInitializing
+                        ? "Loading FFmpeg core components. This only happens once."
+                        : "Processing transitions, audio mixing and video frames..."}
+                </p>
              </div>
           ) : (
-             <>
-               <div className="space-y-6">
-                  {/* Source Selection */}
-                  <div className="space-y-3">
-                     <label className="text-xs font-bold text-neutral-500 uppercase tracking-wide">Source</label>
-                     <div className="flex flex-col gap-2">
-                        <label className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${source === 'all' ? 'bg-indigo-500/10 border-indigo-500/50' : 'bg-neutral-900 border-neutral-800 hover:border-neutral-700'}`}>
-                           <input type="radio" name="source" value="all" checked={source === 'all'} onChange={() => setSource('all')} className="w-4 h-4 accent-indigo-500" />
-                           <div className="ml-3 flex flex-col">
-                              <span className={`text-sm font-medium ${source === 'all' ? 'text-white' : 'text-neutral-400'}`}>Entire Timeline</span>
-                              <span className="text-[10px] text-neutral-500">Duration: {formatTime(totalDuration)}</span>
-                           </div>
-                        </label>
+             <div className="flex flex-col gap-6">
+                {/* Source Select */}
+                <div className="space-y-3">
+                   <label className="text-xs font-bold text-neutral-500 uppercase">Export Range</label>
+                   <div className="flex gap-3">
+                      <button
+                        onClick={() => setSource('all')}
+                        className={`flex-1 py-3 px-4 rounded-lg border text-sm font-medium transition-all ${source === 'all' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-200' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-700'}`}
+                      >
+                         Full Timeline
+                      </button>
+                      <button
+                         onClick={() => setSource('selection')}
+                         disabled={!selectionBounds}
+                         className={`flex-1 py-3 px-4 rounded-lg border text-sm font-medium transition-all ${source === 'selection' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-200' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-700'} ${!selectionBounds && 'opacity-50 cursor-not-allowed'}`}
+                      >
+                         Selection
+                      </button>
+                   </div>
+                   <p className="text-[11px] text-neutral-500 text-right">Duration: {formatTime(exportDuration)}</p>
+                </div>
 
-                        <label className={`flex items-center p-3 rounded-lg border transition-all ${!selectionBounds ? 'opacity-50 cursor-not-allowed bg-neutral-900 border-neutral-800' : (source === 'selection' ? 'bg-indigo-500/10 border-indigo-500/50 cursor-pointer' : 'bg-neutral-900 border-neutral-800 hover:border-neutral-700 cursor-pointer')}`}>
-                           <input type="radio" name="source" value="selection" checked={source === 'selection'} onChange={() => setSource('selection')} disabled={!selectionBounds} className="w-4 h-4 accent-indigo-500" />
-                           <div className="ml-3 flex flex-col">
-                              <span className={`text-sm font-medium ${source === 'selection' ? 'text-white' : 'text-neutral-400'}`}>Selection Only</span>
-                              <span className="text-[10px] text-neutral-500">
-                                  {selectionBounds ? `Duration: ${formatTime(selectionBounds.end - selectionBounds.start)}` : 'No clips selected'}
-                              </span>
-                           </div>
-                        </label>
-                     </div>
-                  </div>
+                {/* Resolution */}
+                <div className="space-y-3">
+                   <label className="text-xs font-bold text-neutral-500 uppercase">Quality</label>
+                   <div className="grid grid-cols-2 gap-3">
+                      <button
+                         onClick={() => setResolution('1080p')}
+                         className={`p-3 rounded-lg border text-left transition-all ${resolution === '1080p' ? 'bg-indigo-500/10 border-indigo-500' : 'bg-neutral-900 border-neutral-800 hover:border-neutral-700'}`}
+                      >
+                         <div className={`text-sm font-medium ${resolution === '1080p' ? 'text-indigo-200' : 'text-neutral-300'}`}>1080p High</div>
+                         <div className="text-[10px] text-neutral-500 mt-1">1920x1080 • ~{(exportDuration * 1.5).toFixed(1)}MB</div>
+                      </button>
+                      <button
+                         onClick={() => setResolution('720p')}
+                         className={`p-3 rounded-lg border text-left transition-all ${resolution === '720p' ? 'bg-indigo-500/10 border-indigo-500' : 'bg-neutral-900 border-neutral-800 hover:border-neutral-700'}`}
+                      >
+                         <div className={`text-sm font-medium ${resolution === '720p' ? 'text-indigo-200' : 'text-neutral-300'}`}>720p Fast</div>
+                         <div className="text-[10px] text-neutral-500 mt-1">1280x720 • ~{(exportDuration * 0.8).toFixed(1)}MB</div>
+                      </button>
+                   </div>
+                </div>
 
-                  {/* Settings Grid */}
-                  <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-3">
-                         <label className="text-xs font-bold text-neutral-500 uppercase tracking-wide">Resolution</label>
-                         <div className="flex flex-col gap-2">
-                            <button
-                              onClick={() => setResolution('1080p')}
-                              className={`p-2.5 rounded-lg border text-xs font-medium text-left transition-all flex items-center justify-between ${resolution === '1080p' ? 'bg-indigo-500/10 border-indigo-500/50 text-indigo-300' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-700'}`}
-                            >
-                               <span>1080p (Full HD)</span>
-                               {getBadge(1080)}
-                            </button>
-                            <button
-                              onClick={() => setResolution('720p')}
-                              className={`p-2.5 rounded-lg border text-xs font-medium text-left transition-all flex items-center justify-between ${resolution === '720p' ? 'bg-indigo-500/10 border-indigo-500/50 text-indigo-300' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-700'}`}
-                            >
-                               <span>720p (HD)</span>
-                               {getBadge(720)}
-                            </button>
-                         </div>
-                      </div>
-
-                      <div className="space-y-3">
-                         <label className="text-xs font-bold text-neutral-500 uppercase tracking-wide">Anticipated Output</label>
-                         <div className="bg-neutral-900 rounded-lg p-3 border border-neutral-800 space-y-2">
-                            <div className="flex justify-between items-center text-xs">
-                               <span className="text-neutral-500">Format</span>
-                               <span className="text-neutral-300 font-mono">MP4 (H.264)</span>
-                            </div>
-                            <div className="flex justify-between items-center text-xs">
-                               <span className="text-neutral-500">Length</span>
-                               <span className="text-neutral-300 font-mono">{formatTime(exportDuration)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-xs">
-                               <span className="text-neutral-500">Est. Size</span>
-                               <span className="text-neutral-300 font-mono">~{estimatedSize} MB</span>
-                            </div>
-                         </div>
-                      </div>
-                  </div>
-               </div>
-
-               <div className="mt-8 pt-6 border-t border-neutral-800 flex justify-end">
-                  <button
-                    onClick={() => onStartExport(resolution, source)}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-white text-black hover:bg-neutral-200 rounded-lg font-bold text-sm transition-colors shadow-lg shadow-white/5"
-                  >
-                     Start Render
-                  </button>
-               </div>
-             </>
+                <button
+                  onClick={handleStartClick}
+                  disabled={loading}
+                  className="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-neutral-200 transition-colors shadow-lg mt-2 flex items-center justify-center gap-2"
+                >
+                   {loading ? <SpinnerIcon className="w-4 h-4 animate-spin"/> : null}
+                   Start Export
+                </button>
+             </div>
           )}
-
         </div>
       </div>
     </div>

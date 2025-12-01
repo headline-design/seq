@@ -1,8 +1,10 @@
 "use client";
 
 import React from 'react';
-import { Editor } from './components/editor';
 import { MediaItem, TimelineClip } from './types';
+import dynamic from 'next/dynamic';
+
+const Editor = dynamic(() => import('./components/editor').then(mod => mod.Editor), { ssr: false });
 
 const DEMO_FINAL_SEQUENCE = {
   masterDescription: 'A live-action flashback scene inspired by the "zoom out to the past" effect from Ratatouille.',

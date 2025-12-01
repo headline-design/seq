@@ -32,7 +32,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
         </div>
       </div>
 
-      <div className="p-6 flex flex-col gap-6">
+      <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
         <div className="space-y-2">
             <label className="text-xs font-medium text-neutral-300">Model</label>
             <div className="p-3 bg-[#18181b] border border-neutral-700 rounded-lg flex items-center justify-between">

@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { TimelineClip, Track, MediaItem } from '../types';
-import { MusicIcon, VolumeIcon, MagnetIcon, TrashIcon, CopyIcon, ScissorsIcon, MusicIcon as DetachIcon, MuteIcon, LockIcon, UnlockIcon, ChevronDownIcon, CheckIcon, SplitIcon } from './icons';
+import { MusicIcon, VolumeIcon, MagnetIcon, TrashIcon, CopyIcon, ScissorsIcon, MusicIcon as DetachIcon, MuteIcon, LockIcon, UnlockIcon, ChevronDownIcon, CheckIcon, SplitIcon, PlusIcon, LayoutIcon } from './icons';
 
 interface TimelineProps {
     tracks: Track[];
@@ -9,11 +9,11 @@ interface TimelineProps {
     currentTime: number;
     duration: number;
     zoomLevel: number;
-    isPlaying: boolean;
     selectedClipIds: string[];
     className?: string;
     style?: React.CSSProperties;
     tool: 'select' | 'razor';
+    isPlaying: boolean;
     onSeek: (time: number) => void;
     onSelectClips: (clipIds: string[]) => void;
     onZoomChange: (zoom: number) => void;
@@ -26,11 +26,37 @@ interface TimelineProps {
     onDuplicateClip: (clipIds: string[]) => void;
     onToolChange: (tool: 'select' | 'razor') => void;
     onDragStart: () => void;
+    onAddTrack?: (type: 'video' | 'audio') => void;
 }
 
 type DragMode = 'none' | 'move' | 'trim-start' | 'trim-end';
 
 const SNAP_THRESHOLD_PX = 15;
+
+const ClipWaveform: React.FC<{ duration: number; offset: number; isAudio: boolean; isSelected: boolean }> = ({ duration, offset, isAudio, isSelected }) => {
+    // Generate a deterministic pattern based on duration/offset to look like a waveform
+    // We limit bars to avoid performance issues with many clips
+    const bars = Math.min(100, Math.max(10, Math.floor(duration * 8)));
+
+    return (
+        <div className="w-full h-full flex items-end gap-[1px] overflow-hidden opacity-80 pointer-events-none">
+            {Array.from({ length: bars }).map((_, i) => {
+                // varied height based on sine waves to look like audio
+                const x = i + (offset * 8);
+                const noise = Math.sin(x * 0.8) * Math.cos(x * 1.3);
+                const height = 20 + Math.abs(noise) * 70;
+
+                return (
+                    <div
+                        key={i}
+                        className={`flex-1 rounded-t-[1px] min-w-[2px] ${isSelected ? 'bg-white/80' : (isAudio ? 'bg-emerald-400/60' : 'bg-white/30')}`}
+                        style={{ height: `${height}%` }}
+                    />
+                );
+            })}
+        </div>
+    );
+};
 
 interface SnapConfig {
     enabled: boolean;
@@ -39,40 +65,6 @@ interface SnapConfig {
     toPlayhead: boolean;
     gridInterval: number;
 }
-
-// Sub-component for Waveform Visualization
-const ClipWaveform = React.memo(({ duration, offset, isAudio, isSelected }: { duration: number, offset: number, isAudio: boolean, isSelected: boolean }) => {
-    // Determine bar count based on duration (density)
-    const density = 6; // bars per second
-    const barCount = Math.max(5, Math.floor(duration * density));
-
-    return (
-        <div className={`absolute inset-0 flex gap-[1px] pointer-events-none z-10 ${isAudio ? 'items-center px-1' : 'items-end pb-0.5'}`}>
-            {Array.from({ length: barCount }).map((_, i) => {
-                // Pseudo-random height based on position in file (offset) to ensure it "scrolls" correctly when trimmed
-                const timePos = offset + (i * (duration / barCount));
-
-                // Deterministic "random" value 0-1 based on time
-                const val = (Math.sin(timePos * 15) + Math.cos(timePos * 37) * Math.sin(timePos * 50) + 2) / 4;
-                const heightPercentage = Math.max(15, val * 100);
-
-                return (
-                    <div
-                        key={i}
-                        className={`flex-1 rounded-full ${isAudio
-                                ? (isSelected ? 'bg-emerald-300' : 'bg-emerald-500')
-                                : (isSelected ? 'bg-indigo-300/60' : 'bg-white/40')
-                            }`}
-                        style={{
-                            height: `${isAudio ? heightPercentage : heightPercentage * 0.35}%`,
-                            opacity: isAudio ? 0.9 : 0.7
-                        }}
-                    />
-                );
-            })}
-        </div>
-    );
-});
 
 export const Timeline: React.FC<TimelineProps> = ({
     tracks,
@@ -96,9 +88,11 @@ export const Timeline: React.FC<TimelineProps> = ({
     onRippleDeleteClip,
     onDuplicateClip,
     onToolChange,
-    onDragStart
+    onDragStart,
+    onAddTrack
 }) => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const headerContainerRef = useRef<HTMLDivElement>(null);
     const [isScrubbing, setIsScrubbing] = useState(false);
     const [snapIndicator, setSnapIndicator] = useState<number | null>(null);
     const [lastClickedClipId, setLastClickedClipId] = useState<string | null>(null);
@@ -171,6 +165,12 @@ export const Timeline: React.FC<TimelineProps> = ({
                     onSplitClip(id, currentTime);
                 }
             });
+        }
+    };
+
+    const handleScroll = () => {
+        if (headerContainerRef.current && scrollContainerRef.current) {
+            headerContainerRef.current.scrollTop = scrollContainerRef.current.scrollTop;
         }
     };
 
@@ -353,7 +353,7 @@ export const Timeline: React.FC<TimelineProps> = ({
             if (container) {
                 const rect = container.getBoundingClientRect();
                 const x = e.clientX - rect.left + container.scrollLeft;
-                const y = e.clientY - rect.top;
+                const y = e.clientY - rect.top + container.scrollTop; // Adjust for scrollY
 
                 selectionStartRef.current = { x, y };
                 setIsSelecting(true);
@@ -487,7 +487,7 @@ export const Timeline: React.FC<TimelineProps> = ({
             const rect = container.getBoundingClientRect();
 
             const currentX = e.clientX - rect.left + container.scrollLeft;
-            const currentY = e.clientY - rect.top;
+            const currentY = e.clientY - rect.top + container.scrollTop;
             const startX = selectionStartRef.current.x;
             const startY = selectionStartRef.current.y;
 
@@ -585,6 +585,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                 e.preventDefault();
                 el.scrollLeft += e.deltaY;
             }
+            // Vertical scroll is handled natively now
         };
 
         el.addEventListener('wheel', handleWheel, { passive: false });
@@ -725,17 +726,20 @@ export const Timeline: React.FC<TimelineProps> = ({
             <div className={`flex-1 flex overflow-hidden relative ${tool === 'razor' ? 'cursor-crosshair' : ''}`} id="timeline-wrapper">
 
                 {/* Track Headers */}
-                <div className="w-32 bg-[#09090b] border-r border-neutral-800 shrink-0 z-20 flex flex-col pt-8 shadow-[4px_0_15px_-5px_rgba(0,0,0,0.5)]">
+                <div
+                    ref={headerContainerRef}
+                    className="w-32 bg-[#09090b] border-r border-neutral-800 shrink-0 z-20 flex flex-col pt-8 shadow-[4px_0_15px_-5px_rgba(0,0,0,0.5)] overflow-hidden"
+                >
                     {tracks.map(track => {
                         const isAudio = track.type === 'audio';
                         const trackHeight = isAudio ? 'h-16' : 'h-24';
 
                         return (
-                            <div key={track.id} className={`${trackHeight} border-b border-neutral-800/50 flex flex-col px-3 py-3 gap-2 bg-[#09090b] relative group/header`}>
+                            <div key={track.id} className={`${trackHeight} border-b border-neutral-800/50 flex flex-col px-3 py-3 gap-2 bg-[#09090b] relative group/header shrink-0`}>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-1.5">
                                         {isAudio ? <MusicIcon className="w-3 h-3 text-emerald-500" /> : null}
-                                        <span className="text-[11px] text-neutral-400 font-semibold uppercase tracking-wider">{track.name}</span>
+                                        <span className="text-[11px] text-neutral-400 font-semibold uppercase tracking-wider truncate" title={track.name}>{track.name}</span>
                                     </div>
                                     <div className="flex items-center gap-1 opacity-0 group-hover/header:opacity-100 transition-opacity">
                                         <button
@@ -786,16 +790,38 @@ export const Timeline: React.FC<TimelineProps> = ({
                             </div>
                         );
                     })}
+
+                    {/* Add Track Buttons */}
+                    {onAddTrack && (
+                        <div className="p-2 flex flex-col gap-1 mt-2">
+                            <button
+                                onClick={() => onAddTrack('video')}
+                                className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-neutral-800 hover:bg-neutral-800 text-[10px] text-neutral-500 hover:text-neutral-300 transition-colors"
+                            >
+                                <PlusIcon className="w-3 h-3" /> Video Track
+                            </button>
+                            <button
+                                onClick={() => onAddTrack('audio')}
+                                className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-neutral-800 hover:bg-neutral-800 text-[10px] text-neutral-500 hover:text-neutral-300 transition-colors"
+                            >
+                                <PlusIcon className="w-3 h-3" /> Audio Track
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Spacer to allow scrolling past bottom */}
+                    <div className="h-20 shrink-0"></div>
                 </div>
 
                 {/* Scrollable Timeline */}
                 <div
                     ref={scrollContainerRef}
-                    className="flex-1 overflow-x-auto overflow-y-hidden relative bg-[#0c0c0e] custom-scrollbar"
+                    onScroll={handleScroll}
+                    className="flex-1 overflow-x-auto overflow-y-auto relative bg-[#0c0c0e] custom-scrollbar"
                     onMouseDown={handleMouseDownBackground}
                 >
                     {/* Global Ruler */}
-                    <div className="h-8 border-b border-neutral-800 flex items-end sticky top-0 bg-[#09090b] z-10 min-w-full ruler-area" style={{ width: `${Math.max(duration * zoomLevel + 500, 2000)}px` }}>
+                    <div className="h-8 border-b border-neutral-800 flex items-end sticky top-0 bg-[#09090b] z-30 min-w-full ruler-area" style={{ width: `${Math.max(duration * zoomLevel + 500, 2000)}px` }}>
                         <div className="relative w-full h-full">
                             {[...Array(Math.ceil(duration + 10))].map((_, sec) => (
                                 <div key={sec} className="absolute bottom-0 h-full flex flex-col justify-end pointer-events-none" style={{ left: `${(sec * zoomLevel)}px` }}>
@@ -831,7 +857,8 @@ export const Timeline: React.FC<TimelineProps> = ({
                             className="absolute top-0 bottom-0 w-[1px] bg-[#6366f1] z-50 pointer-events-none"
                             style={{ left: `${(currentTime * zoomLevel)}px` }}
                         >
-                            <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-[#6366f1] -ml-[5.5px] -mt-[0px]"></div>
+                            <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-[#6366f1] -ml-[5.5px] -mt-[0px] sticky top-0"></div>
+                            <div className="absolute top-0 bottom-0 w-px bg-[#6366f1]"></div>
                         </div>
 
                         {/* Snap Indicator Line */}
@@ -917,31 +944,28 @@ export const Timeline: React.FC<TimelineProps> = ({
                                                     <div className="w-1.5 h-8 bg-white rounded-full shadow-md group-hover/handle:scale-110 transition-transform"></div>
                                                 </div>
 
-                                                <div className="flex-1 flex flex-col overflow-hidden relative rounded-md">
-                                                    <div className={`h-6 px-2 flex items-center gap-2 shrink-0 border-b border-white/5 ${isSelected ? (isAudio ? 'bg-emerald-500/20' : 'bg-[#6366f1]/20') : 'bg-white/5'}`}>
-                                                        <span className={`text-[10px] font-medium truncate ${isSelected ? (isAudio ? 'text-emerald-200' : 'text-indigo-200') : 'text-neutral-400'}`}>
-                                                            {media?.prompt || (isAudio ? 'Audio Clip' : 'Unknown Clip')}
+                                                {/* Content Render */}
+                                                <div className="flex-1 overflow-hidden relative px-2 py-1 flex flex-col justify-center">
+                                                    {/* Thumbnails Strips (Video only) */}
+                                                    {!isAudio && !clip.isAudioDetached && media?.status === 'ready' && clip.duration * zoomLevel > 60 && (
+                                                        <div className="absolute inset-0 flex opacity-20 pointer-events-none">
+                                                            {[...Array(Math.floor((clip.duration * zoomLevel) / 60))].map((_, i) => (
+                                                                <div key={i} className="w-[60px] h-full border-r border-white/10 overflow-hidden relative">
+                                                                    <video src={media.url} className="w-full h-full object-cover" />
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Info */}
+                                                    <div className="relative z-10 flex items-center gap-2">
+                                                        <span className={`text-[10px] font-medium truncate drop-shadow-md ${isAudio ? 'text-emerald-100' : 'text-white'}`}>
+                                                            {media?.prompt || 'Media'}
                                                         </span>
                                                     </div>
-                                                    <div className="flex-1 relative overflow-hidden bg-[#000000]/20">
-                                                        {media && !isAudio && (
-                                                            <div className="absolute inset-0 flex opacity-30 grayscale group-hover/item:grayscale-0 transition-all">
-                                                                {[...Array(Math.min(10, Math.ceil(clip.duration)))].map((_, i) => (
-                                                                    <div key={i} className="flex-1 border-r border-white/5 bg-neutral-800"></div>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                        {(isAudio || !clip.isAudioDetached) && (
-                                                            <ClipWaveform
-                                                                duration={clip.duration}
-                                                                offset={clip.offset}
-                                                                isAudio={isAudio}
-                                                                isSelected={isSelected}
-                                                            />
-                                                        )}
-                                                        <div className="absolute bottom-1 left-1.5 z-20">
-                                                            <span className="text-[9px] font-mono text-white/70 drop-shadow-md">{clip.duration.toFixed(1)}s</span>
-                                                        </div>
+                                                    {/* Waveform Visualization */}
+                                                    <div className="absolute bottom-0 left-0 right-0 h-1/2 opacity-50 px-0.5">
+                                                        {media && <ClipWaveform duration={clip.duration} offset={clip.offset} isAudio={isAudio} isSelected={isSelected} />}
                                                     </div>
                                                 </div>
                                             </div>
@@ -950,60 +974,64 @@ export const Timeline: React.FC<TimelineProps> = ({
                                 </div>
                             );
                         })}
+
+                        {/* Extra space at bottom */}
+                        <div className="h-40"></div>
                     </div>
                 </div>
+
+                {/* Context Menu */}
+                {contextMenu && (
+                    <div
+                        className="fixed z-[100] bg-[#18181b] border border-neutral-700 rounded-lg shadow-2xl py-1 w-48 animate-in fade-in zoom-in-95 duration-75"
+                        style={{ left: contextMenu.x, top: contextMenu.y }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="px-3 py-1.5 border-b border-neutral-800 text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1">
+                            Clip Actions
+                        </div>
+
+                        <button
+                            onClick={() => { onSplitClip(contextMenu.clipId, currentTime); setContextMenu(null); }}
+                            className="w-full px-3 py-1.5 text-left text-xs text-neutral-200 hover:bg-neutral-800 flex items-center gap-2"
+                        >
+                            <SplitIcon className="w-3.5 h-3.5 text-neutral-500" /> Split at Playhead
+                        </button>
+
+                        <button
+                            onClick={() => { onDuplicateClip([contextMenu.clipId]); setContextMenu(null); }}
+                            className="w-full px-3 py-1.5 text-left text-xs text-neutral-200 hover:bg-neutral-800 flex items-center gap-2"
+                        >
+                            <CopyIcon className="w-3.5 h-3.5 text-neutral-500" /> Duplicate
+                        </button>
+
+                        {!clips.find(c => c.id === contextMenu.clipId)?.isAudioDetached && tracks.find(t => t.id === clips.find(c => c.id === contextMenu.clipId)?.trackId)?.type === 'video' && (
+                            <button
+                                onClick={() => { onDetachAudio(contextMenu.clipId); setContextMenu(null); }}
+                                className="w-full px-3 py-1.5 text-left text-xs text-neutral-200 hover:bg-neutral-800 flex items-center gap-2"
+                            >
+                                <DetachIcon className="w-3.5 h-3.5 text-neutral-500" /> Detach Audio
+                            </button>
+                        )}
+
+                        <div className="h-px bg-neutral-800 my-1"></div>
+
+                        <button
+                            onClick={() => { onRippleDeleteClip([contextMenu.clipId]); setContextMenu(null); }}
+                            className="w-full px-3 py-1.5 text-left text-xs text-amber-400 hover:bg-neutral-800 flex items-center gap-2"
+                        >
+                            <LayoutIcon className="w-3.5 h-3.5 text-amber-600" /> Ripple Delete
+                        </button>
+
+                        <button
+                            onClick={() => { onDeleteClip([contextMenu.clipId]); setContextMenu(null); }}
+                            className="w-full px-3 py-1.5 text-left text-xs text-red-400 hover:bg-neutral-800 flex items-center gap-2"
+                        >
+                            <TrashIcon className="w-3.5 h-3.5 text-red-500" /> Delete
+                        </button>
+                    </div>
+                )}
             </div>
-
-            {contextMenu && (
-                <div
-                    className="fixed z-[100] bg-[#18181b] border border-neutral-700 rounded-lg shadow-xl py-1 w-48 animate-in fade-in zoom-in-95 duration-75"
-                    style={{ left: contextMenu.x, top: contextMenu.y }}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <div
-                        className="px-3 py-2 hover:bg-neutral-800 cursor-pointer flex items-center gap-2 text-xs text-neutral-200"
-                        onClick={() => {
-                            onDetachAudio(contextMenu.clipId);
-                            setContextMenu(null);
-                        }}
-                    >
-                        <DetachIcon className="w-3.5 h-3.5" />
-                        Detach Audio
-                    </div>
-                    <div
-                        className="px-3 py-2 hover:bg-neutral-800 cursor-pointer flex items-center gap-2 text-xs text-neutral-200"
-                        onClick={() => {
-                            onDuplicateClip([contextMenu.clipId]);
-                            setContextMenu(null);
-                        }}
-                    >
-                        <CopyIcon className="w-3.5 h-3.5" />
-                        Duplicate
-                    </div>
-                    <div className="h-px bg-neutral-800 my-1"></div>
-                    <div
-                        className="px-3 py-2 hover:bg-neutral-800 cursor-pointer flex items-center gap-2 text-xs text-neutral-200"
-                        onClick={() => {
-                            onRippleDeleteClip([contextMenu.clipId]);
-                            setContextMenu(null);
-                        }}
-                    >
-                        <SplitIcon className="w-3.5 h-3.5 -rotate-90" />
-                        Ripple Delete
-                    </div>
-                    <div
-                        className="px-3 py-2 hover:bg-red-900/20 cursor-pointer flex items-center gap-2 text-xs text-red-400 hover:text-red-300"
-                        onClick={() => {
-                            onDeleteClip([contextMenu.clipId]);
-                            setContextMenu(null);
-                        }}
-                    >
-                        <TrashIcon className="w-3.5 h-3.5" />
-                        Delete
-                    </div>
-                </div>
-            )}
-
         </div>
     );
 };

@@ -30,7 +30,7 @@ export const TransitionsPanel: React.FC<TransitionsPanelProps> = ({ onClose, onA
         </div>
       </div>
 
-      <div className="p-4 flex flex-col gap-2 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2 custom-scrollbar">
         {!selectedClipId && (
             <div className="p-3 mb-2 bg-amber-500/10 border border-amber-500/20 rounded text-amber-200/70 text-xs">
                 Select a clip on the timeline to apply a transition.
