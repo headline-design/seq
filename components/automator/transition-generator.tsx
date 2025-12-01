@@ -109,10 +109,10 @@ export function TransitionGenerator({
     const position = `Row ${row}, Column ${col}`
 
     const extractionPrompt = `
-      Look at the provided transition storyboard grid. 
-      Extract strictly the single panel at position #${index + 1} (reading order: ${position}). 
+      Look at the provided transition storyboard grid.
+      Extract strictly the single panel at position #${index + 1} (reading order: ${position}).
       Generate a high-resolution, full-frame cinematic version of THIS SPECIFIC PANEL ONLY.
-      
+
       This is a transition keyframe (first or last frame).
       - Remove any text, captions, numbers, or borders.
       - Ensure the aspect ratio is standard 16:9 cinematic.
@@ -384,22 +384,7 @@ export function TransitionGenerator({
                         fill
                         className="object-cover"
                       />
-                      {status === "complete" && (
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => regeneratePanel(i)}
-                            disabled={regenerating.includes(i)}
-                          >
-                            {regenerating.includes(i) ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <RefreshCw className="w-3 h-3" />
-                            )}
-                          </Button>
-                        </div>
-                      )}
+
                       <div className="absolute top-1 right-1">
                         <CheckCircle2 className="w-4 h-4 text-green-500 bg-black rounded-full" />
                       </div>
@@ -419,6 +404,26 @@ export function TransitionGenerator({
           </div>
         </div>
       )}
+      {status === "complete" &&
+        Array.from({ length: analyzedCount || 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100"
+          >
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => regeneratePanel(i)}
+              disabled={regenerating.includes(i)}
+            >
+              {regenerating.includes(i) ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <RefreshCw className="w-3 h-3" />
+              )}
+            </Button>
+          </div>
+        ))}
 
       <div className="flex justify-center pt-6 border-t border-zinc-800">
         <Button variant="outline" onClick={onSkip} className="border-zinc-700 hover:bg-zinc-800 bg-transparent">

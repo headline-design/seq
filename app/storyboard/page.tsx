@@ -186,9 +186,6 @@ export default function StoryboardPage() {
         storageMode={storageMode}
         linkedPanelData={linkedPanelData}
         transitionPanels={transitionPanels}
-        prompts={prompts}
-        durations={durations}
-        videoUrls={videoUrls}
       />
 
       <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-xl">

@@ -202,7 +202,7 @@ export function InputSection({
                 <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full">
                   <ImageUploadBox
                     imageNumber={1}
-                    preview={image1Preview}
+                    preview={image1Preview || ""}
                     onDrop={(e) => {
                       e.preventDefault()
                       const file = e.dataTransfer.files[0]
@@ -235,7 +235,7 @@ export function InputSection({
 
                   <ImageUploadBox
                     imageNumber={2}
-                    preview={image2Preview}
+                    preview={image2Preview || ""}
                     onDrop={(e) => {
                       e.preventDefault()
                       const file = e.dataTransfer.files[0]

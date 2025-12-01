@@ -9,6 +9,8 @@ interface DevPanelProps {
   currentStep?: string
   masterData?: { url: string; prompt: string; panelCount: number } | null
   processedPanels?: string[]
+  transitionPanels?: string[]
+  linkedPanelData?: Record<number, string>
   finalPanels?: string[]
   storageMode?: "persistent" | "temporal"
 }
@@ -16,7 +18,9 @@ interface DevPanelProps {
 export function DevPanel({
   currentStep,
   masterData,
+  linkedPanelData,
   processedPanels = [],
+  transitionPanels = [],
   finalPanels = [],
   storageMode,
 }: DevPanelProps) {

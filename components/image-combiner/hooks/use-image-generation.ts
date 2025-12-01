@@ -19,6 +19,8 @@ interface UseImageGenerationProps {
   onToast: (message: string, type?: "success" | "error") => void
   onImageUpload: (file: File, imageNumber: 1 | 2) => Promise<void>
   onApiKeyMissing?: () => void
+  outOfCredits?: boolean
+  onOutOfCredits?: () => void
 }
 
 interface GenerateImageOptions {
@@ -67,6 +69,7 @@ export function useImageGeneration({
   onToast,
   onImageUpload,
   onApiKeyMissing,
+  outOfCredits,
 }: UseImageGenerationProps) {
   const [selectedGenerationId, setSelectedGenerationId] = useState<string | null>(null)
   const [imageLoaded, setImageLoaded] = useState(false)
@@ -126,6 +129,7 @@ export function useImageGeneration({
         imageUrl: null,
         prompt: effectivePrompt,
         timestamp: Date.now() + i,
+        createdAt: new Date().toISOString(),
         abortController: controller,
       }
 
@@ -215,8 +219,6 @@ export function useImageGeneration({
               prompt: effectivePrompt,
               timestamp: Date.now(),
               createdAt: new Date().toISOString(),
-              aspectRatio: effectiveAspectRatio,
-              mode: currentMode,
             }
 
             setGenerations((prev) => prev.filter((gen) => gen.id !== generationId))

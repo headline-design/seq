@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { ImageCombiner } from "@/components/image-combiner"
+import { LandingPage } from "@/seq-ai-studio/landing-page/components/landing-page"
 
 export const metadata: Metadata = {
   title: "Seq - AI-Powered Storyboard to Video Sequence Editor",
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 }
 
 export default function Home() {
-  return <ImageCombiner />
+  return <LandingPage />
 }

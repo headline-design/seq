@@ -3,7 +3,7 @@ import { Film, Layers, Wand2, Settings2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { StoryboardPanel } from "./storyboard-panel"
-import type { StoryboardPanelData, VideoConfig } from "./types"
+import type { StoryboardPanelData, VideoConfig, VideoModel } from "./types"
 import { useToastContext } from "@/components/ui/sonner"
 import { useEffect, useState } from "react"
 import { Textarea } from "@/components/ui/textarea"
@@ -43,11 +43,6 @@ export function StoryboardContainer({
 
   useEffect(() => {
     if (initialPanels && initialPanels.length > 0) {
-      console.log("[v0] StoryboardContainer initialPanels:", initialPanels)
-      console.log("[v0] StoryboardContainer linkedPanelData prop:", initialLinkedPanelData)
-      console.log("[v0] StoryboardContainer prompts prop:", initialPrompts)
-      console.log("[v0] StoryboardContainer durations prop:", initialDurations)
-      console.log("[v0] StoryboardContainer videoUrls prop:", initialVideoUrls) // Added log
 
       const savedSession = loadSession()
       const savedVideoUrls = initialVideoUrls || savedSession?.videoUrls || {} // Use initialVideoUrls first
@@ -58,9 +53,10 @@ export function StoryboardContainer({
         imageUrl: url,
         linkedImageUrl: initialLinkedPanelData?.[index],
         prompt: initialPrompts?.[index] || "",
-        duration: initialDurations?.[index] || 5,
+        duration: (initialDurations?.[index] || 5) as 5 | 3 | 8,
         videoUrl: savedVideoUrls[index], // Use savedVideoUrls which includes initialVideoUrls
-        model: initialLinkedPanelData?.[index] ? "veo3-fast-transition" : "veo3-fast",
+        model: initialLinkedPanelData?.[index] ? ("veo3.1-fast" as VideoModel) : ("veo3.1-fast" as VideoModel),
+        isGenerating: false, // Default value for isGenerating
       }))
       setPanels(newPanels)
 
@@ -171,7 +167,7 @@ export function StoryboardContainer({
           ...panel,
           prompt: demoPanel.prompt,
           duration: demoPanel.duration,
-          model: demoPanel.model || (panel.linkedImageUrl ? "veo3-fast-transition" : "veo3-fast"),
+          model: panel.linkedImageUrl ? ("veo3-fast-transition" as VideoModel) : ("veo3-fast" as VideoModel),
           videoUrl: demoPanel.videoUrl,
         }
       }

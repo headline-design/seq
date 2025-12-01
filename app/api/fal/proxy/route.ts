@@ -1,4 +1,5 @@
-import { route } from "@fal-ai/serverless/proxy"
+import * as route from "@fal-ai/server-proxy"
 
-export const POST = route.POST
-export const GET = route.GET
+
+export const POST = route.responsePassthrough
+export const GET = route.responsePassthrough

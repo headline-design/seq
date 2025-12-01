@@ -29,6 +29,7 @@ export function saveSession(session: Partial<AutomatorSession>) {
     const updated: AutomatorSession = {
       ...existing,
       ...session,
+      step: session.step ?? existing?.step ?? "prompt", // Ensure 'step' is always defined
       timestamp: Date.now(),
     }
     localStorage.setItem(SESSION_KEY, JSON.stringify(updated))

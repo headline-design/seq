@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     if (model === "wan-2.5") {
       const falModel = "fal-ai/wan-25-preview/image-to-video"
 
-      const videoDuration: "5" | "10" = duration >= 8 ? "10" : "5"
+      const videoDuration: "5" | "10" = duration >= 8 ? "10" : "5";
 
       console.log(`[v0] Calling fal.subscribe with model: ${falModel} (WAN 2.5)`)
       console.log(`[v0] image_url: ${imageUrl.trim()}`)
@@ -159,7 +159,20 @@ export async function POST(request: Request) {
       console.log("[v0] First-last-frame input:", JSON.stringify(input, null, 2))
 
       const result = await fal.subscribe(falModel, {
-        input,
+        input: input === undefined ? {
+          prompt: prompt.trim(),
+          first_frame_url: imageUrl.trim(),
+          last_frame_url: linkedImageUrl.trim(),
+          duration: '8s',
+          aspect_ratio: (aspectRatio || "16:9") as "auto" | "9:16" | "16:9" | "1:1",
+          resolution: "720p" as "720p" | "1080p",
+          generate_audio: true,
+
+        } : {
+          ...input,
+          duration: '8s',
+
+        },
         logs: true,
       })
 
@@ -188,7 +201,7 @@ export async function POST(request: Request) {
       input: {
         prompt: prompt.trim(),
         image_url: imageUrl.trim(),
-        duration: videoDuration,
+        duration: "8s",
         aspect_ratio: (aspectRatio || "16:9") as "16:9" | "9:16",
       },
       logs: true,

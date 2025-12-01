@@ -21,7 +21,6 @@ export async function POST(request: NextRequest) {
     const result = await fal.subscribe("fal-ai/ccsr", {
       input: {
         image_url,
-        prompt: prompt || "high quality, detailed, sharp",
       },
       logs: true,
     })

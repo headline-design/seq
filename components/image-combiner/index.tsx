@@ -391,7 +391,7 @@ export function ImageCombiner() {
   )
 
   const handleGlobalDrop = useCallback(
-    async (e: React.DragEvent, targetSlot: 1 | 2) => {
+    async (e: React.DragEvent, targetSlot?: 1 | 2) => {
       e.preventDefault()
       e.stopPropagation()
       setIsDraggingOver(false)
@@ -403,7 +403,7 @@ export function ImageCombiner() {
         const file = files[0]
         if (file.type.startsWith("image/") || file.name.toLowerCase().endsWith(".heic")) {
           setUseUrls(false)
-          await handleImageUpload(file, targetSlot)
+          await handleImageUpload(file, targetSlot ?? 1)
           showToast(`Image added to slot ${targetSlot}`, "success")
         }
       }
@@ -502,6 +502,7 @@ export function ImageCombiner() {
         imageUrl: url,
         prompt: "",
         isGenerating: false,
+        duration: 3
       }
       setStoryboardPanels((prev) => [...prev, newPanel])
       toastCtx.success("Added to storyboard!")
@@ -681,8 +682,8 @@ export function ImageCombiner() {
                     image1Url={image1Url}
                     image2Url={image2Url}
                     isConvertingHeic={isConvertingHeic}
-                    canGenerate={canGenerate}
-                    hasImages={hasImages}
+                    canGenerate={!!canGenerate}
+                    hasImages={!!hasImages}
                     onGenerate={runGeneration}
                     onClearAll={clearAll}
                     onImageUpload={handleImageUpload}
@@ -701,12 +702,17 @@ export function ImageCombiner() {
                     hasMore={hasMore}
                     onLoadMore={loadMore}
                     isLoadingMore={isLoadingMore}
-                  />
+                    isAuthenticated={false}
+                    remaining={0}
+                    decrementOptimistic={() => { } }
+                    usageLoading={false}
+                    onShowAuthModal={() => { }}
+                    />
 
                   <div className="hidden xl:block mt-3 flex-shrink-0">
                     <GenerationHistory
                       generations={persistedGenerations}
-                      selectedId={selectedGenerationId}
+                      selectedId={selectedGenerationId ?? undefined}
                       onSelect={setSelectedGenerationId}
                       onCancel={cancelGeneration}
                       onDelete={deleteGeneration}
@@ -755,7 +761,7 @@ export function ImageCombiner() {
               <div className="xl:hidden flex-shrink-0">
                 <GenerationHistory
                   generations={persistedGenerations}
-                  selectedId={selectedGenerationId}
+                  selectedId={selectedGenerationId ?? undefined}
                   onSelect={setSelectedGenerationId}
                   onCancel={cancelGeneration}
                   onDelete={deleteGeneration}

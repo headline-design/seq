@@ -1,5 +1,5 @@
-import { TimelineEditor } from "@/components/timeline/timeline-editor"
-import type { Metadata } from "next"
+import Editor from "@/seq-ai-studio/editor/app"
+import { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Timeline Editor - Nano Banana Pro",
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 
 // The demo parameter is handled inside TimelineEditor via useSearchParams
 export default function TimelinePage() {
-  return <TimelineEditor />
+  return <Editor />
 }

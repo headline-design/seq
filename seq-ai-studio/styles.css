@@ -1,0 +1,23 @@
+body {
+        background-color: #09090b; /* Zinc 950 */
+        color: #e4e4e7; /* Zinc 200 */
+        font-family: 'Inter', sans-serif;
+      }
+      /* Professional scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #27272a;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #3f3f46;
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
