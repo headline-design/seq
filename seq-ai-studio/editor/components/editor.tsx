@@ -2008,6 +2008,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
                             onDetachAudio={handleDetachAudio}
                             onDeleteClip={handleDeleteClip}
                             onRippleDeleteClip={handleRippleDeleteClip}
+                            onRenderPreview={startRenderPreview}
                             onDuplicateClip={handleDuplicateClip}
                             onToolChange={onToolChange}
                             onDragStart={pushToHistory}
