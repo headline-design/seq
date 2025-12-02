@@ -74,18 +74,21 @@ export function StoryboardPanel({
 
   return (
     <Card className="flex flex-col overflow-hidden bg-black/40 border-white/10 group relative">
-      {isTransitionPanel && (
-        <div className="absolute top-2 left-2 z-10 bg-blue-500 text-white text-[10px] px-2 py-1 rounded-full flex items-center gap-1 font-medium">
-          <Link2 className="w-3 h-3" />
-          Transition
-        </div>
-      )}
+
 
       {/* Header */}
       <div className="flex items-center justify-between p-2 border-b border-white/5 bg-black/20">
+      <div className="flex items-center gap-2">
         <Badge variant="outline" className="text-xs bg-white/5 border-white/10 text-white/70">
           Panel {index + 1}
         </Badge>
+         {isTransitionPanel && (
+       <Badge variant="secondary" className="text-xs bg-white/5 border-white/10 text-white/70">
+          <Link2 className="w-3 h-3" />
+          First-Last
+        </Badge>
+      )}
+      </div>
         <Button
           variant="ghost"
           size="icon"
@@ -191,18 +194,18 @@ export function StoryboardPanel({
         <div className="space-y-1.5">
           <label className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Video Model</label>
           <Select
-            value={panel.model || (isTransitionPanel ? "veo3-fast-transition" : "veo3-fast")}
+            defaultValue="veo3.1-fast"
             onValueChange={(val) => onUpdate(panel.id, { model: val as any })}
           >
             <SelectTrigger className="h-7 text-xs bg-white/5 border-white/10 text-white">
-              <SelectValue />
+              <SelectValue placeholder="veo3.1-fast" />
             </SelectTrigger>
             <SelectContent>
               {isTransitionPanel ? (
                 <>
-                  <SelectItem value="veo3-fast-transition">Veo 3.1 Fast (Transition)</SelectItem>
-                  <SelectItem value="veo3-standard-transition">Veo 3.1 Standard (Transition)</SelectItem>
-                  <SelectItem value="wan-2.2-transition">WAN 2.2 Turbo (Transition)</SelectItem>
+                  <SelectItem value="veo3-fast">Veo 3.1 Fast</SelectItem>
+                  <SelectItem value="veo3-standard">Veo 3.1 Standard</SelectItem>
+                  <SelectItem value="wan-2.2">WAN 2.2 Turbo</SelectItem>
                 </>
               ) : (
                 <>
@@ -224,7 +227,6 @@ export function StoryboardPanel({
           <div className="flex items-center justify-between">
             <label className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">
               Video Prompt
-              {isTransitionPanel && <span className="text-blue-400 ml-1">(Transition Effect)</span>}
             </label>
             <div className="flex items-center gap-2">
               {/* Enhance Button */}

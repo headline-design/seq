@@ -167,7 +167,7 @@ export function StoryboardContainer({
           ...panel,
           prompt: demoPanel.prompt,
           duration: demoPanel.duration,
-          model: panel.linkedImageUrl ? ("veo3-fast-transition" as VideoModel) : ("veo3-fast" as VideoModel),
+          model: panel.linkedImageUrl ? ("veo3.1fast" as VideoModel) : ("veo3.1-fast" as VideoModel),
           videoUrl: demoPanel.videoUrl,
         }
       }

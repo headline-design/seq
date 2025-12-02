@@ -630,7 +630,7 @@ export function ImageCombiner() {
               <Plus className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
             </div>
             <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-              Or generate a quick panel below
+              Or generate a quick image below
             </span>
           </button>
         </div>
@@ -643,8 +643,8 @@ export function ImageCombiner() {
             {/* Section Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-semibold text-foreground mb-1">Generate Storyboard Panels</h2>
-                <p className="text-sm text-muted-foreground">Create AI-generated images for your video sequence</p>
+                <h2 className="text-xl font-semibold text-foreground mb-1">Generate Images with Nano Banana</h2>
+                <p className="text-sm text-muted-foreground">Create AI-generated images</p>
               </div>
               <div className="hidden sm:flex items-center gap-3">
                 <Link

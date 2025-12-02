@@ -200,7 +200,7 @@ export default function StoryboardPage() {
               </Link>
               <SeqLogo className="w-6 h-6 text-foreground" />
               <div className="flex items-baseline gap-2">
-                <h1 className="text-base font-semibold tracking-tight">Seq Storyboard</h1>
+                <h1 className="text-base font-semibold tracking-tight">Storyboard</h1>
                 <span className="text-xs text-muted-foreground hidden sm:inline">Video Sequence Editor</span>
               </div>
             </div>

@@ -33,18 +33,19 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-neutral-400">
-            <a href="#pipeline" className="hover:text-white transition-colors">Workflow</a>
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
+            <Link href="/storyboard" className="hover:text-white transition-colors">Storyboard</Link>
+            <Link href="/timeline" className="hover:text-white transition-colors">Timeline</Link>
+             <Link href="/image-playground" className="hover:text-white transition-colors">Image Playground</Link>
           </div>
 
+
           <div className="flex items-center gap-4">
-             <a href="https://github.com/google/gemini-api-cookbook" target="_blank" rel="noopener noreferrer" className="text-neutral-400 hover:text-white transition-colors">
+             <a href="https://github.com/headline-design/seq" target="_blank" rel="noopener noreferrer" className="text-neutral-400 hover:text-white transition-colors">
                 <GithubIcon className="w-5 h-5" />
              </a>
-             <button className="bg-white text-black px-4 py-2 rounded-full text-sm font-semibold hover:bg-neutral-200 transition-colors">
+             <Link href="/storyboard" className="bg-white text-black px-4 py-2 rounded-full text-sm font-semibold hover:bg-neutral-200 transition-colors">
                 Get Started
-             </button>
+             </Link>
           </div>
         </div>
       </nav>
