@@ -337,7 +337,7 @@ export function PanelSelector({
         if (!panel.imageUrl || !panel.linkedImageUrl) {
           toast({
             title: "Incomplete Transition",
-            description: `Transition ${index + 1} needs both first and last frames`,
+            description: `Transition ${index + 1} needs both start and end frames`,
             variant: "destructive",
           })
           return
@@ -464,7 +464,7 @@ export function PanelSelector({
         </details>
       </CardHeader>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6">
         {/* Left: Available Panels */}
         <div className="space-y-6">
           <div>
@@ -659,9 +659,10 @@ export function PanelSelector({
                 variant="outline"
                 onClick={addTransitionSlot}
                 className="text-emerald-400 border-emerald-400/30 bg-transparent"
+                title="Add a start→end keyframe pair for motion, transitions, or any A-to-B animation"
               >
                 <Plus className="w-4 h-4 mr-1" />
-                Add Transition
+                Add Keyframe Pair
               </Button>
             </div>
           </div>
@@ -670,7 +671,7 @@ export function PanelSelector({
             {finalPanels.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-zinc-700 rounded-lg gap-4">
                 <p className="text-zinc-500 text-sm">Click panels to build your sequence</p>
-                <p className="text-zinc-600 text-xs">or add a transition slot and populate it</p>
+                <p className="text-zinc-600 text-xs">or add a keyframe pair for start→end animations</p>
               </div>
             ) : (
               finalPanels.map((panel, index) => (
@@ -723,7 +724,7 @@ export function PanelSelector({
                     </div>
                   ) : panel.type === "transition" ? (
                     <div className="flex gap-2 flex-1 items-center">
-                      {/* First Frame Slot */}
+                      {/* Start Frame Slot */}
                       <div
                         className={`relative w-24 aspect-video rounded overflow-hidden border-2 ${
                           panel.imageUrl ? "border-emerald-500" : "border-dashed border-zinc-600"
@@ -734,24 +735,24 @@ export function PanelSelector({
                           <>
                             <Image
                               src={panel.imageUrl || "/placeholder.svg"}
-                              alt="First frame"
+                              alt="Start frame"
                               fill
                               className="object-cover"
                             />
                             <Badge className="absolute top-1 left-1 h-4 text-[10px] bg-emerald-500 text-black">
-                              FIRST
+                              START
                             </Badge>
                           </>
                         ) : (
                           <div className="flex items-center justify-center h-full text-zinc-500 text-xs">
-                            Select First
+                            Select Start
                           </div>
                         )}
                       </div>
 
                       <div className="text-emerald-400">→</div>
 
-                      {/* Last Frame Slot */}
+                      {/* End Frame Slot */}
                       <div
                         className={`relative w-24 aspect-video rounded overflow-hidden border-2 ${
                           panel.linkedImageUrl ? "border-emerald-500" : "border-dashed border-zinc-600"
@@ -762,17 +763,17 @@ export function PanelSelector({
                           <>
                             <Image
                               src={panel.linkedImageUrl || "/placeholder.svg"}
-                              alt="Last frame"
+                              alt="End frame"
                               fill
                               className="object-cover"
                             />
                             <Badge className="absolute top-1 left-1 h-4 text-[10px] bg-emerald-500 text-black">
-                              LAST
+                              END
                             </Badge>
                           </>
                         ) : (
                           <div className="flex items-center justify-center h-full text-zinc-500 text-xs">
-                            Select Last
+                            Select End
                           </div>
                         )}
                       </div>
@@ -784,14 +785,18 @@ export function PanelSelector({
                           variant="ghost"
                           onClick={() => swapTransitionFrames(panel.id)}
                           className="h-7 text-xs"
-                          title="Swap first/last order"
+                          title="Swap start/end order"
                         >
                           ⇄
                         </Button>
                       )}
 
-                      <Badge variant="outline" className="text-xs text-emerald-400 border-emerald-400/30">
-                        Transition
+                      <Badge
+                        variant="outline"
+                        className="text-xs text-emerald-400 border-emerald-400/30 cursor-help"
+                        title="Start→End animation: pans, zooms, morphs, transitions, or any motion between two frames"
+                      >
+                        Start → End
                       </Badge>
                     </div>
                   ) : null}
