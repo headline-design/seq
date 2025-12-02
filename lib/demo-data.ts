@@ -106,10 +106,10 @@ export const DEMO_FINAL_SEQUENCE = {
     // Panel 0 - Regular panel
     {
       imageUrl: "https://ijzqgoxsir9e5xch.public.blob.vercel-storage.com/nano-banana-1764019093771-dgm169.png",
-      prompt: "Cinematic close-up of the man eating pie, followed by a rapid, disorienting dolly-zoom in to mid-face.",
-      duration: 5 as const,
+      prompt: "Cinematic close-up of the man eating pie, followed by a rapid, disorienting dolly-in to mid-face.",
+      duration: 8 as const,
       linkedImageUrl: undefined,
-      videoUrl: "https://v3b.fal.media/files/b/monkey/56rWGsFnPAYOmnYp4ZaKg_output.mp4",
+      videoUrl: "https://v3b.fal.media/files/b/0a84a235/Z9sIv_PFVXLU8uDcb9Hey_output.mp4",
     },
     // Panel 1 - Transition (first frame: transition panel 0, last frame: main panel 2)
     {
@@ -151,7 +151,7 @@ export const DEMO_FINAL_SEQUENCE = {
       imageUrl:
         "https://ijzqgoxsir9e5xch.public.blob.vercel-storage.com/nano-banana-pro-image-editing-result%20%2826%29.png",
       prompt: "A cinematic close-up of the man's face at a restaurant as he recalls memories of childhood.",
-      duration: 5 as const,
+      duration: 8 as const,
       linkedImageUrl: undefined,
       videoUrl: "https://v3b.fal.media/files/b/rabbit/iS5IFUBwrTgZCqEdTZJJo_output.mp4",
     },
@@ -160,7 +160,7 @@ export const DEMO_FINAL_SEQUENCE = {
       imageUrl: "https://ijzqgoxsir9e5xch.public.blob.vercel-storage.com/nano-banana-1764019093771-dgm169.png",
       prompt:
         "Man in present day taking another bite of pie, savoring the memory and the moment, camera slowly pulls back.",
-      duration: 5 as const,
+      duration: 8 as const,
       linkedImageUrl: undefined,
       videoUrl: "https://v3b.fal.media/files/b/zebra/N6ZZnPbVVVpDx1ls0SjMQ_output.mp4",
     },

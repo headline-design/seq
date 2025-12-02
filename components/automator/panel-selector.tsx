@@ -1,8 +1,10 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Play, X, MoveUp, MoveDown, Plus, Repeat, Sparkles, AlertTriangle } from "lucide-react"
+import { Play, X, MoveUp, MoveDown, Plus, Repeat, Sparkles, AlertTriangle, Upload, ImagePlus } from "lucide-react"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/components/ui/use-toast"
@@ -13,13 +15,13 @@ import { nanoid } from "nanoid"
 interface FinalPanel {
   id: string
   type: "single" | "transition"
-  imageUrl?: string // undefined for empty transition slot
-  linkedImageUrl?: string // for populated transition
-  source?: "main" | "transition"
+  imageUrl?: string
+  linkedImageUrl?: string
+  source?: "main" | "transition" | "custom"
   originalIndex?: number
   prompt?: string
   duration?: number
-  videoUrl?: string // Added videoUrl from demo config
+  videoUrl?: string
 }
 
 interface PanelSelectorProps {
@@ -30,7 +32,7 @@ interface PanelSelectorProps {
   savedLinkedPanelData: Record<number, string>
   savedPrompts: Record<number, string>
   savedDurations: Record<number, number>
-  savedVideoUrls: Record<number, string> // Added savedVideoUrls from demo config
+  savedVideoUrls: Record<number, string>
   onConfirm: (
     selectedPanels: string[],
     linkedData: Record<number, string>,
@@ -53,6 +55,10 @@ export function PanelSelector({
 }: PanelSelectorProps) {
   const [localPanels, setLocalPanels] = useState<string[]>(panels || [])
   const [regenerating, setRegenerating] = useState<number[]>([])
+  const [customImages, setCustomImages] = useState<string[]>([])
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const [finalPanels, setFinalPanels] = useState<FinalPanel[]>(() => {
     if (savedFinalPanels && savedFinalPanels.length > 0) {
       return savedFinalPanels.map((url, i) => ({
@@ -77,12 +83,112 @@ export function PanelSelector({
     }
   }, [panels])
 
-  const allAvailablePanels = [
-    ...localPanels.map((url, i) => ({ url, source: "main" as const, index: i })),
-    ...transitionPanels.map((url, i) => ({ url, source: "transition" as const, index: i })),
-  ]
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
 
-  const addSinglePanel = (url: string, source: "main" | "transition", originalIndex: number) => {
+    setIsUploading(true)
+    const newImages: string[] = []
+
+    const fileToDataUri = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+    }
+
+    try {
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith("image/")) {
+          toast({
+            title: "Invalid file type",
+            description: `${file.name} is not an image file`,
+            variant: "destructive",
+          })
+          continue
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+          toast({
+            title: "File too large",
+            description: `${file.name} exceeds 10MB limit`,
+            variant: "destructive",
+          })
+          continue
+        }
+
+        // Try blob storage first, fall back to data URI
+        let imageUrl: string | null = null
+
+        try {
+          const formData = new FormData()
+          formData.append("file", file)
+
+          const response = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            if (data.url) {
+              imageUrl = data.url
+            }
+          }
+        } catch (uploadError) {
+          console.log("[v0] Blob upload unavailable, using data URI fallback")
+        }
+
+        if (!imageUrl) {
+          try {
+            imageUrl = await fileToDataUri(file)
+            console.log("[v0] Converted to data URI, length:", imageUrl.length)
+          } catch (dataUriError) {
+            console.error("[v0] Data URI conversion failed:", dataUriError)
+            toast({
+              title: "Upload Failed",
+              description: `Failed to process ${file.name}`,
+              variant: "destructive",
+            })
+            continue
+          }
+        }
+
+        if (imageUrl) {
+          newImages.push(imageUrl)
+        }
+      }
+
+      if (newImages.length > 0) {
+        setCustomImages((prev) => [...prev, ...newImages])
+        toast({
+          title: "Images Added",
+          description: `Added ${newImages.length} image${newImages.length > 1 ? "s" : ""} to your library`,
+        })
+      }
+    } catch (error) {
+      console.error("Upload error:", error)
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload images. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsUploading(false)
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+    }
+  }
+
+  const removeCustomImage = (index: number) => {
+    setCustomImages((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const addSinglePanel = (url: string, source: "main" | "transition" | "custom", originalIndex: number) => {
     const id = `single-${Date.now()}`
     setFinalPanels((prev) => [
       ...prev,
@@ -165,10 +271,10 @@ export function PanelSelector({
     const position = `Row ${row}, Column ${col}`
 
     const extractionPrompt = `
-      Look at the provided storyboard grid. 
-      Extract strictly the single panel at position #${index + 1} (reading order: ${position}). 
+      Look at the provided storyboard grid.
+      Extract strictly the single panel at position #${index + 1} (reading order: ${position}).
       Generate a high-resolution, full-frame cinematic version of THIS SPECIFIC PANEL ONLY.
-      
+
       QC INSTRUCTIONS:
       - Remove any text, captions, numbers, or borders.
       - Fix any non-standard elements or distortions.
@@ -332,6 +438,12 @@ export function PanelSelector({
     })
   }
 
+  const allAvailablePanels = [
+    ...localPanels.map((url, i) => ({ url, source: "main" as const, index: i })),
+    ...transitionPanels.map((url, i) => ({ url, source: "transition" as const, index: i })),
+    ...customImages.map((url, i) => ({ url, source: "custom" as const, index: i })),
+  ]
+
   return (
     <Card className="border-white/10 bg-black/40 backdrop-blur-sm shadow-2xl space-y-8 max-w-7xl mx-auto animate-in fade-in duration-500">
       <CardHeader className="pb-3">
@@ -441,6 +553,89 @@ export function PanelSelector({
                   </div>
                 </div>
               )}
+
+              {/* Custom Images */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-semibold text-violet-300">Additional Images</h4>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="h-7 text-xs text-violet-400 border-violet-400/30 bg-transparent hover:bg-violet-950/50"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Repeat className="w-3 h-3 animate-spin mr-1" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-3 h-3 mr-1" />
+                        Upload Images
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {customImages.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-3">
+                    {customImages.map((url, i) => (
+                      <div
+                        key={`custom-${i}`}
+                        className="group relative aspect-video rounded-lg overflow-hidden transition-all duration-200 cursor-pointer hover:ring-2 hover:ring-violet-400"
+                        onClick={() => {
+                          if (selectingFor) {
+                            setTransitionFrame(selectingFor.panelId, selectingFor.slot, url)
+                          } else {
+                            addSinglePanel(url, "custom", i)
+                          }
+                        }}
+                      >
+                        <Image src={url || "/placeholder.svg"} alt={`Custom ${i + 1}`} fill className="object-cover" />
+
+                        {/* Remove button */}
+                        <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              removeCustomImage(i)
+                            }}
+                            className="h-5 w-5 p-0 bg-red-500/80 hover:bg-red-500"
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+
+                        <div className="absolute bottom-2 right-2">
+                          <span className="text-xs font-mono text-white bg-violet-600/80 px-2 py-1 rounded">
+                            C{i + 1}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div
+                    className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-violet-800/40 rounded-lg gap-2 cursor-pointer hover:border-violet-600/60 hover:bg-violet-950/20 transition-colors"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <ImagePlus className="w-6 h-6 text-violet-500/60" />
+                    <p className="text-violet-400/60 text-xs">Click to upload custom images</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

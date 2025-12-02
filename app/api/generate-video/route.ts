@@ -1,6 +1,34 @@
 import { fal } from "@fal-ai/client"
 import { NextResponse } from "next/server"
 
+async function convertToDataUri(url: string): Promise<string> {
+  // If already a data URI or HTTPS URL, return as-is
+  if (url.startsWith("data:") || url.startsWith("https://")) {
+    return url
+  }
+
+  // If it's a blob URL, we can't fetch it server-side
+  // The client should have converted it before sending
+  if (url.startsWith("blob:")) {
+    throw new Error("Blob URLs cannot be used directly. Please ensure images are uploaded to cloud storage first.")
+  }
+
+  // For relative URLs or http URLs, try to fetch and convert
+  try {
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`)
+    }
+    const arrayBuffer = await response.arrayBuffer()
+    const base64 = Buffer.from(arrayBuffer).toString("base64")
+    const contentType = response.headers.get("content-type") || "image/png"
+    return `data:${contentType};base64,${base64}`
+  } catch (error) {
+    console.error("[v0] Failed to convert URL to data URI:", error)
+    throw new Error(`Failed to process image URL: ${url}`)
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -8,8 +36,8 @@ export async function POST(request: Request) {
 
     console.log("[v0] Video generation request:", {
       prompt,
-      imageUrl,
-      linkedImageUrl,
+      imageUrl: imageUrl?.substring(0, 100), // Truncate for logging (data URIs are long)
+      linkedImageUrl: linkedImageUrl?.substring(0, 100),
       duration,
       aspectRatio,
       useFastModel,
@@ -26,6 +54,35 @@ export async function POST(request: Request) {
 
     if (typeof imageUrl !== "string" || imageUrl.trim().length === 0) {
       return NextResponse.json({ error: "Image URL must be a non-empty string" }, { status: 400 })
+    }
+
+    // Supported: HTTPS URLs, data URIs (base64)
+    // Not supported: blob: URLs (browser-only, can't be accessed server-side)
+    const isValidImageUrl = imageUrl.startsWith("https://") || imageUrl.startsWith("data:image/")
+
+    if (!isValidImageUrl) {
+      return NextResponse.json(
+        {
+          error: "Invalid image URL format",
+          details: "Supported formats: HTTPS URLs or data URIs (base64). Blob URLs are not supported.",
+        },
+        { status: 400 },
+      )
+    }
+
+    // Validate linkedImageUrl if provided
+    if (linkedImageUrl) {
+      const isValidLinkedUrl = linkedImageUrl.startsWith("https://") || linkedImageUrl.startsWith("data:image/")
+
+      if (!isValidLinkedUrl) {
+        return NextResponse.json(
+          {
+            error: "Invalid linked image URL format",
+            details: "Supported formats: HTTPS URLs or data URIs (base64). Blob URLs are not supported.",
+          },
+          { status: 400 },
+        )
+      }
     }
 
     const key = process.env.FAL_KEY || process.env.FAL_FAL_KEY
@@ -81,7 +138,7 @@ export async function POST(request: Request) {
     if (model === "wan-2.5") {
       const falModel = "fal-ai/wan-25-preview/image-to-video"
 
-      const videoDuration: "5" | "10" = duration >= 8 ? "10" : "5";
+      const videoDuration: "5" | "10" = duration >= 8 ? "10" : "5"
 
       console.log(`[v0] Calling fal.subscribe with model: ${falModel} (WAN 2.5)`)
       console.log(`[v0] image_url: ${imageUrl.trim()}`)
@@ -159,20 +216,21 @@ export async function POST(request: Request) {
       console.log("[v0] First-last-frame input:", JSON.stringify(input, null, 2))
 
       const result = await fal.subscribe(falModel, {
-        input: input === undefined ? {
-          prompt: prompt.trim(),
-          first_frame_url: imageUrl.trim(),
-          last_frame_url: linkedImageUrl.trim(),
-          duration: '8s',
-          aspect_ratio: (aspectRatio || "16:9") as "auto" | "9:16" | "16:9" | "1:1",
-          resolution: "720p" as "720p" | "1080p",
-          generate_audio: true,
-
-        } : {
-          ...input,
-          duration: '8s',
-
-        },
+        input:
+          input === undefined
+            ? {
+                prompt: prompt.trim(),
+                first_frame_url: imageUrl.trim(),
+                last_frame_url: linkedImageUrl.trim(),
+                duration: "8s",
+                aspect_ratio: (aspectRatio || "16:9") as "auto" | "9:16" | "16:9" | "1:1",
+                resolution: "720p" as "720p" | "1080p",
+                generate_audio: true,
+              }
+            : {
+                ...input,
+                duration: "8s",
+              },
         logs: true,
       })
 
