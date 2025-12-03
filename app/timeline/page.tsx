@@ -2,7 +2,7 @@ import Editor from "@/seq-ai-studio/editor/app"
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Timeline Editor - Nano Banana Pro",
+  title: "Timeline Editor - Seq",
   description: "Professional magnetic timeline editor for video sequencing",
 }
 
