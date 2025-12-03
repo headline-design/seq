@@ -36,6 +36,7 @@ export const LandingPage: React.FC = () => {
             <Link href="/storyboard" className="hover:text-white transition-colors">Storyboard</Link>
             <Link href="/timeline" className="hover:text-white transition-colors">Timeline</Link>
              <Link href="/image-playground" className="hover:text-white transition-colors">Image Playground</Link>
+             <Link href="/demo" className="hover:text-white transition-colors">Demo</Link>
           </div>
 
 
