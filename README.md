@@ -10,7 +10,7 @@
 
 **From Concept to Cinema.**
 
-[Live Demo](https://seq-studio.vercel.app) · [v0 Template](PLACEHOLDER_V0_TEMPLATE_URL) · [Report Bug](https://github.com/headline-design/seq/issues)
+[Live Demo](https://seq-studio.vercel.app) · [v0 Template](https://v0.app/templates/seq-ZAICjqmFe5w) · [Report Bug](https://github.com/headline-design/seq/issues)
 
 ---
 
@@ -52,7 +52,7 @@ Multi-track editing, ripple deletes, magnetic snapping, and real-time preview pl
 
 ### Or use the v0 Template
 
-Visit [PLACEHOLDER_V0_TEMPLATE_URL] to start building with v0.
+Visit [v0 Template](https://v0.app/templates/seq-ZAICjqmFe5w) to start building with v0.
 
 ### Local Development
 
