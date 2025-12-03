@@ -1,20 +1,20 @@
 {
-  "name": "Nano Banana Pro",
-  "short_name": "NB Pro",
-  "description": "AI-powered image generation and editing tool",
+  "name": "Seq AI Studio",
+  "short_name": "Seq",
+  "description": "AI-powered video creation and editing studio.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#005B5B",
   "icons": [
     {
-      "src": "/icon-192.jpg",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.jpg",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

@@ -173,11 +173,13 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
     const [renderedPreviewUrl, setRenderedPreviewUrl] = useState<string | null>(null)
     const [isPreviewStale, setIsPreviewStale] = useState(false)
     const renderCancelledRef = useRef(false)
+    const [isPreviewPlayback, setIsPreviewPlayback] = useState(false)
 
     // Refs for rendering
     const videoRefA = useRef<HTMLVideoElement>(null)
     const videoRefB = useRef<HTMLVideoElement>(null)
     const whiteOverlayRef = useRef<HTMLDivElement>(null)
+    const previewVideoRef = useRef<HTMLVideoElement>(null)
     const audioRefs = useRef<Record<string, HTMLAudioElement>>({})
     const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -311,18 +313,20 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
             const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
             if (AudioCtx) {
                 audioContextRef.current = new AudioCtx()
-                audioDestRef.current = audioContextRef.current.createMediaStreamDestination()
+                if (typeof audioContextRef.current.createMediaStreamDestination === "function") {
+                    audioDestRef.current = audioContextRef.current.createMediaStreamDestination()
+                }
             }
         }
         const ctx = audioContextRef.current
         const dest = audioDestRef.current
-        if (!ctx || !dest) return
+        if (!ctx) return
             ;[videoRefA, videoRefB].forEach((ref, idx) => {
                 const id = `video-${idx}`
                 if (ref.current && !sourceNodesRef.current.has(id)) {
                     try {
                         const source = ctx.createMediaElementSource(ref.current)
-                        source.connect(dest)
+                        if (dest) source.connect(dest)
                         source.connect(ctx.destination)
                         sourceNodesRef.current.set(id, source)
                     } catch (e) { }
@@ -332,7 +336,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
             if (el && !sourceNodesRef.current.has(trackId)) {
                 try {
                     const source = ctx.createMediaElementSource(el)
-                    source.connect(dest)
+                    if (dest) source.connect(dest)
                     source.connect(ctx.destination)
                     sourceNodesRef.current.set(trackId, source)
                 } catch (e) { }
@@ -789,8 +793,8 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
                     ])
 
                     console.log("Export re-encoding complete")
-                    setExportProgress(95)
                     setExportPhase("complete") // Changed this line
+                    setExportProgress(95)
 
                     const data = (await ffmpeg.readFile("output.mp4")) as any
                     const url = URL.createObjectURL(new Blob([data], { type: "video/mp4" }))
@@ -1723,6 +1727,33 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
         setRenderProgress(0)
     }
 
+    const handleTogglePreviewPlayback = useCallback(() => {
+        if (isPreviewPlayback) {
+            // Exiting preview mode - pause preview video and resume live
+            if (previewVideoRef.current) {
+                previewVideoRef.current.pause()
+            }
+            setIsPreviewPlayback(false)
+        } else {
+            // Entering preview mode - pause live playback
+            setIsPlaying(false)
+            setIsPreviewPlayback(true)
+            // Auto-play the preview when entering preview mode
+            setTimeout(() => {
+                if (previewVideoRef.current) {
+                    previewVideoRef.current.currentTime = 0
+                    previewVideoRef.current.play()
+                }
+            }, 100)
+        }
+    }, [isPreviewPlayback])
+
+    useEffect(() => {
+        if (isPreviewStale && isPreviewPlayback) {
+            setIsPreviewPlayback(false)
+        }
+    }, [isPreviewStale, isPreviewPlayback])
+
     return (
         <div className="flex h-screen w-screen overflow-hidden bg-[#09090b] text-neutral-200 font-sans selection:bg-indigo-500/30">
             <ExportModal
@@ -1938,25 +1969,36 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
                                 className="relative aspect-video w-full max-h-full shadow-2xl bg-black flex items-center justify-center overflow-hidden"
                                 style={{ transform: `scale(${playerZoom})` }}
                             >
+                                {isPreviewPlayback && renderedPreviewUrl && (
+                                    <video
+                                        ref={previewVideoRef}
+                                        src={renderedPreviewUrl}
+                                        className="absolute inset-0 w-full h-full object-contain bg-black z-10"
+                                        controls
+                                        crossOrigin="anonymous"
+                                    />
+                                )}
+
+                                {/* Live playback videos - hidden during preview playback */}
                                 <video
                                     ref={videoRefA}
-                                    className="absolute inset-0 w-full h-full object-contain bg-black transition-transform"
+                                    className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform ${isPreviewPlayback ? "hidden" : ""}`}
                                     crossOrigin="anonymous"
-                                    onClick={() => !isExporting && !isRendering && setIsPlaying(!isPlaying)}
+                                    onClick={() => !isExporting && !isRendering && !isPreviewPlayback && setIsPlaying(!isPlaying)}
                                 />
                                 <video
                                     ref={videoRefB}
-                                    className="absolute inset-0 w-full h-full object-contain bg-black transition-transform opacity-0"
+                                    className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform opacity-0 ${isPreviewPlayback ? "hidden" : ""}`}
                                     crossOrigin="anonymous"
-                                    onClick={() => !isExporting && !isRendering && setIsPlaying(!isPlaying)}
+                                    onClick={() => !isExporting && !isRendering && !isPreviewPlayback && setIsPlaying(!isPlaying)}
                                 />
                                 <div
                                     ref={whiteOverlayRef}
-                                    className="absolute inset-0 bg-white pointer-events-none z-20"
+                                    className={`absolute inset-0 bg-white pointer-events-none z-20 ${isPreviewPlayback ? "hidden" : ""}`}
                                     style={{ opacity: 0 }}
                                 />
 
-                                {!isPlaying && !isExporting && !isRendering && (
+                                {!isPlaying && !isExporting && !isRendering && !isPreviewPlayback && (
                                     <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
                                         <div
                                             className="w-16 h-16 bg-white/10 backdrop-blur rounded-full flex items-center justify-center cursor-pointer pointer-events-auto hover:scale-105 transition-transform"
@@ -1966,6 +2008,14 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
                                         </div>
                                     </div>
                                 )}
+
+                                {isPreviewPlayback && (
+                                    <div className="absolute top-4 left-4 z-40 flex items-center gap-2 bg-cyan-500/20 backdrop-blur rounded px-3 py-1.5 border border-cyan-500/30">
+                                        <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                                        <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider">Rendered Preview</span>
+                                    </div>
+                                )}
+
                                 {isRendering && (
                                     <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none bg-black/70 backdrop-blur">
                                         <div className="w-12 h-12 border-t-2 border-indigo-500 rounded-full animate-spin mb-3"></div>
@@ -2009,10 +2059,17 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
                             onDeleteClip={handleDeleteClip}
                             onRippleDeleteClip={handleRippleDeleteClip}
                             onRenderPreview={startRenderPreview}
+                            onCancelRender={handleCancelRender}
+                            isRendering={isRendering}
+                            renderProgress={renderProgress}
+                            renderedPreviewUrl={renderedPreviewUrl}
+                            isPreviewStale={isPreviewStale}
                             onDuplicateClip={handleDuplicateClip}
                             onToolChange={onToolChange}
                             onDragStart={pushToHistory}
                             onAddTrack={handleAddTrack}
+                            isPreviewPlayback={isPreviewPlayback}
+                            onTogglePreviewPlayback={handleTogglePreviewPlayback}
                         />
                     </div>
                 </div>

@@ -21,6 +21,13 @@ import {
   LayoutIcon,
 } from "./icons"
 
+const EyeIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+)
+
 interface TimelineProps {
   tracks: Track[]
   clips: TimelineClip[]
@@ -52,6 +59,8 @@ interface TimelineProps {
   isPreviewStale?: boolean
   onRenderPreview?: () => void
   onCancelRender?: () => void
+  isPreviewPlayback?: boolean
+  onTogglePreviewPlayback?: () => void
 }
 
 type DragMode = "none" | "move" | "trim-start" | "trim-end"
@@ -127,6 +136,9 @@ export const Timeline: React.FC<TimelineProps> = ({
   isPreviewStale = false,
   onRenderPreview,
   onCancelRender,
+  // Destructure new props
+  isPreviewPlayback = false,
+  onTogglePreviewPlayback,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const headerContainerRef = useRef<HTMLDivElement>(null)
@@ -718,61 +730,99 @@ export const Timeline: React.FC<TimelineProps> = ({
                     </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={onRenderPreview}
-                    className={`flex items-center gap-2 px-3 py-1 rounded border transition-all ${
-                      renderedPreviewUrl && !isPreviewStale
-                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
-                        : isPreviewStale
-                          ? "border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
-                          : "border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20"
-                    }`}
-                    title={
-                      renderedPreviewUrl && !isPreviewStale
-                        ? "Preview rendered - click to re-render"
-                        : isPreviewStale
-                          ? "Timeline changed - click to update preview"
-                          : "Render preview video for playback"
-                    }
-                  >
-                    {renderedPreviewUrl && !isPreviewStale ? (
-                      <svg
-                        className="w-3.5 h-3.5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={onRenderPreview}
+                      className={`flex items-center gap-2 px-3 py-1 rounded border transition-all ${
+                        renderedPreviewUrl && !isPreviewStale
+                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                          : isPreviewStale
+                            ? "border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
+                            : "border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20"
+                      }`}
+                      title={
+                        renderedPreviewUrl && !isPreviewStale
+                          ? "Preview rendered - click to re-render"
+                          : isPreviewStale
+                            ? "Timeline changed - click to update preview"
+                            : "Render preview video for playback"
+                      }
+                    >
+                      {renderedPreviewUrl && !isPreviewStale ? (
+                        <svg
+                          className="w-3.5 h-3.5"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path d="M20 6L9 17l-5-5" />
+                        </svg>
+                      ) : isPreviewStale ? (
+                        <svg
+                          className="w-3.5 h-3.5"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                          <path d="M21 3v5h-5" />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-3.5 h-3.5"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <polygon points="5 3 19 12 5 21 5 3" />
+                        </svg>
+                      )}
+                      <span className="text-[10px] uppercase font-bold tracking-wider">
+                        {renderedPreviewUrl && !isPreviewStale ? "Rendered" : isPreviewStale ? "Re-render" : "Render"}
+                      </span>
+                    </button>
+
+                    {renderedPreviewUrl && !isPreviewStale && onTogglePreviewPlayback && (
+                      <button
+                        onClick={onTogglePreviewPlayback}
+                        className={`flex items-center gap-2 px-3 py-1 rounded border transition-all ${
+                          isPreviewPlayback
+                            ? "border-cyan-500/50 bg-cyan-500/20 text-cyan-300"
+                            : "border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20"
+                        }`}
+                        title={isPreviewPlayback ? "Exit preview mode (back to live)" : "Watch rendered preview"}
                       >
-                        <path d="M20 6L9 17l-5-5" />
-                      </svg>
-                    ) : isPreviewStale ? (
-                      <svg
-                        className="w-3.5 h-3.5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
-                        <path d="M21 3v5h-5" />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="w-3.5 h-3.5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <polygon points="5 3 19 12 5 21 5 3" />
-                      </svg>
+                        <EyeIcon className="w-3.5 h-3.5" />
+                        <span className="text-[10px] uppercase font-bold tracking-wider">
+                          {isPreviewPlayback ? "Exit Preview" : "Play Preview"}
+                        </span>
+                      </button>
                     )}
-                    <span className="text-[10px] uppercase font-bold tracking-wider">
-                      {renderedPreviewUrl && !isPreviewStale ? "Rendered" : isPreviewStale ? "Re-render" : "Render"}
-                    </span>
-                  </button>
+                  </div>
                 )}
               </div>
+              <div className="h-4 w-px bg-neutral-800"></div>
+            </>
+          )}
+
+          {/* Add preview playback button */}
+          {onTogglePreviewPlayback && (
+            <>
+              <button
+                onClick={onTogglePreviewPlayback}
+                className={`flex items-center gap-2 px-2 py-0.5 rounded border transition-colors ${
+                  isPreviewPlayback
+                    ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                    : "border-transparent text-neutral-500 hover:text-neutral-300"
+                }`}
+                title={isPreviewPlayback ? "Disable Preview Playback" : "Enable Preview Playback"}
+              >
+                <EyeIcon className={`w-3.5 h-3.5 ${isPreviewPlayback ? "text-blue-400" : ""}`} />
+                <span className="text-[10px] uppercase font-bold tracking-wider">Preview</span>
+              </button>
               <div className="h-4 w-px bg-neutral-800"></div>
             </>
           )}
@@ -1101,7 +1151,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                       ? isAudio
                         ? "bg-emerald-900/60 border-emerald-400 z-20 ring-1 ring-emerald-400"
                         : "bg-[#1e1e24] border-[#6366f1] z-20 ring-1 ring-[#6366f1]"
-                      : `${baseColor} ${borderColor} ${hoverColor} hover:border-neutral-500 z-10`
+                      : `${baseColor} ${hoverColor} hover:border-neutral-500 z-10`
 
                     const verticalPos = isAudio ? "top-1 bottom-1" : "top-0 bottom-0"
 
