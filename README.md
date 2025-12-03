@@ -155,5 +155,5 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 
 <div align="center">
-  _Built with ❤️ by [HEADLINE](https://github.com/headline-design)_
+  Built with ❤️ by [HEADLINE](https://github.com/headline-design)
 </div>
