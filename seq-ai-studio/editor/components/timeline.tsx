@@ -1,3 +1,4 @@
+
 "use client"
 
 import type React from "react"
@@ -19,14 +20,14 @@ import {
   SplitIcon,
   PlusIcon,
   LayoutIcon,
+  ZoomInIcon,
+  ZoomOutIcon,
+  EyeIcon,
 } from "./icons"
-
-const EyeIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-)
+import { TimelineRuler } from "./timeline-ruler"
+import { getNextZoom, getPrevZoom } from "../utils/timeline-scale"
+import { formatTimecode } from "../utils/time"
+import { TimelineClipItem } from "./timeline-clip"
 
 interface TimelineProps {
   tracks: Track[]
@@ -67,36 +68,6 @@ type DragMode = "none" | "move" | "trim-start" | "trim-end"
 
 const SNAP_THRESHOLD_PX = 15
 
-const ClipWaveform: React.FC<{ duration: number; offset: number; isAudio: boolean; isSelected: boolean }> = ({
-  duration,
-  offset,
-  isAudio,
-  isSelected,
-}) => {
-  // Generate a deterministic pattern based on duration/offset to look like a waveform
-  // We limit bars to avoid performance issues with many clips
-  const bars = Math.min(100, Math.max(10, Math.floor(duration * 8)))
-
-  return (
-    <div className="w-full h-full flex items-end gap-[1px] overflow-hidden opacity-80 pointer-events-none">
-      {Array.from({ length: bars }).map((_, i) => {
-        // varied height based on sine waves to look like audio
-        const x = i + offset * 8
-        const noise = Math.sin(x * 0.8) * Math.cos(x * 1.3)
-        const height = 20 + Math.abs(noise) * 70
-
-        return (
-          <div
-            key={i}
-            className={`flex-1 rounded-t-[1px] min-w-[2px] ${isSelected ? "bg-white/80" : isAudio ? "bg-emerald-400/60" : "bg-white/30"}`}
-            style={{ height: `${height}%` }}
-          />
-        )
-      })}
-    </div>
-  )
-}
-
 interface SnapConfig {
   enabled: boolean
   toGrid: boolean
@@ -136,13 +107,13 @@ export const Timeline: React.FC<TimelineProps> = ({
   isPreviewStale = false,
   onRenderPreview,
   onCancelRender,
-  // Destructure new props
   isPreviewPlayback = false,
   onTogglePreviewPlayback,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const headerContainerRef = useRef<HTMLDivElement>(null)
   const [isScrubbing, setIsScrubbing] = useState(false)
+  const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false)
   const [snapIndicator, setSnapIndicator] = useState<number | null>(null)
   const [lastClickedClipId, setLastClickedClipId] = useState<string | null>(null)
 
@@ -181,7 +152,7 @@ export const Timeline: React.FC<TimelineProps> = ({
     maxStartDelta: Number.POSITIVE_INFINITY,
   })
 
-  // Keep refs up to date for event listeners to avoid re-binding
+  // Refs for event listeners
   const clipsRef = useRef(clips)
   clipsRef.current = clips
   const zoomLevelRef = useRef(zoomLevel)
@@ -198,8 +169,6 @@ export const Timeline: React.FC<TimelineProps> = ({
   tracksRef.current = tracks
   const toolRef = useRef(tool)
   toolRef.current = tool
-
-  // Handlers refs
   const onClipUpdateRef = useRef(onClipUpdate)
   onClipUpdateRef.current = onClipUpdate
   const onSelectClipsRef = useRef(onSelectClips)
@@ -211,18 +180,10 @@ export const Timeline: React.FC<TimelineProps> = ({
   const onSplitClipRef = useRef(onSplitClip)
   onSplitClipRef.current = onSplitClip
 
-  const formatTimecode = (seconds: number) => {
-    const m = Math.floor(seconds / 60)
-    const s = Math.floor(seconds % 60)
-    const f = Math.floor((seconds % 1) * 30)
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}:${f.toString().padStart(2, "0")}`
-  }
-
   const handleSplitAtPlayhead = () => {
     if (selectedClipIds.length > 0) {
       selectedClipIds.forEach((id) => {
         const clip = clips.find((c) => c.id === id)
-        // Only split if playhead is within clip boundaries
         if (clip && currentTime > clip.start && currentTime < clip.start + clip.duration) {
           onSplitClip(id, currentTime)
         }
@@ -236,26 +197,20 @@ export const Timeline: React.FC<TimelineProps> = ({
     }
   }
 
-  // --- Snapping Logic ---
-  const getSnapTime = (time: number, ignoreClipIds: string[]): number | null => {
+  const getSnapTime = useCallback((time: number, ignoreClipIds: string[] = []): number | null => {
     const config = snapConfigRef.current
     if (!config.enabled) return null
 
     const snapPoints: number[] = []
 
-    // Snap to Grid
     if (config.toGrid) {
       const interval = config.gridInterval
       const nearestGrid = Math.round(time / interval) * interval
       snapPoints.push(nearestGrid)
     }
-
-    // Snap to Playhead
-    if (config.toPlayhead) {
+    if (config.toPlayhead && !isDraggingPlayhead) { // Don't snap to self
       snapPoints.push(currentTimeRef.current)
     }
-
-    // Snap to Other Clips (Edges)
     if (config.toClips) {
       clipsRef.current.forEach((c) => {
         if (ignoreClipIds.includes(c.id)) return
@@ -263,11 +218,8 @@ export const Timeline: React.FC<TimelineProps> = ({
         snapPoints.push(c.start + c.duration)
       })
     }
-
-    // Include 0 always
     snapPoints.push(0)
 
-    // Find closest snap point
     let closest = -1
     let minDistance = Number.POSITIVE_INFINITY
 
@@ -284,19 +236,15 @@ export const Timeline: React.FC<TimelineProps> = ({
       return closest
     }
     return null
-  }
-
-  // --- Mouse Handlers ---
+  }, [isDraggingPlayhead])
 
   const handleMouseDownClip = (e: React.MouseEvent, clip: TimelineClip, mode: DragMode) => {
     e.stopPropagation()
     e.preventDefault()
 
-    // Check if track is locked
     const track = tracks.find((t) => t.id === clip.trackId)
     if (track?.isLocked) return
 
-    // Razor Tool Logic
     if (tool === "razor" && mode === "move") {
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
       const clickX = e.clientX - rect.left
@@ -306,13 +254,11 @@ export const Timeline: React.FC<TimelineProps> = ({
       return
     }
 
-    // Selection Logic
     const isMultiSelect = e.ctrlKey || e.metaKey
     const isRangeSelect = e.shiftKey
     const isAlreadySelected = selectedClipIds.includes(clip.id)
 
     if (isRangeSelect && lastClickedClipId) {
-      // Range Selection
       const sortedClips = [...clips].sort((a, b) => a.start - b.start)
       const idxA = sortedClips.findIndex((c) => c.id === lastClickedClipId)
       const idxB = sortedClips.findIndex((c) => c.id === clip.id)
@@ -324,26 +270,21 @@ export const Timeline: React.FC<TimelineProps> = ({
         onSelectClips(newSelection)
       }
     } else if (isMultiSelect) {
-      // Toggle Selection
       if (isAlreadySelected) {
         onSelectClips(selectedClipIds.filter((id) => id !== clip.id))
       } else {
         onSelectClips([...selectedClipIds, clip.id])
       }
     } else if (!isAlreadySelected) {
-      // Single Selection (Replace)
       onSelectClips([clip.id])
     }
 
     setLastClickedClipId(clip.id)
 
-    // Context Menu handled via onContextMenu
     if (e.button === 2) return
 
-    // Save history snapshot before drag begins
     onDragStartRef.current()
 
-    // DETERMINE ACTIVE DRAG GROUP
     const activeClipIds =
       isAlreadySelected || !isMultiSelect
         ? selectedClipIds.includes(clip.id)
@@ -351,7 +292,6 @@ export const Timeline: React.FC<TimelineProps> = ({
           : [clip.id]
         : [clip.id]
 
-    // INITIAL STATES & GROUP PHYSICS
     const initialStates: Record<string, { start: number; duration: number; offset: number }> = {}
     let globalMinStartDelta = Number.NEGATIVE_INFINITY
     let globalMaxStartDelta = Number.POSITIVE_INFINITY
@@ -389,11 +329,13 @@ export const Timeline: React.FC<TimelineProps> = ({
   }
 
   const handleMouseDownBackground = (e: React.MouseEvent) => {
-    // Check if clicking on scrollbar
     if (scrollContainerRef.current) {
       const rect = scrollContainerRef.current.getBoundingClientRect()
-      if (e.clientY > rect.bottom - 12) return // Scrollbar area
+      if (e.clientY > rect.bottom - 12) return
     }
+
+    const isRuler = (e.target as HTMLElement).closest("canvas")
+    if(isRuler) return;
 
     if ((e.target as HTMLElement).closest(".clip-item")) return
 
@@ -402,28 +344,19 @@ export const Timeline: React.FC<TimelineProps> = ({
       return
     }
 
-    const isRuler = (e.target as HTMLElement).closest(".ruler-area")
-
-    if (isRuler) {
-      setIsScrubbing(true)
-      handleScrub(e.clientX)
-      return
-    }
-
-    // Box Selection Start
-    if (!isScrubbing) {
+    if (!isScrubbing && !isDraggingPlayhead) {
       const container = scrollContainerRef.current
       if (container) {
         const rect = container.getBoundingClientRect()
         const x = e.clientX - rect.left + container.scrollLeft
-        const y = e.clientY - rect.top + container.scrollTop // Adjust for scrollY
+        const y = e.clientY - rect.top + container.scrollTop
 
         selectionStartRef.current = { x, y }
         setIsSelecting(true)
         setSelectionBox({ x, y, w: 0, h: 0 })
 
         if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
-          onSelectClips([]) // Deselect all if plain click
+          onSelectClips([])
         }
       }
     }
@@ -447,7 +380,6 @@ export const Timeline: React.FC<TimelineProps> = ({
     const zoom = zoomLevelRef.current
     const isSel = isSelectingRef.current
 
-    // 1. Clip Dragging
     if (ds.mode !== "none" && ds.clipIds.length > 0) {
       const deltaX = e.clientX - ds.startX
       const deltaSeconds = deltaX / zoom
@@ -542,7 +474,6 @@ export const Timeline: React.FC<TimelineProps> = ({
       }
       setSnapIndicator(snappedTime)
     }
-    // 2. Marquee Selection
     else if (isSel && selectionStartRef.current && scrollContainerRef.current) {
       const container = scrollContainerRef.current
       const rect = container.getBoundingClientRect()
@@ -559,19 +490,15 @@ export const Timeline: React.FC<TimelineProps> = ({
 
       setSelectionBox({ x, y, w, h })
 
-      // Calculate Intersection
       const intersectingIds: string[] = []
-
-      let currentTrackY = 32 // Ruler height
+      let currentTrackY = 32
 
       tracksRef.current.forEach((track) => {
         const trackHeight = track.type === "audio" ? 64 : 96
         const trackTop = currentTrackY
         const trackBottom = trackTop + trackHeight
 
-        // Check vertical intersection
         if (y < trackBottom && y + h > trackTop) {
-          // Check horizontal intersection for clips on this track
           const trackClips = clipsRef.current.filter((c) => c.trackId === track.id)
           trackClips.forEach((clip) => {
             const clipX = clip.start * zoom
@@ -618,7 +545,9 @@ export const Timeline: React.FC<TimelineProps> = ({
     setIsScrubbing(false)
     setIsSelecting(false)
     setSelectionBox(null)
+    setIsDraggingPlayhead(false)
     selectionStartRef.current = null
+    document.body.style.cursor = 'default'
   }, [])
 
   useEffect(() => {
@@ -636,7 +565,48 @@ export const Timeline: React.FC<TimelineProps> = ({
     }
   }, [globalMouseMove, handleMouseUp])
 
-  // Wheel Zoom & Pan
+  // Playhead dragging logic
+  useEffect(() => {
+      if (isDraggingPlayhead) {
+          const handleGlobalMove = (e: MouseEvent) => {
+              e.preventDefault();
+              if (scrollContainerRef.current) {
+                  const rect = scrollContainerRef.current.getBoundingClientRect();
+                  const x = e.clientX - rect.left + scrollContainerRef.current.scrollLeft;
+                  let time = x / zoomLevel;
+                  time = Math.max(0, Math.min(time, duration));
+
+                  // Snap logic for playhead
+                  if (snapConfig.enabled) { 
+                       // Pass empty array to consider all clips for snapping
+                       const snap = getSnapTime(time, []);
+                       if (snap !== null) {
+                           time = snap;
+                           setSnapIndicator(snap);
+                       } else {
+                           setSnapIndicator(null);
+                       }
+                  }
+                  onSeek(time);
+              }
+          };
+          const handleGlobalUp = () => {
+              setIsDraggingPlayhead(false);
+              setSnapIndicator(null);
+              document.body.style.cursor = 'default';
+          };
+
+          document.body.style.cursor = 'ew-resize';
+          window.addEventListener('mousemove', handleGlobalMove);
+          window.addEventListener('mouseup', handleGlobalUp);
+          return () => {
+              window.removeEventListener('mousemove', handleGlobalMove);
+              window.removeEventListener('mouseup', handleGlobalUp);
+              document.body.style.cursor = 'default';
+          };
+      }
+  }, [isDraggingPlayhead, zoomLevel, duration, snapConfig, onSeek, getSnapTime]);
+
   useEffect(() => {
     const el = scrollContainerRef.current
     if (!el) return
@@ -644,13 +614,12 @@ export const Timeline: React.FC<TimelineProps> = ({
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault()
-        const delta = e.deltaY > 0 ? 0.9 : 1.1
-        onZoomChange(zoomLevel * delta)
+        const nextZoom = e.deltaY > 0 ? getPrevZoom(zoomLevel) : getNextZoom(zoomLevel)
+        onZoomChange(nextZoom)
       } else if (e.shiftKey) {
         e.preventDefault()
         el.scrollLeft += e.deltaY
       }
-      // Vertical scroll is handled natively now
     }
 
     el.addEventListener("wheel", handleWheel, { passive: false })
@@ -766,7 +735,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                           stroke="currentColor"
                           strokeWidth="2"
                         >
-                          <path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                          <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
                           <path d="M21 3v5h-5" />
                         </svg>
                       ) : (
@@ -808,7 +777,6 @@ export const Timeline: React.FC<TimelineProps> = ({
             </>
           )}
 
-          {/* Add preview playback button */}
           {onTogglePreviewPlayback && (
             <>
               <button
@@ -894,51 +862,19 @@ export const Timeline: React.FC<TimelineProps> = ({
           {/* Zoom Controls */}
           <div className="flex items-center gap-2 bg-[#18181b] rounded-md p-1 border border-neutral-800">
             <button
-              onClick={() => onZoomChange(Math.max(10, zoomLevel - 10))}
-              className="p-1 hover:text-white text-neutral-500"
+              onClick={() => onZoomChange(getPrevZoom(zoomLevel))}
+              className="p-1 hover:text-white text-neutral-500 hover:bg-neutral-800 rounded"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
+               <ZoomOutIcon className="w-3.5 h-3.5" />
             </button>
-            <div className="w-24 px-2 flex items-center">
-              <input
-                type="range"
-                min="10"
-                max="200"
-                value={zoomLevel}
-                onChange={(e) => onZoomChange(Number(e.target.value))}
-                className="w-full h-1 bg-neutral-700 rounded-lg appearance-none cursor-pointer block focus:outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-[#6366f1] [&::-webkit-slider-thumb]:rounded-full"
-              />
+            <div className="w-20 px-2 flex items-center justify-center border-x border-neutral-800">
+               <span className="text-[10px] font-mono text-neutral-400">{Math.round(zoomLevel)}px/s</span>
             </div>
             <button
-              onClick={() => onZoomChange(Math.min(200, zoomLevel + 10))}
-              className="p-1 hover:text-white text-neutral-500"
+              onClick={() => onZoomChange(getNextZoom(zoomLevel))}
+              className="p-1 hover:text-white text-neutral-500 hover:bg-neutral-800 rounded"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
+              <ZoomInIcon className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -1053,54 +989,36 @@ export const Timeline: React.FC<TimelineProps> = ({
           className="flex-1 overflow-x-auto overflow-y-auto relative bg-[#0c0c0e] custom-scrollbar"
           onMouseDown={handleMouseDownBackground}
         >
-          {/* Global Ruler */}
-          <div
-            className="h-8 border-b border-neutral-800 flex items-end sticky top-0 bg-[#09090b] z-30 min-w-full ruler-area"
-            style={{ width: `${Math.max(duration * zoomLevel + 500, 2000)}px` }}
-          >
-            <div className="relative w-full h-full">
-              {[...Array(Math.ceil(duration + 10))].map((_, sec) => (
-                <div
-                  key={sec}
-                  className="absolute bottom-0 h-full flex flex-col justify-end pointer-events-none"
-                  style={{ left: `${sec * zoomLevel}px` }}
-                >
-                  <div className="h-2.5 border-l border-neutral-600"></div>
-                  <span className="absolute bottom-3 left-1 text-[9px] text-neutral-500 font-mono select-none">
-                    {sec}s
-                  </span>
-                  {snapConfig.enabled &&
-                    snapConfig.toGrid &&
-                    [...Array(Math.floor(1 / snapConfig.gridInterval) - 1)].map((_, i) => {
-                      const offset = (i + 1) * snapConfig.gridInterval
-                      return (
-                        <div
-                          key={i}
-                          className="absolute bottom-0 border-l border-neutral-700 h-2"
-                          style={{ left: `${offset * zoomLevel}px` }}
-                        />
-                      )
-                    })}
-                  {(!snapConfig.enabled || !snapConfig.toGrid || snapConfig.gridInterval === 1) && (
-                    <div
-                      className="absolute bottom-0 border-l border-neutral-700 h-2"
-                      style={{ left: `${zoomLevel * 0.5}px` }}
-                    ></div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Canvas Ruler */}
+          <TimelineRuler 
+            duration={duration} 
+            zoomLevel={zoomLevel} 
+            scrollContainerRef={scrollContainerRef} 
+            onClick={(time) => onSeek(time)}
+          />
 
           {/* Tracks Render */}
           <div className="min-w-full relative" style={{ width: `${Math.max(duration * zoomLevel + 500, 2000)}px` }}>
-            {/* Playhead Line */}
+            {/* Playhead Line (Interactive) */}
             <div
-              className="absolute top-0 bottom-0 w-[1px] bg-[#6366f1] z-50 pointer-events-none"
+              className="absolute top-0 bottom-0 z-50 group/playhead"
               style={{ left: `${currentTime * zoomLevel}px` }}
             >
-              <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-[#6366f1] -ml-[5.5px] -mt-[0px] sticky top-0"></div>
-              <div className="absolute top-0 bottom-0 w-px bg-[#6366f1]"></div>
+               {/* Hit Area */}
+              <div
+                  className="absolute -left-2 w-4 h-full cursor-ew-resize z-50"
+                  onMouseDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setIsDraggingPlayhead(true);
+                  }}
+              />
+
+              {/* Visual Line */}
+              <div className={`absolute left-0 w-px h-full bg-[#6366f1] pointer-events-none ${isDraggingPlayhead ? 'bg-white shadow-[0_0_8px_white]' : ''}`}></div>
+              
+              {/* Head/Handle */}
+              <div className={`absolute -left-[5.5px] top-0 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] pointer-events-none transition-colors ${isDraggingPlayhead ? 'border-t-white' : 'border-t-[#6366f1] group-hover/playhead:border-t-indigo-400'}`}></div>
             </div>
 
             {/* Snap Indicator Line */}
@@ -1143,96 +1061,18 @@ export const Timeline: React.FC<TimelineProps> = ({
                     const media = mediaMap[clip.mediaId]
                     const isSelected = selectedClipIds.includes(clip.id)
 
-                    const baseColor = isAudio ? "bg-emerald-900/40" : "bg-[#18181b]"
-                    const hoverColor = isAudio ? "hover:bg-emerald-900/60" : "hover:bg-[#202023]"
-                    const borderColor = isAudio ? "border-emerald-800/50" : "border-neutral-700/80"
-                    const cursorClass = tool === "razor" ? "cursor-crosshair" : "cursor-pointer"
-                    const selectedClass = isSelected
-                      ? isAudio
-                        ? "bg-emerald-900/60 border-emerald-400 z-20 ring-1 ring-emerald-400"
-                        : "bg-[#1e1e24] border-[#6366f1] z-20 ring-1 ring-[#6366f1]"
-                      : `${baseColor} ${hoverColor} hover:border-neutral-500 z-10`
-
-                    const verticalPos = isAudio ? "top-1 bottom-1" : "top-0 bottom-0"
-
                     return (
-                      <div
+                      <TimelineClipItem
                         key={clip.id}
-                        className={`clip-item absolute ${verticalPos} rounded-md overflow-visible ${cursorClass} flex flex-col border transition-all select-none group/item ${selectedClass} shadow-[0_4px_12px_rgba(0,0,0,0.5)]`}
-                        style={{
-                          left: `${clip.start * zoomLevel}px`,
-                          width: `${clip.duration * zoomLevel}px`,
-                          opacity: track.isMuted ? 0.5 : 1,
-                          pointerEvents: track.isLocked ? "none" : "auto",
-                        }}
-                        onMouseDown={(e) => handleMouseDownClip(e, clip, "move")}
+                        clip={clip}
+                        media={media}
+                        track={track}
+                        zoomLevel={zoomLevel}
+                        isSelected={isSelected}
+                        tool={tool}
+                        onMouseDown={(e, mode) => handleMouseDownClip(e, clip, mode)}
                         onContextMenu={(e) => handleContextMenuClip(e, clip.id)}
-                      >
-                        {clip.transition && clip.transition.type !== "none" && (
-                          <div
-                            className="absolute left-0 top-0 bottom-0 z-30 bg-gradient-to-r from-white/30 to-transparent pointer-events-none border-r border-white/20 flex items-center justify-start pl-1"
-                            style={{ width: `${clip.transition.duration * zoomLevel}px` }}
-                          >
-                            <div className="text-[9px] text-white/80 font-bold -rotate-90 origin-left translate-y-4 truncate w-full">
-                              {clip.transition.type.replace("-", " ")}
-                            </div>
-                          </div>
-                        )}
-
-                        <div
-                          className={`absolute -left-3 top-0 bottom-0 w-6 cursor-ew-resize z-30 flex items-center justify-center group/handle opacity-0 group-hover/item:opacity-100 ${isSelected && "opacity-100"}`}
-                          onMouseDown={(e) => handleMouseDownClip(e, clip, "trim-start")}
-                        >
-                          <div className="w-1.5 h-8 bg-white rounded-full shadow-md group-hover/handle:scale-110 transition-transform"></div>
-                        </div>
-
-                        <div
-                          className={`absolute -right-3 top-0 bottom-0 w-6 cursor-ew-resize z-30 flex items-center justify-center group/handle opacity-0 group-hover/item:opacity-100 ${isSelected && "opacity-100"}`}
-                          onMouseDown={(e) => handleMouseDownClip(e, clip, "trim-end")}
-                        >
-                          <div className="w-1.5 h-8 bg-white rounded-full shadow-md group-hover/handle:scale-110 transition-transform"></div>
-                        </div>
-
-                        {/* Content Render */}
-                        <div className="flex-1 overflow-hidden relative px-2 py-1 flex flex-col justify-center">
-                          {/* Thumbnails Strips (Video only) */}
-                          {!isAudio &&
-                            !clip.isAudioDetached &&
-                            media?.status === "ready" &&
-                            clip.duration * zoomLevel > 60 && (
-                              <div className="absolute inset-0 flex opacity-20 pointer-events-none">
-                                {[...Array(Math.floor((clip.duration * zoomLevel) / 60))].map((_, i) => (
-                                  <div
-                                    key={i}
-                                    className="w-[60px] h-full border-r border-white/10 overflow-hidden relative"
-                                  >
-                                    <video src={media.url} className="w-full h-full object-cover" />
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-
-                          {/* Info */}
-                          <div className="relative z-10 flex items-center gap-2">
-                            <span
-                              className={`text-[10px] font-medium truncate drop-shadow-md ${isAudio ? "text-emerald-100" : "text-white"}`}
-                            >
-                              {media?.prompt || "Media"}
-                            </span>
-                          </div>
-                          {/* Waveform Visualization */}
-                          <div className="absolute bottom-0 left-0 right-0 h-1/2 opacity-50 px-0.5">
-                            {media && (
-                              <ClipWaveform
-                                duration={clip.duration}
-                                offset={clip.offset}
-                                isAudio={isAudio}
-                                isSelected={isSelected}
-                              />
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                      />
                     )
                   })}
                 </div>
@@ -1316,5 +1156,3 @@ export const Timeline: React.FC<TimelineProps> = ({
     </div>
   )
 }
-
-export default Timeline

@@ -36,6 +36,24 @@ export interface Track {
   isLocked?: boolean;
 }
 
+export interface StoryboardPanel {
+  id: string;
+  type: 'scene' | 'transition';
+  prompt: string;
+  imageUrl?: string; // Main image or Start frame
+  linkedImageUrl?: string; // End frame for transitions
+  videoUrl?: string;
+  mediaId?: string; // If added to library/timeline, link to it
+  status: 'idle' | 'generating-image' | 'generating-video' | 'enhancing' | 'error';
+  error?: string;
+  duration: 5 | 8; // Veo supports roughly this
+}
+
+export interface VideoConfig {
+  aspectRatio: '16:9' | '9:16';
+  useFastModel: boolean;
+}
+
 export interface AppState {
   media: MediaItem[];
   timelineClips: TimelineClip[];

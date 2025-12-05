@@ -5,6 +5,8 @@
       "dom.iterable",
       "esnext"
     ],
+    "jsx": "react-jsx", // or "react-jsxdev" for development
+    "jsxImportSource": "react",
     "allowJs": true,
     "target": "ES6",
     "skipLibCheck": true,
@@ -15,7 +17,6 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {

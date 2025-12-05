@@ -2,8 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect, useRef, useCallback, useMemo } from "react"
-import { checkApiKey, generateVideo, selectApiKey } from "../services/gemini-service"
-import type { MediaItem, TimelineClip, Track } from "../types"
+import type { MediaItem, TimelineClip, Track, StoryboardPanel as IStoryboardPanel, VideoConfig } from "../types"
 import { FFmpeg } from "@ffmpeg/ffmpeg"
 import { toBlobURL } from "@ffmpeg/util"
 import {
@@ -20,15 +19,26 @@ import {
     KeyboardIcon,
     Grid3x3Icon,
     InfoIcon,
+    StoryboardIcon,
 } from "./icons"
 import { ProjectLibrary } from "./project-library"
 import { CreatePanel } from "./create-panel"
 import { SettingsPanel } from "./settings-panel"
 import { TransitionsPanel } from "./transitions-panel"
 import { InspectorPanel } from "./inspector-panel"
+import { StoryboardPanel } from "./storyboard-panel"
 import { ExportModal } from "./export-modal"
 import { ShortcutsModal } from "./shortcuts-modal"
 import { Timeline } from "./timeline"
+import { audioBufferToWav } from "../utils/audio-processing"
+import { useShortcuts } from "../hooks/use-shortcuts"
+import { v4 as uuidv4 } from "uuid"
+import { useImageGeneration } from "@/components/image-combiner/hooks/use-image-generation"
+import { useImageUpload } from "@/components/image-combiner/hooks/use-image-upload"
+import { useAspectRatio } from "@/components/image-combiner/hooks/use-aspect-ratio"
+import { usePersistentHistory } from "@/components/image-combiner/hooks/use-persistent-history"
+import { useMobile } from "@/hooks/use-mobile"
+import { useToastContext } from "@/components/ui/sonner"
 
 const INITIAL_TRACKS: Track[] = [
     { id: "v1", name: "Video 1", type: "video", volume: 1 },
@@ -37,90 +47,14 @@ const INITIAL_TRACKS: Track[] = [
     { id: "a2", name: "Audio 2", type: "audio", volume: 1 },
 ]
 
-// Audio Wav Helper functions remain the same
-function audioBufferToWav(buffer: AudioBuffer, opt?: any): ArrayBuffer {
-    opt = opt || {}
-    var numChannels = buffer.numberOfChannels
-    var sampleRate = buffer.sampleRate
-    var format = opt.float32 ? 3 : 1
-    var bitDepth = format === 3 ? 32 : 16
-    var result
-    if (numChannels === 2) {
-        result = interleave(buffer.getChannelData(0), buffer.getChannelData(1))
-    } else {
-        result = buffer.getChannelData(0)
-    }
-    return encodeWAV(result, format, sampleRate, numChannels, bitDepth)
-}
-
-function encodeWAV(
-    samples: Float32Array,
-    format: number,
-    sampleRate: number,
-    numChannels: number,
-    bitDepth: number,
-): ArrayBuffer {
-    var bytesPerSample = bitDepth / 8
-    var blockAlign = numChannels * bytesPerSample
-    var buffer = new ArrayBuffer(44 + samples.length * bytesPerSample)
-    var view = new DataView(buffer)
-    writeString(view, 0, "RIFF")
-    view.setUint32(4, 36 + samples.length * bytesPerSample, true)
-    writeString(view, 8, "WAVE")
-    writeString(view, 12, "fmt ")
-    view.setUint32(16, 16, true)
-    view.setUint16(20, format, true)
-    view.setUint16(22, numChannels, true)
-    view.setUint32(24, sampleRate, true)
-    view.setUint32(28, sampleRate * blockAlign, true)
-    view.setUint16(32, blockAlign, true)
-    view.setUint16(34, bitDepth, true)
-    writeString(view, 36, "data")
-    view.setUint32(40, samples.length * bytesPerSample, true)
-    if (format === 1) floatTo16BitPCM(view, 44, samples)
-    else writeFloat32(view, 44, samples)
-    return buffer
-}
-
-function interleave(inputL: Float32Array, inputR: Float32Array): Float32Array {
-    var length = inputL.length + inputR.length
-    var result = new Float32Array(length)
-    var index = 0
-    var inputIndex = 0
-    while (index < length) {
-        result[index++] = inputL[inputIndex]
-        result[index++] = inputR[inputIndex]
-        inputIndex++
-    }
-    return result
-}
-
-function writeFloat32(output: DataView, offset: number, input: Float32Array) {
-    for (var i = 0; i < input.length; i++, offset += 4) {
-        output.setFloat32(offset, input[i], true)
-    }
-}
-
-function floatTo16BitPCM(output: DataView, offset: number, input: Float32Array) {
-    for (var i = 0; i < input.length; i++, offset += 2) {
-        var s = Math.max(-1, Math.min(1, input[i]))
-        output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true)
-    }
-}
-
-function writeString(view: DataView, offset: number, string: string) {
-    for (var i = 0; i < string.length; i++) {
-        view.setUint8(offset + i, string.charCodeAt(i))
-    }
-}
-
 interface EditorProps {
-    initialMedia?: MediaItem[]
-    initialClips?: TimelineClip[]
-    onBack: () => void
+    initialMedia?: MediaItem[];
+    initialClips?: TimelineClip[];
+    initialStoryboard?: IStoryboardPanel[];
+    onBack: () => void;
 }
 
-export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBack }) => {
+export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, initialStoryboard, onBack }) => {
     // FFmpeg Local State
     const ffmpegRef = useRef<FFmpeg | null>(null)
     const [ffmpegLoaded, setFfmpegLoaded] = useState(false)
@@ -129,6 +63,11 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
     // --- State ---
     const [media, setMedia] = useState<MediaItem[]>(initialMedia || [])
     const [tracks, setTracks] = useState<Track[]>(INITIAL_TRACKS)
+    const [storyboardPanels, setStoryboardPanels] = useState<IStoryboardPanel[]>(initialStoryboard || []);
+
+    // Storyboard Global State
+    const [masterDescription, setMasterDescription] = useState('A live-action flashback scene inspired by the "zoom out to the past" effect from Ratatouille.');
+    const [videoConfig, setVideoConfig] = useState<VideoConfig>({ aspectRatio: '16:9', useFastModel: true });
 
     // Timeline State
     const [timelineClips, setTimelineClips] = useState<TimelineClip[]>(initialClips || [])
@@ -142,7 +81,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
     const [tool, setTool] = useState<"select" | "razor">("select")
 
     // UI State
-    const [activeView, setActiveView] = useState<"library" | "create" | "settings" | "transitions" | "inspector">(
+    const [activeView, setActiveView] = useState<"library" | "create" | "settings" | "transitions" | "inspector" | "storyboard">(
         "library",
     )
     const [isPanelOpen, setIsPanelOpen] = useState(true)
@@ -158,6 +97,9 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
     const [isShortcutsOpen, setIsShortcutsOpen] = useState(false)
     const [isSafeGuidesVisible, setIsSafeGuidesVisible] = useState(false)
 
+    // Generated Item State
+    const [generatedItem, setGeneratedItem] = useState<{ url: string; type: 'video' | 'image' } | null>(null)
+
     // Export State
     const [isExportModalOpen, setIsExportModalOpen] = useState(false)
     const [isExporting, setIsExporting] = useState(false)
@@ -165,7 +107,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
     const [exportPhase, setExportPhase] = useState<"idle" | "init" | "audio" | "video" | "encoding" | "complete">("idle")
     const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
     const abortExportRef = useRef(false)
-    const exportCancelledRef = useRef(false) // This is the correct variable
+    const exportCancelledRef = useRef(false)
 
     // Render Preview State
     const [isRendering, setIsRendering] = useState(false)
@@ -306,6 +248,144 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
         setSelectedClipIds(ids)
     }, [])
 
+    // Storyboard Handlers
+    const handleAddStoryboardPanel = useCallback(() => {
+        setStoryboardPanels(prev => [
+            ...prev,
+            { id: `sb-${Date.now()}`, prompt: '', status: 'idle', type: 'scene', duration: 5 }
+        ]);
+    }, []);
+
+    const handleUpdateStoryboardPanel = useCallback((id: string, changes: Partial<IStoryboardPanel>) => {
+        setStoryboardPanels(prev => prev.map(p => p.id === id ? { ...p, ...changes } : p));
+    }, []);
+
+    const handleDeleteStoryboardPanel = useCallback((id: string) => {
+        setStoryboardPanels(prev => prev.filter(p => p.id !== id));
+    }, []);
+
+    const isMobile = useMobile()
+    const { toast: toastCtx } = useToastContext()
+    const [prompt, setPrompt] = useState("A beautiful landscape with mountains and a lake at sunset")
+    const [useUrls, setUseUrls] = useState(false)
+    const [isEnhancingMaster, setIsEnhancingMaster] = useState(false)
+    const [isEnhancing, setIsEnhancing] = useState(false)
+    const [showFullscreen, setShowFullscreen] = useState(false)
+    const [fullscreenImageUrl, setFullscreenImageUrl] = useState("")
+    const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null)
+    const [isDraggingOver, setIsDraggingOver] = useState(false)
+    const [dragCounter, setDragCounter] = useState(0)
+    const [videoError, setVideoError] = useState<string | null>(null)
+    const [videoResult, setVideoResult] = useState<any>(null)
+    const [dropZoneHover, setDropZoneHover] = useState<1 | 2 | null>(null)
+    const [showHowItWorks, setShowHowItWorks] = useState(false)
+    const [apiKeyMissing, setApiKeyMissing] = useState(false)
+    const [showGenerator, setShowGenerator] = useState(false)
+
+    const [leftWidth, setLeftWidth] = useState(50)
+    const [isResizing, setIsResizing] = useState(false)
+    const containerRef = useRef<HTMLDivElement>(null)
+    const generatorRef = useRef<HTMLDivElement>(null)
+
+    const promptTextareaRef = useRef<HTMLTextAreaElement>(null)
+
+    const showToast = (message: string, type: "success" | "error" = "success") => {
+        setToast({ message, type })
+        setTimeout(() => setToast(null), 3000)
+    }
+
+    const {
+        image1,
+        image1Preview,
+        image1Url,
+        image2,
+        image2Preview,
+        image2Url,
+        isConvertingHeic,
+        heicProgress,
+        handleImageUpload,
+        handleUrlChange,
+        clearImage,
+        showToast: uploadShowToast,
+    } = useImageUpload()
+
+    const { aspectRatio, setAspectRatio, availableAspectRatios } = useAspectRatio()
+
+    const {
+        generations: persistedGenerations,
+        setGenerations: setPersistedGenerations,
+        addGeneration,
+        clearHistory,
+        deleteGeneration,
+        isLoading: historyLoading,
+        hasMore,
+        loadMore,
+        isLoadingMore,
+    } = usePersistentHistory(showToast)
+
+    const {
+        selectedGenerationId,
+        setSelectedGenerationId,
+        imageLoaded,
+        setImageLoaded,
+        generateImage: runGeneration,
+        cancelGeneration,
+        loadGeneratedAsInput,
+    } = useImageGeneration({
+        prompt,
+        aspectRatio,
+        image1,
+        image2,
+        image1Url,
+        image2Url,
+        useUrls,
+        generations: persistedGenerations,
+        setGenerations: setPersistedGenerations,
+        addGeneration,
+        onToast: showToast,
+        onImageUpload: handleImageUpload,
+        onOutOfCredits: () => { },
+        onApiKeyMissing: () => setApiKeyMissing(true),
+    })
+
+
+
+    const handleAddStoryboardToTimeline = useCallback((panel: IStoryboardPanel) => {
+        if (!panel.videoUrl) return;
+
+        let mediaId = panel.mediaId;
+        if (!mediaId || !mediaMap[mediaId]) {
+            mediaId = `media-sb-fallback-${panel.id}`;
+            const newMedia: MediaItem = {
+                id: mediaId,
+                url: panel.videoUrl,
+                prompt: panel.prompt,
+                duration: panel.duration || 5,
+                aspectRatio: videoConfig.aspectRatio,
+                status: 'ready',
+                type: 'video',
+                resolution: { width: 1280, height: 720 }
+            };
+            setMedia(prev => [newMedia, ...prev]);
+        }
+
+        pushToHistory();
+        const trackId = 'v1';
+        const clipsOnTrack = timelineClips.filter(c => c.trackId === trackId);
+        const start = clipsOnTrack.length > 0 ? Math.max(...clipsOnTrack.map(c => c.start + c.duration)) : 0;
+        const newClip: TimelineClip = {
+            id: `clip-sb-${Date.now()}`,
+            mediaId: mediaId!,
+            trackId,
+            start,
+            duration: panel.duration || 5,
+            offset: 0,
+            volume: 1
+        };
+        setTimelineClips(prev => [...prev, newClip]);
+        setSelectedClipIds([newClip.id]);
+    }, [pushToHistory, timelineClips, mediaMap, videoConfig]);
+
     const setupAudioGraph = () => {
         if (typeof window === "undefined") return
 
@@ -343,15 +423,6 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
             }
         })
     }
-
-    useEffect(() => {
-        checkApiKey().then((ready) => {
-            if (isMountedRef.current) setApiKeyReady(ready)
-        })
-        return () => {
-            isMountedRef.current = false
-        }
-    }, [])
 
     useEffect(() => {
         return () => {
@@ -1127,42 +1198,171 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
         ],
     )
 
-    const handleGenerate = useCallback(
-        async (prompt: string, aspectRatio: string) => {
-            if (!apiKeyReady) {
-                await selectApiKey()
-                setApiKeyReady(await checkApiKey())
+    const handleAddToTimeline = useCallback(
+        (item: MediaItem) => {
+            pushToHistory()
+            const trackId = item.type === "audio" ? "a1" : "v1"
+            const clipsOnTrack = timelineClips.filter((c) => c.trackId === trackId)
+            const start = clipsOnTrack.length > 0 ? Math.max(...clipsOnTrack.map((c) => c.start + c.duration)) : 0
+            const newClip: TimelineClip = {
+                id: `clip-${Date.now()}`,
+                mediaId: item.id,
+                trackId,
+                start,
+                duration: item.duration,
+                offset: 0,
+                volume: 1,
             }
+            setTimelineClips((prev) => [...prev, newClip])
+            setSelectedClipIds([newClip.id])
+            setIsPreviewStale(true) // Mark preview as needing re-render
+        },
+        [pushToHistory, timelineClips],
+    )
+
+    const handleGenerate = useCallback(
+        async (prompt: string, aspectRatio: string, type: 'video' | 'image' = 'video', model?: string, image?: string) => {
             const newId = Math.random().toString(36).substr(2, 9)
             const tempMedia: MediaItem = {
                 id: newId,
                 url: "",
                 prompt: prompt,
-                duration: defaultDuration,
+                duration: type === 'video' ? defaultDuration : 5, // Default 5s for images
                 aspectRatio: aspectRatio,
                 status: "generating",
-                type: "video",
+                type: type,
                 resolution: { width: 1280, height: 720 },
             }
             setMedia((prev) => [tempMedia, ...prev])
             setIsGenerating(true)
+
             try {
-                const videoUrl = await generateVideo(prompt, aspectRatio)
+                let videoUrl = "";
+
+                if (type === 'video') {
+                    const response = await fetch("/api/generate-video", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            prompt,
+                            aspectRatio,
+                            model,
+                            imageUrl: image, // Pass image if present (as data URI)
+                        }),
+                    })
+
+                    if (!response.ok) {
+                        const err = await response.json()
+                        throw new Error(err.error || "Generation failed")
+                    }
+
+                    const result = await response.json()
+                    setGeneratedItem({ url: result.url, type: "video" })
+                    videoUrl = result.video?.url || result.data?.video?.url || result.url
+                } else {
+                    // Image Generation
+                    // Map aspect ratio to what API expects (landscape, portrait, square)
+                    let apiAspectRatio = "square";
+                    if (aspectRatio === "16:9") apiAspectRatio = "landscape";
+                    else if (aspectRatio === "9:16") apiAspectRatio = "portrait";
+
+                    const formData = new FormData();
+
+                    if (image) {
+                        formData.append("mode", "image-editing");
+                        // For API simplicity, we can pass the data URI as image1Url or convert to a file.
+                        // However, the current API route expects 'image1' (File) or 'image1Url' (string).
+                        // Since we have a data URI string, passing it as 'image1Url' should work if the backend handles data URIs in that field.
+                        // Looking at api/generate-image/route.ts:
+                        // const convertToDataUrl = async (source: File | string) ... check if string starts with data: ...
+                        // It seems the API *can* handle data URIs passed as strings if we verify the backend logic.
+                        // Actually, looking at the backend code:
+                        // const image1Url = formData.get("image1Url") as string
+                        // ...
+                        // const hasImage1 = image1 || image1Url
+                        // ...
+                        // const image1DataUrl = await convertToDataUrl(hasImage1 ? image1 || image1Url : "")
+                        // And convertToDataUrl handles strings by fetching them.
+                        // Fetching a data URI works in Node/Browser environments usually.
+                        // Let's pass it as image1Url.
+                        formData.append("image1Url", image);
+
+                    } else {
+                        formData.append("mode", "text-to-image");
+                    }
+
+                    formData.append("prompt", prompt);
+                    formData.append("aspectRatio", apiAspectRatio);
+                    if (model) {
+                        formData.append("model", model);
+                    }
+
+                    const response = await fetch("/api/generate-image", {
+                        method: "POST",
+                        body: formData,
+                    });
+
+                    if (!response.ok) {
+                        const err = await response.json()
+                        throw new Error(err.error || "Image generation failed")
+                    }
+
+                    const result = await response.json()
+                    setGeneratedItem({ url: result.url, type: "image" })
+                    videoUrl = result.url;
+                }
+
+                if (!videoUrl) throw new Error("No URL received")
+
                 if (isMountedRef.current) {
                     setMedia((prev) => prev.map((m) => (m.id === newId ? { ...m, url: videoUrl, status: "ready" } : m)))
                     setActiveView("library")
+
+                    // Auto-add to timeline if valid
+                    if (videoUrl) {
+                        const readyItem = { ...tempMedia, url: videoUrl, status: "ready" as const };
+                        handleAddToTimeline(readyItem);
+                    }
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error(error)
                 if (isMountedRef.current) {
                     setMedia((prev) => prev.map((m) => (m.id === newId ? { ...m, status: "error" } : m)))
+                    alert(error.message || "Generation failed")
                 }
             } finally {
                 if (isMountedRef.current) setIsGenerating(false)
             }
         },
-        [apiKeyReady, defaultDuration],
+        [defaultDuration, handleAddToTimeline],
     )
+
+    const handleGenerateVideo = async () => {
+        setIsGenerating(true)
+        setVideoError(null)
+        setVideoResult(null)
+
+        try {
+            const response = await fetch("/api/generate-video", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ image1Url, prompt }),
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || `HTTP ${response.status}`)
+            }
+
+            setVideoResult(data)
+        } catch (err: any) {
+            console.error("Video generation error:", err)
+            setVideoError(err.message)
+        } finally {
+            setIsGenerating(false)
+        }
+    }
 
     const handleImport = useCallback(
         (file: File) => {
@@ -1225,27 +1425,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
         [timelineClips, selectedClipIds, pushToHistory],
     )
 
-    const handleAddToTimeline = useCallback(
-        (item: MediaItem) => {
-            pushToHistory()
-            const trackId = item.type === "audio" ? "a1" : "v1"
-            const clipsOnTrack = timelineClips.filter((c) => c.trackId === trackId)
-            const start = clipsOnTrack.length > 0 ? Math.max(...clipsOnTrack.map((c) => c.start + c.duration)) : 0
-            const newClip: TimelineClip = {
-                id: `clip-${Date.now()}`,
-                mediaId: item.id,
-                trackId,
-                start,
-                duration: item.duration,
-                offset: 0,
-                volume: 1,
-            }
-            setTimelineClips((prev) => [...prev, newClip])
-            setSelectedClipIds([newClip.id])
-            setIsPreviewStale(true) // Mark preview as needing re-render
-        },
-        [pushToHistory, timelineClips],
-    )
+
 
     const handleSplitClip = useCallback(
         (clipId: string, splitTime: number) => {
@@ -1721,6 +1901,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
         drawFrameToCanvas,
     ])
 
+
     const handleCancelRender = () => {
         renderCancelledRef.current = true
         setIsRendering(false)
@@ -1748,11 +1929,24 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
         }
     }, [isPreviewPlayback])
 
+    // --- Keyboard Shortcuts ---
+    useShortcuts({
+        onPlayPause: () => setIsPlaying(p => !p),
+        onUndo: () => { if (history.length > 0) undo() },
+        onRedo: () => { if (future.length > 0) redo() },
+        onCut: () => setTool(t => t === "select" ? "razor" : "select"),
+        onDuplicate: () => handleDuplicateClip(selectedClipIds),
+        onDelete: () => handleDeleteClip(selectedClipIds),
+        onRippleDelete: () => handleRippleDeleteClip(selectedClipIds),
+    }, [history.length, future.length, selectedClipIds, handleDuplicateClip, handleDeleteClip, handleRippleDeleteClip]);
+
     useEffect(() => {
         if (isPreviewStale && isPreviewPlayback) {
             setIsPreviewPlayback(false)
         }
     }, [isPreviewStale, isPreviewPlayback])
+
+
 
     return (
         <div className="flex h-screen w-screen overflow-hidden bg-[#09090b] text-neutral-200 font-sans selection:bg-indigo-500/30">
@@ -1793,7 +1987,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
                     <LogoIcon className="w-6 h-6" />
                 </div>
                 <div className="flex flex-col gap-6 w-full items-center">
-                    {["create", "library", "transitions", "inspector", "settings"].map((v) => (
+                    {["create", "library", "storyboard", "transitions", "inspector", "settings"].map((v) => (
                         <div
                             key={v}
                             onClick={() => {
@@ -1811,6 +2005,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
                             >
                                 {v === "create" && <PlusIcon className="w-5 h-5" />}
                                 {v === "library" && <GridIcon className="w-5 h-5" />}
+                                {v === "storyboard" && <StoryboardIcon className="w-5 h-5" />}
                                 {v === "transitions" && <TransitionIcon className="w-5 h-5" />}
                                 {v === "inspector" && <InfoIcon className="w-5 h-5" />}
                                 {v === "settings" && <SettingsIcon className="w-5 h-5" />}
@@ -1885,6 +2080,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
                                     onGenerate={handleGenerate}
                                     isGenerating={isGenerating}
                                     onClose={() => setIsPanelOpen(false)}
+                                    generatedItem={generatedItem}
                                 />
                             )}
                             {activeView === "settings" && (
@@ -1920,6 +2116,26 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, onBa
                                     onUpdateClip={handleClipUpdate}
                                 />
                             )}
+                            {activeView === 'storyboard' && (
+                                <StoryboardPanel
+                                    panels={storyboardPanels}
+                                    masterDescription={masterDescription}
+                                    setMasterDescription={setMasterDescription}
+                                    videoConfig={videoConfig}
+                                    setVideoConfig={setVideoConfig}
+                                    onClose={() => setIsPanelOpen(false)}
+                                    onAddPanel={handleAddStoryboardPanel}
+                                    onUpdatePanel={handleUpdateStoryboardPanel}
+                                    onDeletePanel={handleDeleteStoryboardPanel}
+                                    onGenerateImage={handleGenerate}
+                                    onGenerateVideo={handleGenerateVideo}
+                                    onAddToTimeline={handleAddStoryboardToTimeline}
+                                    isEnhancingMaster={false}
+                                    setIsEnhancingMaster={setIsEnhancingMaster}
+                                    setIsEnhancing={setIsEnhancing}
+                                    setPrompt={setPrompt} />
+                            )}
+
                             <div
                                 className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-indigo-500/50 z-50"
                                 onMouseDown={(e) => {

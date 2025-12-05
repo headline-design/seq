@@ -44,30 +44,30 @@ export async function POST(request: Request) {
       model,
     })
 
-    if (!prompt || !imageUrl) {
-      return NextResponse.json({ error: "Missing prompt or imageUrl" }, { status: 400 })
+    if (!prompt) {
+      return NextResponse.json({ error: "Missing prompt" }, { status: 400 })
     }
 
     if (typeof prompt !== "string" || prompt.trim().length === 0) {
       return NextResponse.json({ error: "Prompt must be a non-empty string" }, { status: 400 })
     }
 
-    if (typeof imageUrl !== "string" || imageUrl.trim().length === 0) {
-      return NextResponse.json({ error: "Image URL must be a non-empty string" }, { status: 400 })
-    }
+    const hasImage = typeof imageUrl === "string" && imageUrl.trim().length > 0;
 
     // Supported: HTTPS URLs, data URIs (base64)
     // Not supported: blob: URLs (browser-only, can't be accessed server-side)
-    const isValidImageUrl = imageUrl.startsWith("https://") || imageUrl.startsWith("data:image/")
+    if (hasImage) {
+      const isValidImageUrl = imageUrl.startsWith("https://") || imageUrl.startsWith("data:image/")
 
-    if (!isValidImageUrl) {
-      return NextResponse.json(
-        {
-          error: "Invalid image URL format",
-          details: "Supported formats: HTTPS URLs or data URIs (base64). Blob URLs are not supported.",
-        },
-        { status: 400 },
-      )
+      if (!isValidImageUrl) {
+        return NextResponse.json(
+          {
+            error: "Invalid image URL format",
+            details: "Supported formats: HTTPS URLs or data URIs (base64). Blob URLs are not supported.",
+          },
+          { status: 400 },
+        )
+      }
     }
 
     // Validate linkedImageUrl if provided
@@ -92,6 +92,29 @@ export async function POST(request: Request) {
     }
 
     fal.config({ credentials: key })
+
+    if (!hasImage) {
+      // Text-to-Video Path
+      // Default to Minimax if no model specified or if model is not a valid T2V model
+      let falModel = "fal-ai/minimax-video"
+
+      if (model === "fal-ai/hunyuan-video") {
+        falModel = "fal-ai/hunyuan-video"
+      }
+
+      console.log(`[v0] Calling fal.subscribe with model: ${falModel} (Text-to-Video)`)
+
+      const result = await fal.subscribe(falModel, {
+        input: {
+          prompt: prompt.trim(),
+          prompt_optimizer: true,
+        },
+        logs: true,
+      })
+
+      console.log("[v0] Video generation result:", result)
+      return NextResponse.json(result)
+    }
 
     const isFirstLastFrame = !!linkedImageUrl
 
@@ -219,18 +242,18 @@ export async function POST(request: Request) {
         input:
           input === undefined
             ? {
-                prompt: prompt.trim(),
-                first_frame_url: imageUrl.trim(),
-                last_frame_url: linkedImageUrl.trim(),
-                duration: "8s",
-                aspect_ratio: (aspectRatio || "16:9") as "auto" | "9:16" | "16:9" | "1:1",
-                resolution: "720p" as "720p" | "1080p",
-                generate_audio: true,
-              }
+              prompt: prompt.trim(),
+              first_frame_url: imageUrl.trim(),
+              last_frame_url: linkedImageUrl.trim(),
+              duration: "8s",
+              aspect_ratio: (aspectRatio || "16:9") as "auto" | "9:16" | "16:9" | "1:1",
+              resolution: "720p" as "720p" | "1080p",
+              generate_audio: true,
+            }
             : {
-                ...input,
-                duration: "8s",
-              },
+              ...input,
+              duration: "8s",
+            },
         logs: true,
       })
 

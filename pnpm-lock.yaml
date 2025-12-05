@@ -148,6 +148,9 @@ devDependencies:
   '@tailwindcss/postcss':
     specifier: ^4.1.9
     version: 4.1.17
+  '@types/ffmpeg':
+    specifier: latest
+    version: 1.0.7
   '@types/node':
     specifier: ^22
     version: 22.19.1
@@ -3241,6 +3244,10 @@ packages:
   /@types/estree@1.0.8:
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
     dev: false
+
+  /@types/ffmpeg@1.0.7:
+    resolution: {integrity: sha512-7Pw61IDG9Tj+gXGNshJ7JIM2fhDe0IrK7/F+b8midmsiljiugWKbW5KoNmhtZS3pPXWVfVHP3wOwquF/wbVxiw==}
+    dev: true
 
   /@types/hast@2.3.10:
     resolution: {integrity: sha512-McWspRw8xx8J9HurkVBfYj0xKoE25tOFlHGdx4MJ5xORQrMGZNqJhVQWaIbm6Oyla5kYOXtDiopzKRJzEOkwJw==}

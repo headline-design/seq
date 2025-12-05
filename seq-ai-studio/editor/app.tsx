@@ -1,7 +1,6 @@
 "use client";
 
-import React from 'react';
-import { MediaItem, TimelineClip } from './types';
+import { MediaItem, StoryboardPanel, TimelineClip } from './types';
 import dynamic from 'next/dynamic';
 import { DEMO_FINAL_SEQUENCE } from '@/lib/demo-data';
 import { useRouter } from 'next/navigation';
@@ -38,10 +37,24 @@ function App() {
     startTime += m.duration;
   });
 
+  // Populate storyboard panel state
+  const initialStoryboard: StoryboardPanel[] = DEMO_FINAL_SEQUENCE.panels.map((p, i) => ({
+    id: `sb-${i}`,
+    prompt: p.prompt,
+    imageUrl: p.imageUrl,
+    linkedImageUrl: p.linkedImageUrl,
+    videoUrl: p.videoUrl,
+    mediaId: `media-${i}`, // Link to the media items we just created
+    status: 'idle',
+    type: p.linkedImageUrl ? 'transition' : 'scene',
+    duration: p.duration as 5 | 8 // Ensure type compatibility
+  }));
+
   const router = useRouter();
 
   return (
     <Editor
+      initialStoryboard={initialStoryboard}
       initialMedia={initialMedia}
       initialClips={initialClips}
       onBack={() => {
