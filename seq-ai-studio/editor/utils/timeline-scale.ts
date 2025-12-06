@@ -1,4 +1,3 @@
-
 export interface ZoomConfig {
   pixelsPerSecond: number;
   majorInterval: number; // seconds between major numbered ticks

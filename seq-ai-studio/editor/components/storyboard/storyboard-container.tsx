@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Film, Layers, Wand2, Settings2, Loader2, Sparkles } from "lucide-react"
@@ -48,7 +47,6 @@ export function StoryboardContainer({
     if (initialPanels && initialPanels.length > 0) {
       const savedSession = loadSession()
       const savedVideoUrls = initialVideoUrls || savedSession?.videoUrls || {}
-      console.log("[v0] Using video URLs:", savedVideoUrls)
 
       const newPanels: StoryboardPanelData[] = initialPanels.map((url, index) => ({
         id: Math.random().toString(36).substring(7),
@@ -61,8 +59,6 @@ export function StoryboardContainer({
         isGenerating: false,
       }))
       setPanels(newPanels)
-
-      console.log("[v0] Created newPanels with transitions, prompts, durations, and restored videos:", newPanels)
     }
   }, [initialPanels, initialLinkedPanelData, initialPrompts, initialDurations, initialVideoUrls])
 
@@ -85,7 +81,6 @@ export function StoryboardContainer({
       })
 
       if (Object.keys(videoUrls).length > 0) {
-        console.log("[v0] Saving video URLs to localStorage:", videoUrls)
         saveSession({ videoUrls })
       }
     }

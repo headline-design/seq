@@ -57,7 +57,7 @@ export function TransitionGenerator({
       }
     } catch (error) {
       console.error("Analysis failed:", error)
-      setAnalyzedCount(4) // Fallback to 4 for transitions
+      setAnalyzedCount(4)
     } finally {
       setIsAnalyzing(false)
     }
@@ -127,12 +127,6 @@ export function TransitionGenerator({
     formData.append("uploadToBlob", storageMode === "persistent" ? "true" : "false")
 
     try {
-      console.log("[v0] Transition panel extraction request:", {
-        index: index + 1,
-        storageMode,
-        uploadToBlob: storageMode === "persistent",
-      })
-
       const response = await fetch("/api/generate-image", {
         method: "POST",
         body: formData,
@@ -141,13 +135,6 @@ export function TransitionGenerator({
       if (!response.ok) return null
 
       const data = await response.json()
-
-      console.log("[v0] Transition panel extracted:", {
-        index: index + 1,
-        urlType: data.url?.startsWith("http") ? "HTTP URL" : "Data URI",
-        urlPreview: data.url?.substring(0, 50),
-      })
-
       return data.url || null
     } catch (e) {
       console.error(`Panel ${index + 1} error:`, e)
@@ -288,7 +275,7 @@ export function TransitionGenerator({
         </div>
       )}
 
-      {generatedUrl && status !== "complete" && (
+      {generatedUrl && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
           <Card className="p-4 bg-zinc-900 border-zinc-800">
             <div className="aspect-[3/2] relative rounded-lg overflow-hidden border border-zinc-700">
@@ -384,10 +371,26 @@ export function TransitionGenerator({
                         fill
                         className="object-cover"
                       />
-
                       <div className="absolute top-1 right-1">
                         <CheckCircle2 className="w-4 h-4 text-green-500 bg-black rounded-full" />
                       </div>
+                      {/* Regenerate overlay - now properly inside the panel */}
+                      {status === "complete" && (
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => regeneratePanel(i)}
+                            disabled={regenerating.includes(i)}
+                          >
+                            {regenerating.includes(i) ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <RefreshCw className="w-3 h-3" />
+                            )}
+                          </Button>
+                        </div>
+                      )}
                     </>
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -404,26 +407,6 @@ export function TransitionGenerator({
           </div>
         </div>
       )}
-      {status === "complete" &&
-        Array.from({ length: analyzedCount || 4 }).map((_, i) => (
-          <div
-            key={i}
-            className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100"
-          >
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => regeneratePanel(i)}
-              disabled={regenerating.includes(i)}
-            >
-              {regenerating.includes(i) ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
-              ) : (
-                <RefreshCw className="w-3 h-3" />
-              )}
-            </Button>
-          </div>
-        ))}
 
       <div className="flex justify-center pt-6 border-t border-zinc-800">
         <Button variant="outline" onClick={onSkip} className="border-zinc-700 hover:bg-zinc-800 bg-transparent">

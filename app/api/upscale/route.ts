@@ -16,8 +16,6 @@ export async function POST(request: NextRequest) {
       fal.config({ credentials: key })
     }
 
-    console.log("[v0] Using Fal Key:", key ? "Present" : "Missing")
-
     const result = await fal.subscribe("fal-ai/ccsr", {
       input: {
         image_url,

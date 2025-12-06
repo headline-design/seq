@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { TransitionType } from '../types';
 import { CrossDissolveIcon, FadeIcon, TransitionIcon, PanelLeftClose } from './icons';

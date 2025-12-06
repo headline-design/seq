@@ -6,20 +6,20 @@ import type { MediaItem, TimelineClip, Track, StoryboardPanel as IStoryboardPane
 import { FFmpeg } from "@ffmpeg/ffmpeg"
 import { toBlobURL } from "@ffmpeg/util"
 import {
-    SettingsIcon,
-    DownloadIcon,
-    PlayIcon,
-    GridIcon,
-    PlusIcon,
-    MaximizeIcon,
-    TransitionIcon,
-    UndoIcon,
-    RedoIcon,
-    LogoIcon,
-    KeyboardIcon,
-    Grid3x3Icon,
-    InfoIcon,
-    StoryboardIcon,
+  SettingsIcon,
+  DownloadIcon,
+  PlayIcon,
+  GridIcon,
+  PlusIcon,
+  MaximizeIcon,
+  TransitionIcon,
+  UndoIcon,
+  RedoIcon,
+  LogoIcon,
+  KeyboardIcon,
+  Grid3x3Icon,
+  InfoIcon,
+  StoryboardIcon,
 } from "./icons"
 import { ProjectLibrary } from "./project-library"
 import { CreatePanel } from "./create-panel"
@@ -32,7 +32,6 @@ import { ShortcutsModal } from "./shortcuts-modal"
 import { Timeline } from "./timeline"
 import { audioBufferToWav } from "../utils/audio-processing"
 import { useShortcuts } from "../hooks/use-shortcuts"
-import { v4 as uuidv4 } from "uuid"
 import { useImageGeneration } from "@/components/image-combiner/hooks/use-image-generation"
 import { useImageUpload } from "@/components/image-combiner/hooks/use-image-upload"
 import { useAspectRatio } from "@/components/image-combiner/hooks/use-aspect-ratio"
@@ -41,2257 +40,2426 @@ import { useMobile } from "@/hooks/use-mobile"
 import { useToastContext } from "@/components/ui/sonner"
 
 const INITIAL_TRACKS: Track[] = [
-    { id: "v1", name: "Video 1", type: "video", volume: 1 },
-    { id: "v2", name: "Video 2", type: "video", volume: 1 },
-    { id: "a1", name: "Audio 1", type: "audio", volume: 1 },
-    { id: "a2", name: "Audio 2", type: "audio", volume: 1 },
+  { id: "v1", name: "Video 1", type: "video", volume: 1 },
+  { id: "v2", name: "Video 2", type: "video", volume: 1 },
+  { id: "a1", name: "Audio 1", type: "audio", volume: 1 },
+  { id: "a2", name: "Audio 2", type: "audio", volume: 1 },
 ]
 
 interface EditorProps {
-    initialMedia?: MediaItem[];
-    initialClips?: TimelineClip[];
-    initialStoryboard?: IStoryboardPanel[];
-    onBack: () => void;
+  initialMedia?: MediaItem[]
+  initialClips?: TimelineClip[]
+  initialStoryboard?: IStoryboardPanel[]
+  onBack: () => void
 }
 
 export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, initialStoryboard, onBack }) => {
-    // FFmpeg Local State
-    const ffmpegRef = useRef<FFmpeg | null>(null)
-    const [ffmpegLoaded, setFfmpegLoaded] = useState(false)
-    const [ffmpegLoading, setFfmpegLoading] = useState(false)
+  // FFmpeg Local State
+  const ffmpegRef = useRef<FFmpeg | null>(null)
+  const [ffmpegLoaded, setFfmpegLoaded] = useState(false)
+  const [ffmpegLoading, setFfmpegLoading] = useState(false)
 
-    // --- State ---
-    const [media, setMedia] = useState<MediaItem[]>(initialMedia || [])
-    const [tracks, setTracks] = useState<Track[]>(INITIAL_TRACKS)
-    const [storyboardPanels, setStoryboardPanels] = useState<IStoryboardPanel[]>(initialStoryboard || []);
+  const isMobile = useMobile()
+  const { toast: toastCtx } = useToastContext()
 
-    // Storyboard Global State
-    const [masterDescription, setMasterDescription] = useState('A live-action flashback scene inspired by the "zoom out to the past" effect from Ratatouille.');
-    const [videoConfig, setVideoConfig] = useState<VideoConfig>({ aspectRatio: '16:9', useFastModel: true });
+  // --- State ---
+  const [media, setMedia] = useState<MediaItem[]>(initialMedia || [])
+  const [tracks, setTracks] = useState<Track[]>(INITIAL_TRACKS)
+  const [storyboardPanels, setStoryboardPanels] = useState<IStoryboardPanel[]>(initialStoryboard || [])
 
-    // Timeline State
-    const [timelineClips, setTimelineClips] = useState<TimelineClip[]>(initialClips || [])
-    const [history, setHistory] = useState<TimelineClip[][]>([])
-    const [future, setFuture] = useState<TimelineClip[][]>([])
+  // Storyboard Global State
+  const [masterDescription, setMasterDescription] = useState(
+    'A live-action flashback scene inspired by the "zoom out to the past" effect from Ratatouille.',
+  )
+  const [videoConfig, setVideoConfig] = useState<VideoConfig>({ aspectRatio: "16:9", useFastModel: true })
 
-    const [currentTime, setCurrentTime] = useState(0)
-    const [isPlaying, setIsPlaying] = useState(false)
-    const [zoomLevel, setZoomLevel] = useState(40)
-    const [selectedClipIds, setSelectedClipIds] = useState<string[]>([])
-    const [tool, setTool] = useState<"select" | "razor">("select")
+  // Timeline State
+  const [timelineClips, setTimelineClips] = useState<TimelineClip[]>(initialClips || [])
+  const [history, setHistory] = useState<TimelineClip[][]>([])
+  const [future, setFuture] = useState<TimelineClip[][]>([])
 
-    // UI State
-    const [activeView, setActiveView] = useState<"library" | "create" | "settings" | "transitions" | "inspector" | "storyboard">(
-        "library",
-    )
-    const [isPanelOpen, setIsPanelOpen] = useState(true)
-    const [isGenerating, setIsGenerating] = useState(false)
-    const [apiKeyReady, setApiKeyReady] = useState(false)
-    const [defaultDuration, setDefaultDuration] = useState(5)
-    const [playerZoom, setPlayerZoom] = useState(1)
-    const [isCinemaMode, setIsCinemaMode] = useState(false)
-    const [timelineHeight, setTimelineHeight] = useState(320)
-    const [isResizingTimeline, setIsResizingTimeline] = useState(false)
-    const [sidebarWidth, setSidebarWidth] = useState(360)
-    const [isResizingSidebar, setIsResizingSidebar] = useState(false)
-    const [isShortcutsOpen, setIsShortcutsOpen] = useState(false)
-    const [isSafeGuidesVisible, setIsSafeGuidesVisible] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [zoomLevel, setZoomLevel] = useState(40)
+  const [selectedClipIds, setSelectedClipIds] = useState<string[]>([])
+  const [tool, setTool] = useState<"select" | "razor">("select")
 
-    // Generated Item State
-    const [generatedItem, setGeneratedItem] = useState<{ url: string; type: 'video' | 'image' } | null>(null)
+  // UI State
+  const [activeView, setActiveView] = useState<
+    "library" | "create" | "settings" | "transitions" | "inspector" | "storyboard"
+  >("library")
+  const [isPanelOpen, setIsPanelOpen] = useState(true)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [apiKeyReady, setApiKeyReady] = useState(false)
+  const [defaultDuration, setDefaultDuration] = useState(5)
+  const [playerZoom, setPlayerZoom] = useState(1)
+  const [isCinemaMode, setIsCinemaMode] = useState(false)
+  const [timelineHeight, setTimelineHeight] = useState(320)
+  const [isResizingTimeline, setIsResizingTimeline] = useState(false)
+  const [sidebarWidth, setSidebarWidth] = useState(360)
+  const [isResizingSidebar, setIsResizingSidebar] = useState(false)
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false)
+  const [isSafeGuidesVisible, setIsSafeGuidesVisible] = useState(false)
 
-    // Export State
-    const [isExportModalOpen, setIsExportModalOpen] = useState(false)
-    const [isExporting, setIsExporting] = useState(false)
-    const [exportProgress, setExportProgress] = useState(0)
-    const [exportPhase, setExportPhase] = useState<"idle" | "init" | "audio" | "video" | "encoding" | "complete">("idle")
-    const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
-    const abortExportRef = useRef(false)
-    const exportCancelledRef = useRef(false)
+  // Generated Item State
+  const [generatedItem, setGeneratedItem] = useState<{ url: string; type: "video" | "image" } | null>(null)
 
-    // Render Preview State
-    const [isRendering, setIsRendering] = useState(false)
-    const [renderProgress, setRenderProgress] = useState(0)
-    const [renderedPreviewUrl, setRenderedPreviewUrl] = useState<string | null>(null)
-    const [isPreviewStale, setIsPreviewStale] = useState(false)
-    const renderCancelledRef = useRef(false)
-    const [isPreviewPlayback, setIsPreviewPlayback] = useState(false)
+  // Export State
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const [exportProgress, setExportProgress] = useState(0)
+  const [exportPhase, setExportPhase] = useState<"idle" | "init" | "audio" | "video" | "encoding" | "complete">("idle")
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
+  const abortExportRef = useRef(false)
+  const exportCancelledRef = useRef(false)
 
-    // Refs for rendering
-    const videoRefA = useRef<HTMLVideoElement>(null)
-    const videoRefB = useRef<HTMLVideoElement>(null)
-    const whiteOverlayRef = useRef<HTMLDivElement>(null)
-    const previewVideoRef = useRef<HTMLVideoElement>(null)
-    const audioRefs = useRef<Record<string, HTMLAudioElement>>({})
-    const canvasRef = useRef<HTMLCanvasElement>(null)
+  // Render Preview State
+  const [isRendering, setIsRendering] = useState(false)
+  const [renderProgress, setRenderProgress] = useState(0)
+  const [renderedPreviewUrl, setRenderedPreviewUrl] = useState<string | null>(null)
+  const [isPreviewStale, setIsPreviewStale] = useState(false)
+  const renderCancelledRef = useRef(false)
+  const [isPreviewPlayback, setIsPreviewPlayback] = useState(false)
 
-    // Audio Context
-    const audioContextRef = useRef<AudioContext | null>(null)
-    const audioDestRef = useRef<MediaStreamAudioDestinationNode | null>(null)
-    const sourceNodesRef = useRef<Map<string, MediaElementAudioSourceNode>>(new Map())
+  // Refs for rendering
+  const videoRefA = useRef<HTMLVideoElement>(null)
+  const videoRefB = useRef<HTMLVideoElement>(null)
+  const whiteOverlayRef = useRef<HTMLDivElement>(null)
+  const previewVideoRef = useRef<HTMLVideoElement>(null)
+  const audioRefs = useRef<Record<string, HTMLAudioElement>>({})
+  const canvasRef = useRef<HTMLCanvasElement>(null)
 
-    const requestRef = useRef<number | null>(null)
-    const lastTimeRef = useRef<number | null>(null)
-    const resizeRef = useRef<{ startY: number; startHeight: number } | null>(null)
-    const sidebarResizeRef = useRef<{ startX: number; startWidth: number } | null>(null)
+  // Audio Context
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const audioDestRef = useRef<MediaStreamAudioDestinationNode | null>(null)
+  const sourceNodesRef = useRef<Map<string, MediaElementAudioSourceNode>>(new Map())
 
-    const objectUrlsRef = useRef<string[]>([])
-    const isMountedRef = useRef(true)
+  const requestRef = useRef<number | null>(null)
+  const lastTimeRef = useRef<number | null>(null)
+  const resizeRef = useRef<{ startY: number; startHeight: number } | null>(null)
+  const sidebarResizeRef = useRef<{ startX: number; startWidth: number } | null>(null)
 
-    const mediaMap = useMemo(() => {
-        return media.reduce((acc, item) => ({ ...acc, [item.id]: item }), {} as Record<string, MediaItem>)
-    }, [media])
+  const objectUrlsRef = useRef<string[]>([])
+  const isMountedRef = useRef(true)
 
-    // Derived Stats
-    const contentDuration = Math.max(0, ...timelineClips.map((c) => c.start + c.duration))
-    const timelineDuration = Math.max(30, contentDuration) + 5
+  const mediaMap = useMemo(() => {
+    return media.reduce((acc, item) => ({ ...acc, [item.id]: item }), {} as Record<string, MediaItem>)
+  }, [media])
 
-    const selectionBounds = useMemo(() => {
-        if (selectedClipIds.length === 0) return null
-        const selectedClips = timelineClips.filter((c) => selectedClipIds.includes(c.id))
-        if (selectedClips.length === 0) return null
-        const start = Math.min(...selectedClips.map((c) => c.start))
-        const end = Math.max(...selectedClips.map((c) => c.start + c.duration))
-        return { start, end }
-    }, [selectedClipIds, timelineClips])
+  // Derived Stats
+  const contentDuration = Math.max(0, ...timelineClips.map((c) => c.start + c.duration))
+  const timelineDuration = Math.max(30, contentDuration) + 5
 
-    // FFmpeg Loading Logic
-    const loadFFmpeg = useCallback(async () => {
-        if (ffmpegLoaded) return
-        if (ffmpegLoading) return
+  const selectionBounds = useMemo(() => {
+    if (selectedClipIds.length === 0) return null
+    const selectedClips = timelineClips.filter((c) => selectedClipIds.includes(c.id))
+    if (selectedClips.length === 0) return null
+    const start = Math.min(...selectedClips.map((c) => c.start))
+    const end = Math.max(...selectedClips.map((c) => c.start + c.duration))
+    return { start, end }
+  }, [selectedClipIds, timelineClips])
 
-        setFfmpegLoading(true)
+  // FFmpeg Loading Logic
+  const loadFFmpeg = useCallback(async () => {
+    if (ffmpegLoaded) return
+    if (ffmpegLoading) return
 
-        if (!ffmpegRef.current) {
-            ffmpegRef.current = new FFmpeg()
-        }
-        const ffmpeg = ffmpegRef.current
+    setFfmpegLoading(true)
 
-        ffmpeg.on("log", ({ message }) => {
-            console.log("[FFmpeg]", message)
-        })
-
-        try {
-            const baseURL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd"
-            await ffmpeg.load({
-                coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-                wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
-            })
-            setFfmpegLoaded(true)
-        } catch (e) {
-            console.error("FFmpeg load failed:", e)
-            throw e
-        } finally {
-            setFfmpegLoading(false)
-        }
-    }, [ffmpegLoaded, ffmpegLoading])
-
-    // History Actions
-    const pushToHistory = useCallback(() => {
-        setHistory((prev) => [...prev, timelineClips])
-        setFuture([])
-    }, [timelineClips])
-
-    const undo = useCallback(() => {
-        if (history.length === 0) return
-        const previousState = history[history.length - 1]
-        const newHistory = history.slice(0, -1)
-        setFuture((prev) => [timelineClips, ...prev])
-        setTimelineClips(previousState)
-        setHistory(newHistory)
-    }, [history, timelineClips])
-
-    const redo = useCallback(() => {
-        if (future.length === 0) return
-        const nextState = future[0]
-        const newFuture = future.slice(1)
-        setHistory((prev) => [...prev, timelineClips])
-        setTimelineClips(nextState)
-        setFuture(newFuture)
-    }, [future, timelineClips])
-
-    const handleClipUpdate = useCallback((id: string, chg: Partial<TimelineClip>) => {
-        setTimelineClips((prev) => prev.map((c) => (c.id === id ? { ...c, ...chg } : c)))
-        setIsPreviewStale(true) // Mark preview as needing re-render
-    }, [])
-
-    const handleTrackUpdate = useCallback((id: string, chg: Partial<Track>) => {
-        setTracks((prev) => prev.map((t) => (t.id === id ? { ...t, ...chg } : t)))
-    }, [])
-
-    const handleAddTrack = useCallback((type: "video" | "audio") => {
-        setTracks((prev) => {
-            const count = prev.filter((t) => t.type === type).length + 1
-            const prefix = type === "video" ? "v" : "a"
-            const newId = `${prefix}${Date.now()}`
-            return [
-                ...prev,
-                {
-                    id: newId,
-                    name: `${type === "video" ? "Video" : "Audio"} ${count}`,
-                    type,
-                    volume: 1,
-                },
-            ]
-        })
-    }, [])
-
-    const handleSeek = useCallback((time: number) => {
-        setCurrentTime(time)
-    }, [])
-
-    const handleZoomChange = useCallback((zoom: number) => {
-        setZoomLevel(zoom)
-    }, [])
-
-    const handleSelectClips = useCallback((ids: string[]) => {
-        setSelectedClipIds(ids)
-    }, [])
-
-    // Storyboard Handlers
-    const handleAddStoryboardPanel = useCallback(() => {
-        setStoryboardPanels(prev => [
-            ...prev,
-            { id: `sb-${Date.now()}`, prompt: '', status: 'idle', type: 'scene', duration: 5 }
-        ]);
-    }, []);
-
-    const handleUpdateStoryboardPanel = useCallback((id: string, changes: Partial<IStoryboardPanel>) => {
-        setStoryboardPanels(prev => prev.map(p => p.id === id ? { ...p, ...changes } : p));
-    }, []);
-
-    const handleDeleteStoryboardPanel = useCallback((id: string) => {
-        setStoryboardPanels(prev => prev.filter(p => p.id !== id));
-    }, []);
-
-    const isMobile = useMobile()
-    const { toast: toastCtx } = useToastContext()
-    const [prompt, setPrompt] = useState("A beautiful landscape with mountains and a lake at sunset")
-    const [useUrls, setUseUrls] = useState(false)
-    const [isEnhancingMaster, setIsEnhancingMaster] = useState(false)
-    const [isEnhancing, setIsEnhancing] = useState(false)
-    const [showFullscreen, setShowFullscreen] = useState(false)
-    const [fullscreenImageUrl, setFullscreenImageUrl] = useState("")
-    const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null)
-    const [isDraggingOver, setIsDraggingOver] = useState(false)
-    const [dragCounter, setDragCounter] = useState(0)
-    const [videoError, setVideoError] = useState<string | null>(null)
-    const [videoResult, setVideoResult] = useState<any>(null)
-    const [dropZoneHover, setDropZoneHover] = useState<1 | 2 | null>(null)
-    const [showHowItWorks, setShowHowItWorks] = useState(false)
-    const [apiKeyMissing, setApiKeyMissing] = useState(false)
-    const [showGenerator, setShowGenerator] = useState(false)
-
-    const [leftWidth, setLeftWidth] = useState(50)
-    const [isResizing, setIsResizing] = useState(false)
-    const containerRef = useRef<HTMLDivElement>(null)
-    const generatorRef = useRef<HTMLDivElement>(null)
-
-    const promptTextareaRef = useRef<HTMLTextAreaElement>(null)
-
-    const showToast = (message: string, type: "success" | "error" = "success") => {
-        setToast({ message, type })
-        setTimeout(() => setToast(null), 3000)
+    if (!ffmpegRef.current) {
+      ffmpegRef.current = new FFmpeg()
     }
+    const ffmpeg = ffmpegRef.current
 
-    const {
-        image1,
-        image1Preview,
-        image1Url,
-        image2,
-        image2Preview,
-        image2Url,
-        isConvertingHeic,
-        heicProgress,
-        handleImageUpload,
-        handleUrlChange,
-        clearImage,
-        showToast: uploadShowToast,
-    } = useImageUpload()
-
-    const { aspectRatio, setAspectRatio, availableAspectRatios } = useAspectRatio()
-
-    const {
-        generations: persistedGenerations,
-        setGenerations: setPersistedGenerations,
-        addGeneration,
-        clearHistory,
-        deleteGeneration,
-        isLoading: historyLoading,
-        hasMore,
-        loadMore,
-        isLoadingMore,
-    } = usePersistentHistory(showToast)
-
-    const {
-        selectedGenerationId,
-        setSelectedGenerationId,
-        imageLoaded,
-        setImageLoaded,
-        generateImage: runGeneration,
-        cancelGeneration,
-        loadGeneratedAsInput,
-    } = useImageGeneration({
-        prompt,
-        aspectRatio,
-        image1,
-        image2,
-        image1Url,
-        image2Url,
-        useUrls,
-        generations: persistedGenerations,
-        setGenerations: setPersistedGenerations,
-        addGeneration,
-        onToast: showToast,
-        onImageUpload: handleImageUpload,
-        onOutOfCredits: () => { },
-        onApiKeyMissing: () => setApiKeyMissing(true),
+    ffmpeg.on("log", ({ message }) => {
+      console.log("[FFmpeg]", message)
     })
 
+    try {
+      const baseURL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd"
+      await ffmpeg.load({
+        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+      })
+      setFfmpegLoaded(true)
+    } catch (e) {
+      console.error("FFmpeg load failed:", e)
+      throw e
+    } finally {
+      setFfmpegLoading(false)
+    }
+  }, [ffmpegLoaded, ffmpegLoading])
 
+  // History Actions
+  const pushToHistory = useCallback(() => {
+    setHistory((prev) => [...prev, timelineClips])
+    setFuture([])
+  }, [timelineClips])
 
-    const handleAddStoryboardToTimeline = useCallback((panel: IStoryboardPanel) => {
-        if (!panel.videoUrl) return;
+  const undo = useCallback(() => {
+    if (history.length === 0) return
+    const previousState = history[history.length - 1]
+    const newHistory = history.slice(0, -1)
+    setFuture((prev) => [timelineClips, ...prev])
+    setTimelineClips(previousState)
+    setHistory(newHistory)
+  }, [history, timelineClips])
 
-        let mediaId = panel.mediaId;
-        if (!mediaId || !mediaMap[mediaId]) {
-            mediaId = `media-sb-fallback-${panel.id}`;
-            const newMedia: MediaItem = {
-                id: mediaId,
-                url: panel.videoUrl,
-                prompt: panel.prompt,
-                duration: panel.duration || 5,
-                aspectRatio: videoConfig.aspectRatio,
-                status: 'ready',
-                type: 'video',
-                resolution: { width: 1280, height: 720 }
-            };
-            setMedia(prev => [newMedia, ...prev]);
-        }
+  const redo = useCallback(() => {
+    if (future.length === 0) return
+    const nextState = future[0]
+    const newFuture = future.slice(1)
+    setHistory((prev) => [...prev, timelineClips])
+    setTimelineClips(nextState)
+    setFuture(newFuture)
+  }, [future, timelineClips])
 
-        pushToHistory();
-        const trackId = 'v1';
-        const clipsOnTrack = timelineClips.filter(c => c.trackId === trackId);
-        const start = clipsOnTrack.length > 0 ? Math.max(...clipsOnTrack.map(c => c.start + c.duration)) : 0;
-        const newClip: TimelineClip = {
-            id: `clip-sb-${Date.now()}`,
-            mediaId: mediaId!,
-            trackId,
-            start,
-            duration: panel.duration || 5,
-            offset: 0,
-            volume: 1
-        };
-        setTimelineClips(prev => [...prev, newClip]);
-        setSelectedClipIds([newClip.id]);
-    }, [pushToHistory, timelineClips, mediaMap, videoConfig]);
+  const handleClipUpdate = useCallback((id: string, chg: Partial<TimelineClip>) => {
+    setTimelineClips((prev) => prev.map((c) => (c.id === id ? { ...c, ...chg } : c)))
+    setIsPreviewStale(true) // Mark preview as needing re-render
+  }, [])
 
-    const setupAudioGraph = () => {
-        if (typeof window === "undefined") return
+  const handleTrackUpdate = useCallback((id: string, chg: Partial<Track>) => {
+    setTracks((prev) => prev.map((t) => (t.id === id ? { ...t, ...chg } : t)))
+  }, [])
 
-        if (!audioContextRef.current) {
-            const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
-            if (AudioCtx) {
-                audioContextRef.current = new AudioCtx()
-                if (typeof audioContextRef.current.createMediaStreamDestination === "function") {
-                    audioDestRef.current = audioContextRef.current.createMediaStreamDestination()
-                }
-            }
-        }
-        const ctx = audioContextRef.current
-        const dest = audioDestRef.current
-        if (!ctx) return
-            ;[videoRefA, videoRefB].forEach((ref, idx) => {
-                const id = `video-${idx}`
-                if (ref.current && !sourceNodesRef.current.has(id)) {
-                    try {
-                        const source = ctx.createMediaElementSource(ref.current)
-                        if (dest) source.connect(dest)
-                        source.connect(ctx.destination)
-                        sourceNodesRef.current.set(id, source)
-                    } catch (e) { }
-                }
-            })
-        Object.entries(audioRefs.current).forEach(([trackId, el]) => {
-            if (el && !sourceNodesRef.current.has(trackId)) {
-                try {
-                    const source = ctx.createMediaElementSource(el)
-                    if (dest) source.connect(dest)
-                    source.connect(ctx.destination)
-                    sourceNodesRef.current.set(trackId, source)
-                } catch (e) { }
-            }
+  const handleAddTrack = useCallback((type: "video" | "audio") => {
+    setTracks((prev) => {
+      const count = prev.filter((t) => t.type === type).length + 1
+      const prefix = type === "video" ? "v" : "a"
+      const newId = `${prefix}${Date.now()}`
+      return [
+        ...prev,
+        {
+          id: newId,
+          name: `${type === "video" ? "Video" : "Audio"} ${count}`,
+          type,
+          volume: 1,
+        },
+      ]
+    })
+  }, [])
+
+  const handleSeek = useCallback((time: number) => {
+    setCurrentTime(time)
+  }, [])
+
+  const handleZoomChange = useCallback((zoom: number) => {
+    setZoomLevel(zoom)
+  }, [])
+
+  const handleSelectClips = useCallback((ids: string[]) => {
+    setSelectedClipIds(ids)
+  }, [])
+
+  // Storyboard Handlers
+  const handleAddStoryboardPanel = useCallback(() => {
+    setStoryboardPanels((prev) => [
+      ...prev,
+      { id: `sb-${Date.now()}`, prompt: "", status: "idle", type: "scene", duration: 5 },
+    ])
+  }, [])
+
+  const handleUpdateStoryboardPanel = useCallback((id: string, changes: Partial<IStoryboardPanel>) => {
+    setStoryboardPanels((prev) => prev.map((p) => (p.id === id ? { ...p, ...changes } : p)))
+  }, [])
+
+  const handleDeleteStoryboardPanel = useCallback((id: string) => {
+    setStoryboardPanels((prev) => prev.filter((p) => p.id !== id))
+  }, [])
+
+  const handleStoryboardImageGenerate = useCallback(
+    async (panelId: string, prompt: string) => {
+      if (!prompt.trim()) return
+
+      // Update panel status to generating
+      handleUpdateStoryboardPanel(panelId, { status: "generating-image", error: undefined })
+
+      try {
+        // Map aspect ratio for API
+        let apiAspectRatio = "landscape"
+        if (videoConfig.aspectRatio === "9:16") apiAspectRatio = "portrait"
+        else if (videoConfig.aspectRatio === "1:1") apiAspectRatio = "square"
+
+        const formData = new FormData()
+        formData.append("mode", "text-to-image")
+        formData.append("prompt", prompt)
+        formData.append("aspectRatio", apiAspectRatio)
+
+        const response = await fetch("/api/generate-image", {
+          method: "POST",
+          body: formData,
         })
+
+        if (!response.ok) {
+          const err = await response.json()
+          throw new Error(err.error || "Image generation failed")
+        }
+
+        const result = await response.json()
+        const imageUrl = result.url
+
+        if (!imageUrl) throw new Error("No image URL received")
+
+        // Update panel with the generated image
+        handleUpdateStoryboardPanel(panelId, {
+          imageUrl,
+          status: "idle",
+        })
+      } catch (error: any) {
+        console.error("[v0] Storyboard image generation error:", error)
+        handleUpdateStoryboardPanel(panelId, {
+          status: "error",
+          error: error.message || "Image generation failed",
+        })
+      }
+    },
+    [videoConfig.aspectRatio, handleUpdateStoryboardPanel],
+  )
+
+  const handleStoryboardVideoGenerate = useCallback(
+    async (panelId: string, prompt: string, image1Base64?: string, image2Base64?: string, useFastModel?: boolean) => {
+      handleUpdateStoryboardPanel(panelId, { status: "generating-video", error: undefined })
+
+      const panel = storyboardPanels.find((p) => p.id === panelId)
+
+      try {
+        const body = {
+          prompt: prompt || "A smooth cinematic motion sequence",
+          imageUrl: image1Base64 || panel?.imageUrl,
+          linkedImageUrl: image2Base64 || panel?.linkedImageUrl,
+          aspectRatio: videoConfig.aspectRatio,
+          duration: panel?.duration || 5,
+          useFastModel: useFastModel ?? videoConfig.useFastModel,
+        }
+
+        const response = await fetch("/api/generate-video", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Video generation failed")
+        }
+
+        const result = await response.json()
+
+        if (result.data?.video?.url) {
+          const videoUrl = result.data.video.url
+
+          // Add to media library
+          const mediaId = `media-sb-${panelId}-${Date.now()}`
+          const newMedia: MediaItem = {
+            id: mediaId,
+            url: videoUrl,
+            prompt: prompt,
+            duration: panel?.duration || 5,
+            aspectRatio: videoConfig.aspectRatio,
+            status: "ready",
+            type: "video",
+            resolution: { width: 1280, height: 720 },
+          }
+          setMedia((prev) => [newMedia, ...prev])
+
+          handleUpdateStoryboardPanel(panelId, {
+            videoUrl: videoUrl,
+            status: "idle",
+            mediaId: mediaId,
+          })
+        } else {
+          throw new Error("No video URL in response")
+        }
+      } catch (error: any) {
+        console.error("Video generation failed:", error)
+        handleUpdateStoryboardPanel(panelId, {
+          status: "error",
+          error: error.message || "Video generation failed",
+        })
+      }
+    },
+    [videoConfig, storyboardPanels, handleUpdateStoryboardPanel],
+  )
+
+  const handleStoryboardImageUpscale = useCallback(
+    async (panelId: string, imageUrl: string, isLinkedImage = false) => {
+      if (!imageUrl) return
+
+      // Set a temporary status - we'll use 'enhancing' since there's no 'upscaling' status
+      handleUpdateStoryboardPanel(panelId, { status: "enhancing", error: undefined })
+
+      try {
+        const response = await fetch("/api/upscale", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            imageUrl,
+            scale: 2, // Default 2x upscale
+          }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Upscale failed")
+        }
+
+        const result = await response.json()
+
+        if (result.url) {
+          // Update the appropriate image field based on whether it's linked
+          if (isLinkedImage) {
+            handleUpdateStoryboardPanel(panelId, {
+              linkedImageUrl: result.url,
+              status: "idle",
+            })
+          } else {
+            handleUpdateStoryboardPanel(panelId, {
+              imageUrl: result.url,
+              status: "idle",
+            })
+          }
+          toastCtx.success("Image upscaled successfully!")
+        } else {
+          throw new Error("No upscaled URL in response")
+        }
+      } catch (error: any) {
+        console.error("Upscale failed:", error)
+        handleUpdateStoryboardPanel(panelId, {
+          status: "error",
+          error: error.message || "Upscale failed",
+        })
+        toastCtx.error("Failed to upscale image")
+      }
+    },
+    [handleUpdateStoryboardPanel, toastCtx],
+  )
+
+  const [prompt, setPrompt] = useState("A beautiful landscape with mountains and a lake at sunset")
+  const [useUrls, setUseUrls] = useState(false)
+  const [isEnhancingMaster, setIsEnhancingMaster] = useState(false)
+  const [isEnhancing, setIsEnhancing] = useState(false)
+  const [showFullscreen, setShowFullscreen] = useState(false)
+  const [fullscreenImageUrl, setFullscreenImageUrl] = useState("")
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null)
+  const [isDraggingOver, setIsDraggingOver] = useState(false)
+  const [videoError, setVideoError] = useState<string | null>(null)
+  const [videoResult, setVideoResult] = useState<any>(null)
+  const [dropZoneHover, setDropZoneHover] = useState<1 | 2 | null>(null)
+  const [showHowItWorks, setShowHowItWorks] = useState(false)
+  const [apiKeyMissing, setApiKeyMissing] = useState(false)
+  const [showGenerator, setShowGenerator] = useState(false)
+
+  const [leftWidth, setLeftWidth] = useState(50)
+  const [isResizing, setIsResizing] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const generatorRef = useRef<HTMLDivElement>(null)
+
+  const promptTextareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 3000)
+  }
+
+  const {
+    image1,
+    image1Preview,
+    image1Url,
+    image2,
+    image2Preview,
+    image2Url,
+    isConvertingHeic,
+    heicProgress,
+    handleImageUpload,
+    handleUrlChange,
+    clearImage,
+    showToast: uploadShowToast,
+  } = useImageUpload()
+
+  const { aspectRatio, setAspectRatio, availableAspectRatios } = useAspectRatio()
+
+  const {
+    generations: persistedGenerations,
+    setGenerations: setPersistedGenerations,
+    addGeneration,
+    clearHistory,
+    deleteGeneration,
+    isLoading: historyLoading,
+    hasMore,
+    loadMore,
+    isLoadingMore,
+  } = usePersistentHistory(showToast)
+
+  const {
+    selectedGenerationId,
+    setSelectedGenerationId,
+    imageLoaded,
+    setImageLoaded,
+    generateImage: runGeneration,
+    cancelGeneration,
+    loadGeneratedAsInput,
+  } = useImageGeneration({
+    prompt,
+    aspectRatio,
+    image1,
+    image2,
+    image1Url,
+    image2Url,
+    useUrls,
+    generations: persistedGenerations,
+    setGenerations: setPersistedGenerations,
+    addGeneration,
+    onToast: showToast,
+    onImageUpload: handleImageUpload,
+    onOutOfCredits: () => {},
+    onApiKeyMissing: () => setApiKeyMissing(true),
+  })
+
+  const handleAddStoryboardToTimeline = useCallback(
+    (panel: IStoryboardPanel) => {
+      if (!panel.videoUrl) return
+
+      let mediaId = panel.mediaId
+      if (!mediaId || !mediaMap[mediaId]) {
+        mediaId = `media-sb-fallback-${panel.id}`
+        const newMedia: MediaItem = {
+          id: mediaId,
+          url: panel.videoUrl,
+          prompt: panel.prompt,
+          duration: panel.duration || 5,
+          aspectRatio: videoConfig.aspectRatio,
+          status: "ready",
+          type: "video",
+          resolution: { width: 1280, height: 720 },
+        }
+        setMedia((prev) => [newMedia, ...prev])
+      }
+
+      pushToHistory()
+      const trackId = "v1"
+      const clipsOnTrack = timelineClips.filter((c) => c.trackId === trackId)
+      const start = clipsOnTrack.length > 0 ? Math.max(...clipsOnTrack.map((c) => c.start + c.duration)) : 0
+      const newClip: TimelineClip = {
+        id: `clip-sb-${Date.now()}`,
+        mediaId: mediaId!,
+        trackId,
+        start,
+        duration: panel.duration || 5,
+        offset: 0,
+        volume: 1,
+      }
+      setTimelineClips((prev) => [...prev, newClip])
+      setSelectedClipIds([newClip.id])
+    },
+    [pushToHistory, timelineClips, mediaMap, videoConfig],
+  )
+
+  const setupAudioGraph = () => {
+    if (typeof window === "undefined") return
+
+    if (!audioContextRef.current) {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+      if (AudioCtx) {
+        audioContextRef.current = new AudioCtx()
+        if (typeof audioContextRef.current.createMediaStreamDestination === "function") {
+          audioDestRef.current = audioContextRef.current.createMediaStreamDestination()
+        }
+      }
     }
+    const ctx = audioContextRef.current
+    const dest = audioDestRef.current
+    if (!ctx) return
+    ;[videoRefA, videoRefB].forEach((ref, idx) => {
+      const id = `video-${idx}`
+      if (ref.current && !sourceNodesRef.current.has(id)) {
+        try {
+          const source = ctx.createMediaElementSource(ref.current)
+          if (dest) source.connect(dest)
+          source.connect(ctx.destination)
+          sourceNodesRef.current.set(id, source)
+        } catch (e) {}
+      }
+    })
+    Object.entries(audioRefs.current).forEach(([trackId, el]) => {
+      if (el && !sourceNodesRef.current.has(trackId)) {
+        try {
+          const source = ctx.createMediaElementSource(el)
+          if (dest) source.connect(dest)
+          source.connect(ctx.destination)
+          sourceNodesRef.current.set(trackId, source)
+        } catch (e) {}
+      }
+    })
+  }
 
-    useEffect(() => {
-        return () => {
-            objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
+  useEffect(() => {
+    return () => {
+      objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [])
+
+  useEffect(() => {
+    const initAudio = () => {
+      if (!audioContextRef.current) setupAudioGraph()
+      if (audioContextRef.current?.state === "suspended") {
+        audioContextRef.current.resume()
+      }
+    }
+    window.addEventListener("click", initAudio, { once: true })
+    window.addEventListener("keydown", initAudio, { once: true })
+    return () => {
+      window.removeEventListener("click", initAudio)
+      window.removeEventListener("keydown", initAudio)
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isResizingTimeline && resizeRef.current) {
+        const deltaY = resizeRef.current.startY - e.clientY
+        const maxH = typeof window !== "undefined" ? window.innerHeight - 300 : 800
+        const newHeight = Math.max(200, Math.min(maxH, resizeRef.current.startHeight + deltaY))
+        setTimelineHeight(newHeight)
+      }
+      if (isResizingSidebar && sidebarResizeRef.current) {
+        const deltaX = e.clientX - sidebarResizeRef.current.startX
+        const proposedWidth = sidebarResizeRef.current.startWidth + deltaX
+        if (proposedWidth < 150) {
+          setIsPanelOpen(false)
+          setIsResizingSidebar(false)
+        } else {
+          const newWidth = Math.max(240, Math.min(600, proposedWidth))
+          setSidebarWidth(newWidth)
         }
-    }, [])
+      }
+    }
+    const handleMouseUp = () => {
+      setIsResizingTimeline(false)
+      setIsResizingSidebar(false)
+    }
+    if (isResizingTimeline || isResizingSidebar) {
+      window.addEventListener("mousemove", handleMouseMove)
+      window.addEventListener("mouseup", handleMouseUp)
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("mousemove", handleMouseMove)
+        window.removeEventListener("mouseup", handleMouseUp)
+      }
+    }
+  }, [isResizingTimeline, isResizingSidebar])
 
-    useEffect(() => {
-        const initAudio = () => {
-            if (!audioContextRef.current) setupAudioGraph()
-            if (audioContextRef.current?.state === "suspended") {
-                audioContextRef.current.resume()
+  const syncMediaToTime = useCallback(
+    (time: number, isExporting = false) => {
+      const playerA = videoRefA.current
+      const playerB = videoRefB.current
+      const whiteOverlay = whiteOverlayRef.current
+      if (!playerA || !playerB) return
+
+      playerB.style.clipPath = "none"
+      playerA.style.clipPath = "none"
+      if (whiteOverlay) whiteOverlay.style.opacity = "0"
+
+      const activeClip = tracks
+        .filter((t) => t.type === "video")
+        .reverse()
+        .map((t) => timelineClips.find((c) => c.trackId === t.id && time >= c.start && time < c.start + c.duration))
+        .find((c) => c !== undefined)
+
+      const activeTrack = tracks.find((t) => t.id === activeClip?.trackId)
+      const trackVolume = activeTrack?.volume ?? 1
+      const clipVolume = activeClip?.volume ?? 1
+      const isMuted = activeTrack?.isMuted || activeClip?.isAudioDetached
+      const effectiveVolume = isMuted ? 0 : trackVolume * clipVolume
+
+      const setPlayerState = (player: HTMLVideoElement, clip: TimelineClip | undefined, opacity: number) => {
+        if (clip) {
+          const mediaItem = mediaMap[clip.mediaId]
+          if (mediaItem) {
+            if (!player.src.includes(mediaItem.url)) {
+              player.src = mediaItem.url
             }
-        }
-        window.addEventListener("click", initAudio, { once: true })
-        window.addEventListener("keydown", initAudio, { once: true })
-        return () => {
-            window.removeEventListener("click", initAudio)
-            window.removeEventListener("keydown", initAudio)
-        }
-    }, [])
-
-    useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            if (isResizingTimeline && resizeRef.current) {
-                const deltaY = resizeRef.current.startY - e.clientY
-                const maxH = typeof window !== "undefined" ? window.innerHeight - 300 : 800
-                const newHeight = Math.max(200, Math.min(maxH, resizeRef.current.startHeight + deltaY))
-                setTimelineHeight(newHeight)
+            const timeInClip = time - clip.start + clip.offset
+            if (isExporting || Math.abs(player.currentTime - timeInClip) > 0.1) {
+              player.currentTime = timeInClip
             }
-            if (isResizingSidebar && sidebarResizeRef.current) {
-                const deltaX = e.clientX - sidebarResizeRef.current.startX
-                const proposedWidth = sidebarResizeRef.current.startWidth + deltaX
-                if (proposedWidth < 150) {
-                    setIsPanelOpen(false)
-                    setIsResizingSidebar(false)
-                } else {
-                    const newWidth = Math.max(240, Math.min(600, proposedWidth))
-                    setSidebarWidth(newWidth)
-                }
-            }
-        }
-        const handleMouseUp = () => {
-            setIsResizingTimeline(false)
-            setIsResizingSidebar(false)
-        }
-        if (isResizingTimeline || isResizingSidebar) {
-            window.addEventListener("mousemove", handleMouseMove)
-            window.addEventListener("mouseup", handleMouseUp)
-        }
-        return () => {
-            if (typeof window !== "undefined") {
-                window.removeEventListener("mousemove", handleMouseMove)
-                window.removeEventListener("mouseup", handleMouseUp)
-            }
-        }
-    }, [isResizingTimeline, isResizingSidebar])
-
-    const syncMediaToTime = useCallback(
-        (time: number, isExporting = false) => {
-            const playerA = videoRefA.current
-            const playerB = videoRefB.current
-            const whiteOverlay = whiteOverlayRef.current
-            if (!playerA || !playerB) return
-
-            playerB.style.clipPath = "none"
-            playerA.style.clipPath = "none"
-            if (whiteOverlay) whiteOverlay.style.opacity = "0"
-
-            const activeClip = tracks
-                .filter((t) => t.type === "video")
-                .reverse()
-                .map((t) => timelineClips.find((c) => c.trackId === t.id && time >= c.start && time < c.start + c.duration))
-                .find((c) => c !== undefined)
-
-            const activeTrack = tracks.find((t) => t.id === activeClip?.trackId)
-            const trackVolume = activeTrack?.volume ?? 1
-            const clipVolume = activeClip?.volume ?? 1
-            const isMuted = activeTrack?.isMuted || activeClip?.isAudioDetached
-            const effectiveVolume = isMuted ? 0 : trackVolume * clipVolume
-
-            const setPlayerState = (player: HTMLVideoElement, clip: TimelineClip | undefined, opacity: number) => {
-                if (clip) {
-                    const mediaItem = mediaMap[clip.mediaId]
-                    if (mediaItem) {
-                        if (!player.src.includes(mediaItem.url)) {
-                            player.src = mediaItem.url
-                        }
-                        const timeInClip = time - clip.start + clip.offset
-                        if (isExporting || Math.abs(player.currentTime - timeInClip) > 0.1) {
-                            player.currentTime = timeInClip
-                        }
-                        if (isExporting) {
-                            player.pause()
-                        } else if (isPlaying) {
-                            player.play().catch(() => { })
-                        } else {
-                            player.pause()
-                        }
-                        player.muted = effectiveVolume === 0
-                        player.volume = effectiveVolume
-                    }
-                } else {
-                    if (!clip) player.pause()
-                }
-                player.style.opacity = opacity.toString()
-            }
-
-            if (activeClip && activeClip.transition && activeClip.transition.type !== "none") {
-                const transDuration = activeClip.transition.duration
-                const progress = (time - activeClip.start) / transDuration
-
-                if (progress < 1.0 && progress >= 0) {
-                    const sameTrackClips = timelineClips
-                        .filter((c) => c.trackId === activeClip.trackId)
-                        .sort((a, b) => a.start - b.start)
-                    const idx = sameTrackClips.findIndex((c) => c.id === activeClip.id)
-                    const prevClip = sameTrackClips[idx - 1]
-
-                    if (prevClip) {
-                        const type = activeClip.transition.type
-                        if (type === "cross-dissolve") {
-                            setPlayerState(playerA, prevClip, 1 - progress)
-                            setPlayerState(playerB, activeClip, progress)
-                        } else if (type === "fade-black") {
-                            setPlayerState(playerA, prevClip, 1)
-                            setPlayerState(playerB, activeClip, 1)
-                            if (progress < 0.5) {
-                                playerA.style.opacity = (1 - progress * 2).toString()
-                                playerB.style.opacity = "0"
-                            } else {
-                                playerA.style.opacity = "0"
-                                playerB.style.opacity = ((progress - 0.5) * 2).toString()
-                            }
-                        } else if (type === "fade-white") {
-                            const whiteOpacity = 1 - Math.abs((progress - 0.5) * 2)
-                            if (whiteOverlay) whiteOverlay.style.opacity = whiteOpacity.toString()
-                            if (progress < 0.5) {
-                                setPlayerState(playerA, prevClip, 1)
-                                setPlayerState(playerB, activeClip, 0)
-                                playerB.style.opacity = "0"
-                            } else {
-                                setPlayerState(playerA, prevClip, 0)
-                                setPlayerState(playerB, activeClip, 1)
-                                playerA.style.opacity = "0"
-                            }
-                        } else if (type === "wipe-left") {
-                            setPlayerState(playerA, prevClip, 1)
-                            setPlayerState(playerB, activeClip, 1)
-                            const percent = (1 - progress) * 100
-                            playerB.style.clipPath = `inset(0 ${percent}% 0 0)`
-                        } else if (type === "wipe-right") {
-                            setPlayerState(playerA, prevClip, 1)
-                            setPlayerState(playerB, activeClip, 1)
-                            const percent = (1 - progress) * 100
-                            playerB.style.clipPath = `inset(0 0 0 ${percent}%)`
-                        }
-                    } else {
-                        setPlayerState(playerB, activeClip, progress)
-                        playerA.style.opacity = "0"
-                    }
-                } else {
-                    setPlayerState(playerA, activeClip, activeClip ? 1 : 0)
-                    playerB.style.opacity = "0"
-                }
+            if (isExporting) {
+              player.pause()
+            } else if (isPlaying) {
+              player.play().catch(() => {})
             } else {
-                setPlayerState(playerA, activeClip, activeClip ? 1 : 0)
+              player.pause()
+            }
+            player.muted = effectiveVolume === 0
+            player.volume = effectiveVolume
+          }
+        } else {
+          if (!clip) player.pause()
+        }
+        player.style.opacity = opacity.toString()
+      }
+
+      if (activeClip && activeClip.transition && activeClip.transition.type !== "none") {
+        const transDuration = activeClip.transition.duration
+        const progress = (time - activeClip.start) / transDuration
+
+        if (progress < 1.0 && progress >= 0) {
+          const sameTrackClips = timelineClips
+            .filter((c) => c.trackId === activeClip.trackId)
+            .sort((a, b) => a.start - b.start)
+          const idx = sameTrackClips.findIndex((c) => c.id === activeClip.id)
+          const prevClip = sameTrackClips[idx - 1]
+
+          if (prevClip) {
+            const type = activeClip.transition.type
+            if (type === "cross-dissolve") {
+              setPlayerState(playerA, prevClip, 1 - progress)
+              setPlayerState(playerB, activeClip, progress)
+            } else if (type === "fade-black") {
+              setPlayerState(playerA, prevClip, 1)
+              setPlayerState(playerB, activeClip, 1)
+              if (progress < 0.5) {
+                playerA.style.opacity = (1 - progress * 2).toString()
                 playerB.style.opacity = "0"
+              } else {
+                playerA.style.opacity = "0"
+                playerB.style.opacity = ((progress - 0.5) * 2).toString()
+              }
+            } else if (type === "fade-white") {
+              const whiteOpacity = 1 - Math.abs((progress - 0.5) * 2)
+              if (whiteOverlay) whiteOverlay.style.opacity = whiteOpacity.toString()
+              if (progress < 0.5) {
+                setPlayerState(playerA, prevClip, 1)
+                setPlayerState(playerB, activeClip, 0)
+                playerB.style.opacity = "0"
+              } else {
+                setPlayerState(playerA, prevClip, 0)
+                setPlayerState(playerB, activeClip, 1)
+                playerA.style.opacity = "0"
+              }
+            } else if (type === "wipe-left") {
+              setPlayerState(playerA, prevClip, 1)
+              setPlayerState(playerB, activeClip, 1)
+              const percent = (1 - progress) * 100
+              playerB.style.clipPath = `inset(0 ${percent}% 0 0)`
+            } else if (type === "wipe-right") {
+              setPlayerState(playerA, prevClip, 1)
+              setPlayerState(playerB, activeClip, 1)
+              const percent = (1 - progress) * 100
+              playerB.style.clipPath = `inset(0 0 0 ${percent}%)`
             }
-
-            tracks
-                .filter((t) => t.type === "audio")
-                .forEach((track) => {
-                    const audioEl = audioRefs.current[track.id]
-                    if (!audioEl) return
-                    const activeAudioClip = timelineClips.find(
-                        (c) => c.trackId === track.id && time >= c.start && time < c.start + c.duration,
-                    )
-                    if (activeAudioClip) {
-                        const mediaItem = mediaMap[activeAudioClip.mediaId]
-                        if (mediaItem) {
-                            if (!audioEl.src.includes(mediaItem.url)) {
-                                audioEl.src = mediaItem.url
-                            }
-                            const timeInClip = time - activeAudioClip.start + activeAudioClip.offset
-                            if (isExporting || Math.abs(audioEl.currentTime - timeInClip) > 0.1) {
-                                audioEl.currentTime = timeInClip
-                            }
-                            if (isPlaying && !isExporting) {
-                                audioEl.play().catch(() => { })
-                            } else {
-                                audioEl.pause()
-                            }
-                            const clipVol = activeAudioClip.volume ?? 1
-                            audioEl.volume = track.isMuted ? 0 : (track.volume ?? 1) * clipVol
-                        }
-                    } else {
-                        audioEl.pause()
-                    }
-                })
-        },
-        [timelineClips, mediaMap, tracks, isPlaying],
-    )
-
-    const animate = useCallback(
-        (time: number) => {
-            if (isExporting || isRendering) return // Stop animation during export/render
-            if (lastTimeRef.current !== null) {
-                const deltaTime = (time - lastTimeRef.current) / 1000
-                setCurrentTime((prev) => {
-                    const nextTime = prev + deltaTime
-                    if (nextTime >= timelineDuration) {
-                        setIsPlaying(false)
-                        return 0
-                    }
-                    return nextTime
-                })
-            }
-            lastTimeRef.current = time
-            if (isPlaying) {
-                requestRef.current = requestAnimationFrame(animate)
-            }
-        },
-        [isPlaying, timelineDuration, isExporting, isRendering],
-    )
-
-    useEffect(() => {
-        if (!isExporting && !isRendering) {
-            syncMediaToTime(currentTime, false)
-        }
-    }, [currentTime, syncMediaToTime, isExporting, isRendering])
-
-    useEffect(() => {
-        if (isPlaying && !isExporting && !isRendering) {
-            requestRef.current = requestAnimationFrame(animate)
+          } else {
+            setPlayerState(playerB, activeClip, progress)
+            playerA.style.opacity = "0"
+          }
         } else {
-            lastTimeRef.current = null
-            if (requestRef.current) cancelAnimationFrame(requestRef.current)
+          setPlayerState(playerA, activeClip, activeClip ? 1 : 0)
+          playerB.style.opacity = "0"
         }
-        return () => {
-            if (requestRef.current) cancelAnimationFrame(requestRef.current)
-        }
-    }, [isPlaying, animate, isExporting, isRendering])
+      } else {
+        setPlayerState(playerA, activeClip, activeClip ? 1 : 0)
+        playerB.style.opacity = "0"
+      }
 
-    const drawFrameToCanvas = useCallback(
-        (ctx: CanvasRenderingContext2D, width: number, height: number, time: number) => {
-            ctx.fillStyle = "#000000"
+      tracks
+        .filter((t) => t.type === "audio")
+        .forEach((track) => {
+          const audioEl = audioRefs.current[track.id]
+          if (!audioEl) return
+          const activeAudioClip = timelineClips.find(
+            (c) => c.trackId === track.id && time >= c.start && time < c.start + c.duration,
+          )
+          if (activeAudioClip) {
+            const mediaItem = mediaMap[activeAudioClip.mediaId]
+            if (mediaItem) {
+              if (!audioEl.src.includes(mediaItem.url)) {
+                audioEl.src = mediaItem.url
+              }
+              const timeInClip = time - activeAudioClip.start + activeAudioClip.offset
+              if (isExporting || Math.abs(audioEl.currentTime - timeInClip) > 0.1) {
+                audioEl.currentTime = timeInClip
+              }
+              if (isPlaying && !isExporting) {
+                audioEl.play().catch(() => {})
+              } else {
+                audioEl.pause()
+              }
+              const clipVol = activeAudioClip.volume ?? 1
+              audioEl.volume = track.isMuted ? 0 : (track.volume ?? 1) * clipVol
+            }
+          } else {
+            audioEl.pause()
+          }
+        })
+    },
+    [timelineClips, mediaMap, tracks, isPlaying],
+  )
+
+  const animate = useCallback(
+    (time: number) => {
+      if (isExporting || isRendering) return // Stop animation during export/render
+      if (lastTimeRef.current !== null) {
+        const deltaTime = (time - lastTimeRef.current) / 1000
+        setCurrentTime((prev) => {
+          const nextTime = prev + deltaTime
+          if (nextTime >= timelineDuration) {
+            setIsPlaying(false)
+            return 0
+          }
+          return nextTime
+        })
+      }
+      lastTimeRef.current = time
+      if (isPlaying) {
+        requestRef.current = requestAnimationFrame(animate)
+      }
+    },
+    [isPlaying, timelineDuration, isExporting, isRendering],
+  )
+
+  useEffect(() => {
+    if (!isExporting && !isRendering) {
+      syncMediaToTime(currentTime, false)
+    }
+  }, [currentTime, syncMediaToTime, isExporting, isRendering])
+
+  useEffect(() => {
+    if (isPlaying && !isExporting && !isRendering) {
+      requestRef.current = requestAnimationFrame(animate)
+    } else {
+      lastTimeRef.current = null
+      if (requestRef.current) cancelAnimationFrame(requestRef.current)
+    }
+    return () => {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current)
+    }
+  }, [isPlaying, animate, isExporting, isRendering])
+
+  const drawFrameToCanvas = useCallback(
+    (ctx: CanvasRenderingContext2D, width: number, height: number, time: number) => {
+      ctx.fillStyle = "#000000"
+      ctx.fillRect(0, 0, width, height)
+
+      const drawScaled = (video: HTMLVideoElement) => {
+        const vW = video.videoWidth
+        const vH = video.videoHeight
+        if (!vW || !vH) return
+        const scale = Math.min(width / vW, height / vH)
+        const dw = vW * scale
+        const dh = vH * scale
+        const dx = (width - dw) / 2
+        const dy = (height - dh) / 2
+        ctx.drawImage(video, dx, dy, dw, dh)
+      }
+
+      const opacityA = Number.parseFloat(videoRefA.current?.style.opacity || "0")
+      const opacityB = Number.parseFloat(videoRefB.current?.style.opacity || "0")
+      const clipPathB = videoRefB.current?.style.clipPath || "none"
+
+      if (opacityA > 0 && videoRefA.current) {
+        ctx.globalAlpha = opacityA
+        drawScaled(videoRefA.current)
+      }
+
+      if (opacityB > 0 && videoRefB.current) {
+        ctx.globalAlpha = opacityB
+        if (clipPathB !== "none" && clipPathB.startsWith("inset")) {
+          const match = clipPathB.match(/inset$$([^)]+)$$/)
+          if (match) {
+            ctx.save()
+            ctx.beginPath()
+            const vals = match[1].split(" ").map((s) => Number.parseFloat(s))
+            const rightPct = vals.length === 4 ? vals[1] : 0
+            const leftPct = vals.length === 4 ? vals[3] : 0
+            const x = (leftPct / 100) * width
+            const w = width - x - (rightPct / 100) * width
+            ctx.rect(x, 0, w, height)
+            ctx.clip()
+            drawScaled(videoRefB.current)
+            ctx.restore()
+          } else {
+            drawScaled(videoRefB.current)
+          }
+        } else {
+          drawScaled(videoRefB.current)
+        }
+      }
+
+      const activeClip = timelineClips.find(
+        (c) =>
+          c.trackId.startsWith("v") &&
+          time >= c.start &&
+          time < c.start + c.duration &&
+          c.transition?.type === "fade-white",
+      )
+      if (activeClip) {
+        const transDuration = activeClip.transition!.duration
+        const progress = (time - activeClip.start) / transDuration
+        if (progress >= 0 && progress <= 1) {
+          const whiteOpacity = 1 - Math.abs((progress - 0.5) * 2)
+          if (whiteOpacity > 0) {
+            ctx.globalAlpha = whiteOpacity
+            ctx.fillStyle = "#FFFFFF"
             ctx.fillRect(0, 0, width, height)
-
-            const drawScaled = (video: HTMLVideoElement) => {
-                const vW = video.videoWidth
-                const vH = video.videoHeight
-                if (!vW || !vH) return
-                const scale = Math.min(width / vW, height / vH)
-                const dw = vW * scale
-                const dh = vH * scale
-                const dx = (width - dw) / 2
-                const dy = (height - dh) / 2
-                ctx.drawImage(video, dx, dy, dw, dh)
-            }
-
-            const opacityA = Number.parseFloat(videoRefA.current?.style.opacity || "0")
-            const opacityB = Number.parseFloat(videoRefB.current?.style.opacity || "0")
-            const clipPathB = videoRefB.current?.style.clipPath || "none"
-
-            if (opacityA > 0 && videoRefA.current) {
-                ctx.globalAlpha = opacityA
-                drawScaled(videoRefA.current)
-            }
-
-            if (opacityB > 0 && videoRefB.current) {
-                ctx.globalAlpha = opacityB
-                if (clipPathB !== "none" && clipPathB.startsWith("inset")) {
-                    const match = clipPathB.match(/inset$$([^)]+)$$/)
-                    if (match) {
-                        ctx.save()
-                        ctx.beginPath()
-                        const vals = match[1].split(" ").map((s) => Number.parseFloat(s))
-                        const rightPct = vals.length === 4 ? vals[1] : 0
-                        const leftPct = vals.length === 4 ? vals[3] : 0
-                        const x = (leftPct / 100) * width
-                        const w = width - x - (rightPct / 100) * width
-                        ctx.rect(x, 0, w, height)
-                        ctx.clip()
-                        drawScaled(videoRefB.current)
-                        ctx.restore()
-                    } else {
-                        drawScaled(videoRefB.current)
-                    }
-                } else {
-                    drawScaled(videoRefB.current)
-                }
-            }
-
-            const activeClip = timelineClips.find(
-                (c) =>
-                    c.trackId.startsWith("v") &&
-                    time >= c.start &&
-                    time < c.start + c.duration &&
-                    c.transition?.type === "fade-white",
-            )
-            if (activeClip) {
-                const transDuration = activeClip.transition!.duration
-                const progress = (time - activeClip.start) / transDuration
-                if (progress >= 0 && progress <= 1) {
-                    const whiteOpacity = 1 - Math.abs((progress - 0.5) * 2)
-                    if (whiteOpacity > 0) {
-                        ctx.globalAlpha = whiteOpacity
-                        ctx.fillStyle = "#FFFFFF"
-                        ctx.fillRect(0, 0, width, height)
-                    }
-                }
-            }
-            ctx.globalAlpha = 1
-        },
-        [timelineClips],
-    )
-
-    const waitForVideoReady = useCallback(async (video: HTMLVideoElement) => {
-        if (!video || !video.src || video.style.opacity === "0") return
-        if (video.readyState < 1) {
-            await new Promise((resolve) => {
-                const h = () => {
-                    video.removeEventListener("loadedmetadata", h)
-                    resolve(null)
-                }
-                video.addEventListener("loadedmetadata", h, { once: true })
-                setTimeout(() => {
-                    video.removeEventListener("loadedmetadata", h)
-                    resolve(null)
-                }, 2000)
-            })
+          }
         }
-        if (video.seeking) {
-            await new Promise((resolve) => {
-                const h = () => {
-                    video.removeEventListener("seeked", h)
-                    resolve(null)
-                }
-                video.addEventListener("seeked", h, { once: true })
-                setTimeout(() => {
-                    video.removeEventListener("seeked", h)
-                    resolve(null)
-                }, 2000)
-            })
+      }
+      ctx.globalAlpha = 1
+    },
+    [timelineClips],
+  )
+
+  const waitForVideoReady = useCallback(async (video: HTMLVideoElement) => {
+    if (!video || !video.src || video.style.opacity === "0") return
+    if (video.readyState < 1) {
+      await new Promise((resolve) => {
+        const h = () => {
+          video.removeEventListener("loadedmetadata", h)
+          resolve(null)
         }
-        if (video.readyState < 2) {
-            await new Promise((resolve) => {
-                const h = () => {
-                    video.removeEventListener("canplay", h)
-                    resolve(null)
-                }
-                video.addEventListener("canplay", h, { once: true })
-                setTimeout(() => {
-                    video.removeEventListener("canplay", h)
-                    resolve(null)
-                }, 2000)
-            })
-        }
-    }, [])
-
-    const startExport = useCallback(
-        async (resolution: "720p" | "1080p", source: "all" | "selection") => {
-            if (!ffmpegRef.current) {
-                console.error("FFmpeg not loaded")
-                return
-            }
-
-            exportCancelledRef.current = false
-            setIsExporting(true)
-            abortExportRef.current = false
-            setDownloadUrl(null)
-            setExportProgress(0)
-            setExportPhase("init")
-            setIsPlaying(false)
-
-            const exportStartTime = source === "all" ? 0 : selectionBounds?.start || 0
-            const exportEndTime = source === "all" ? contentDuration : selectionBounds?.end || contentDuration
-            const exportDuration = exportEndTime - exportStartTime
-
-            if (exportDuration <= 0) {
-                alert("Export duration is too short or empty.")
-                setIsExporting(false)
-                setExportPhase("idle")
-                return
-            }
-
-            console.log(`Starting export: ${resolution}, ${exportDuration.toFixed(2)}s`)
-
-            const ffmpeg = ffmpegRef.current!
-            let width: number, height: number
-            if (resolution === "1080p") {
-                width = 1920
-                height = 1080
-            } else {
-                width = 1280
-                height = 720
-            }
-
-            const canReusePreview = renderedPreviewUrl && !isPreviewStale && source === "all" && resolution === "720p"
-
-            if (canReusePreview) {
-                console.log("Reusing rendered preview for export...")
-                setExportPhase("encoding")
-                setExportProgress(10)
-
-                try {
-                    // Fetch the preview blob and write to FFmpeg
-                    const response = await fetch(renderedPreviewUrl)
-                    const previewBlob = await response.arrayBuffer()
-                    await ffmpeg.writeFile("preview_input.mp4", new Uint8Array(previewBlob))
-                    setExportProgress(30)
-
-                    // Re-encode with higher quality settings
-                    console.log("Re-encoding preview with export quality...")
-
-                    ffmpeg.on("progress", ({ progress }) => {
-                        setExportProgress(30 + Math.round(progress * 65))
-                    })
-
-                    await ffmpeg.exec([
-                        "-i",
-                        "preview_input.mp4",
-                        "-c:v",
-                        "libx264",
-                        "-preset",
-                        "medium",
-                        "-crf",
-                        "23",
-                        "-c:a",
-                        "aac",
-                        "-b:a",
-                        "192k",
-                        "-pix_fmt",
-                        "yuv420p",
-                        "-movflags",
-                        "+faststart",
-                        "output.mp4",
-                    ])
-
-                    console.log("Export re-encoding complete")
-                    setExportPhase("complete") // Changed this line
-                    setExportProgress(95)
-
-                    const data = (await ffmpeg.readFile("output.mp4")) as any
-                    const url = URL.createObjectURL(new Blob([data], { type: "video/mp4" }))
-                    setDownloadUrl(url)
-                    setExportProgress(100)
-
-                    // Cleanup
-                    try {
-                        await ffmpeg.deleteFile("preview_input.mp4")
-                    } catch (e) { }
-                    try {
-                        await ffmpeg.deleteFile("output.mp4")
-                    } catch (e) { }
-
-                    console.log("Export complete (reused preview)!")
-                } catch (err: any) {
-                    if (err.message !== "Export cancelled") {
-                        console.error("Export Failed", err)
-                        alert(`Export failed: ${err.message}`)
-                    }
-                } finally {
-                    setIsExporting(false)
-                    setExportPhase("idle")
-                }
-                return
-            }
-
-            // Full render path
-            try {
-                const fps = 30
-                const dt = 1 / fps
-                const offscreen = document.createElement("canvas")
-                offscreen.width = width
-                offscreen.height = height
-                const ctx = offscreen.getContext("2d", { alpha: false })
-                if (!ctx) throw new Error("Could not create canvas context")
-
-                // PASS 1: Audio
-                setExportPhase("audio")
-                console.log("Starting audio render...")
-                const sampleRate = 44100
-                const totalFrames = Math.ceil(exportDuration * sampleRate)
-                const OfflineCtx = window.OfflineAudioContext || (window as any).webkitOfflineAudioContext
-                const offlineCtx = new OfflineCtx(2, totalFrames, sampleRate)
-                const audioBufferMap = new Map<string, AudioBuffer>()
-                const uniqueMediaIds = new Set(
-                    timelineClips.filter((c) => c.trackId.startsWith("a") || !c.isAudioDetached).map((c) => c.mediaId),
-                )
-
-                setExportProgress(10)
-
-                for (const mid of uniqueMediaIds) {
-                    if (abortExportRef.current) throw new Error("Export cancelled")
-                    const item = mediaMap[mid]
-                    if (item && item.url) {
-                        try {
-                            const response = await fetch(item.url)
-                            const arrayBuffer = await response.arrayBuffer()
-                            const audioBuffer = await offlineCtx.decodeAudioData(arrayBuffer)
-                            audioBufferMap.set(mid, audioBuffer)
-                        } catch (e) {
-                            console.warn("Skipping corrupt audio:", e)
-                        }
-                    }
-                }
-
-                setExportProgress(25)
-
-                timelineClips.forEach((clip) => {
-                    if (abortExportRef.current) return
-                    const track = tracks.find((t) => t.id === clip.trackId)
-                    const isVideoTrack = track?.type === "video"
-                    if (track?.isMuted) return
-                    if (isVideoTrack && clip.isAudioDetached) return
-
-                    let startInDest = clip.start - exportStartTime
-                    let clipOffset = clip.offset
-                    let clipDuration = clip.duration
-
-                    if (startInDest < 0) {
-                        const diff = -startInDest
-                        if (diff >= clipDuration) return
-                        clipOffset += diff
-                        clipDuration -= diff
-                        startInDest = 0
-                    }
-                    if (startInDest + clipDuration > exportDuration) {
-                        const diff = startInDest + clipDuration - exportDuration
-                        clipDuration -= diff
-                    }
-                    if (clipDuration <= 0) return
-
-                    const buffer = audioBufferMap.get(clip.mediaId)
-                    if (buffer) {
-                        const source = offlineCtx.createBufferSource()
-                        source.buffer = buffer
-                        const gainNode = offlineCtx.createGain()
-                        const trackVol = track?.volume ?? 1
-                        const clipVol = clip.volume ?? 1
-                        const baseVolume = trackVol * clipVol
-
-                        if (
-                            clip.transition &&
-                            clip.transition.type !== "none" &&
-                            clip.transition.type !== "wipe-left" &&
-                            clip.transition.type !== "wipe-right"
-                        ) {
-                            const transDuration = Math.min(clip.transition.duration, clipDuration)
-                            gainNode.gain.setValueAtTime(0, offlineCtx.currentTime + startInDest)
-                            gainNode.gain.linearRampToValueAtTime(baseVolume, offlineCtx.currentTime + startInDest + transDuration)
-                        } else {
-                            gainNode.gain.setValueAtTime(baseVolume, offlineCtx.currentTime + startInDest)
-                        }
-                        const nextClip = timelineClips.find(
-                            (c) =>
-                                c.trackId === clip.trackId &&
-                                Math.abs(c.start - (clip.start + clip.duration)) < 0.05 &&
-                                c.transition &&
-                                c.transition.type !== "none",
-                        )
-                        if (
-                            nextClip &&
-                            nextClip.transition &&
-                            (nextClip.transition.type === "cross-dissolve" || nextClip.transition.type === "fade-black")
-                        ) {
-                            const fadeOutDuration = Math.min(nextClip.transition.duration, clipDuration)
-                            gainNode.gain.setValueAtTime(
-                                baseVolume,
-                                offlineCtx.currentTime + startInDest + clipDuration - fadeOutDuration,
-                            )
-                            gainNode.gain.linearRampToValueAtTime(0, offlineCtx.currentTime + startInDest + clipDuration)
-                        } else {
-                            gainNode.gain.setValueAtTime(baseVolume, offlineCtx.currentTime + startInDest + clipDuration - 0.01)
-                        }
-                        source.connect(gainNode)
-                        gainNode.connect(offlineCtx.destination)
-                        source.start(startInDest, clipOffset, clipDuration)
-                    }
-                })
-
-                if (abortExportRef.current) throw new Error("Export cancelled")
-                const renderedBuffer = await offlineCtx.startRendering()
-                const wavData = audioBufferToWav(renderedBuffer)
-                await ffmpeg.writeFile("audio.wav", new Uint8Array(wavData))
-                console.log("Audio render complete")
-                // Audio rendering complete section
-                console.log("Audio render complete")
-                setExportProgress(5)
-
-                // PASS 2: VIDEO RENDER (Frame by Frame)
-                if (abortExportRef.current || exportCancelledRef.current) throw new Error("Export cancelled")
-                setExportPhase("video")
-                console.log("Starting video rendering loop...")
-
-                let isVertical = false
-                const firstClip = timelineClips.sort((a, b) => a.start - b.start)[0]
-                if (firstClip) {
-                    const m = mediaMap[firstClip.mediaId]
-                    if (m && m.resolution && m.resolution.height > m.resolution.width) isVertical = true
-                }
-
-                let targetW = width
-                let targetH = height
-                if (isVertical) {
-                    const tmp = targetW
-                    targetW = targetH
-                    targetH = tmp
-                }
-
-                if (canvasRef.current) {
-                    canvasRef.current.width = targetW
-                    canvasRef.current.height = targetH
-                }
-                const renderCtx = canvasRef.current!.getContext("2d", { alpha: false })! // Redeclared ctx to renderCtx
-                renderCtx.imageSmoothingEnabled = true
-                renderCtx.imageSmoothingQuality = "high"
-
-                const renderWidth = canvasRef.current!.width
-                const renderHeight = canvasRef.current!.height
-                const framerate = 30
-                // const dt = 1 / framerate // Corrected dt redeclaration
-
-                let exportTime = exportStartTime
-                let frameCount = 0
-
-                console.log("[v0] Loop conditions:", {
-                    exportTime,
-                    exportEndTime,
-                    exportCancelled: exportCancelledRef.current,
-                    willEnterLoop: exportTime < exportEndTime && !exportCancelledRef.current,
-                })
-
-                // Start from frame 0
-                while (exportTime < exportEndTime && !exportCancelledRef.current) {
-                    if (abortExportRef.current) throw new Error("Export cancelled")
-
-                    // Sync UI to time
-                    syncMediaToTime(exportTime, true)
-
-                    // Wait for frames to be ready (critical for scrubbing)
-                    await Promise.all([waitForVideoReady(videoRefA.current!), waitForVideoReady(videoRefB.current!)])
-
-                    // Draw to canvas
-                    drawFrameToCanvas(renderCtx, renderWidth, renderHeight, exportTime) // Use renderCtx
-
-                    // Create blob
-                    const blob: Blob = await new Promise((resolve, reject) => {
-                        try {
-                            canvasRef.current!.toBlob(
-                                (b) => (b ? resolve(b) : reject(new Error("Canvas toBlob failed"))),
-                                "image/jpeg",
-                                0.9,
-                            )
-                        } catch (e) {
-                            reject(e)
-                        }
-                    })
-
-                    const buffer = await blob.arrayBuffer()
-                    const fileName = `frame${frameCount.toString().padStart(4, "0")}.jpg`
-
-                    // Use Uint8Array to be explicit for ffmpeg.wasm
-                    await ffmpeg.writeFile(fileName, new Uint8Array(buffer))
-
-                    if (frameCount % 30 === 0) {
-                        console.log(`Rendered frame ${frameCount} at ${exportTime.toFixed(2)}s`)
-                    }
-
-                    const progress = 5 + ((exportTime - exportStartTime) / exportDuration) * 70
-                    setExportProgress(progress)
-
-                    exportTime += dt
-                    frameCount++
-
-                    // Yield to main thread to allow UI updates and prevent blocking
-                    await new Promise<void>((resolve) => setTimeout(resolve, 0))
-                }
-
-                console.log(`Video render complete. Total frames: ${frameCount}`)
-
-                if (frameCount === 0) {
-                    throw new Error("No frames were rendered. Check timeline duration.")
-                }
-
-                // PASS 3: FFmpeg Compile
-                if (abortExportRef.current) throw new Error("Export cancelled")
-                setExportPhase("encoding")
-                setExportProgress(75)
-
-                console.log("Starting FFmpeg encoding...")
-
-                ffmpeg.on("progress", ({ progress }) => {
-                    setExportProgress(75 + Math.round(progress * 23))
-                })
-
-                await ffmpeg.exec([
-                    "-framerate",
-                    "30",
-                    "-i",
-                    "frame%04d.jpg",
-                    "-i",
-                    "audio.wav",
-                    "-c:a",
-                    "aac",
-                    "-c:v",
-                    "libx264",
-                    "-pix_fmt",
-                    "yuv420p",
-                    "-shortest",
-                    "output.mp4",
-                ])
-
-                console.log("FFmpeg encoding complete")
-                setExportPhase("complete") // Changed this line
-                setExportProgress(98)
-
-                const data = (await ffmpeg.readFile("output.mp4")) as any
-                const url = URL.createObjectURL(new Blob([data], { type: "video/mp4" }))
-                setDownloadUrl(url)
-                setExportProgress(100)
-
-                // Cleanup
-                try {
-                    await ffmpeg.deleteFile("audio.wav")
-                } catch (e) { }
-                try {
-                    await ffmpeg.deleteFile("output.mp4")
-                } catch (e) { }
-
-                // Cleanup frames in batches to avoid blocking
-                for (let i = 0; i < frameCount; i++) {
-                    try {
-                        await ffmpeg.deleteFile(`frame${i.toString().padStart(4, "0")}.jpg`)
-                    } catch (e) { }
-                }
-            } catch (err: any) {
-                if (err.message !== "Export cancelled") {
-                    console.error("Export Failed", err)
-                    alert(`Export failed: ${err.message}`)
-                }
-                setExportPhase("idle")
-            } finally {
-                setIsExporting(false)
-                setCurrentTime(0)
-                if (videoRefA.current) videoRefA.current.style.opacity = "1"
-                if (videoRefB.current) videoRefB.current.style.opacity = "0"
-                if (videoRefA.current) videoRefA.current.muted = false
-            }
-        },
-        [
-            ffmpegLoaded,
-            selectionBounds,
-            contentDuration,
-            renderedPreviewUrl,
-            isPreviewStale,
-            timelineClips,
-            mediaMap,
-            tracks,
-            setDownloadUrl,
-            setIsExporting,
-            abortExportRef,
-            exportCancelledRef,
-            setExportProgress,
-            setExportPhase,
-            setIsPlaying,
-            loadFFmpeg,
-            syncMediaToTime,
-            waitForVideoReady,
-            drawFrameToCanvas,
-        ],
-    )
-
-    const handleAddToTimeline = useCallback(
-        (item: MediaItem) => {
-            pushToHistory()
-            const trackId = item.type === "audio" ? "a1" : "v1"
-            const clipsOnTrack = timelineClips.filter((c) => c.trackId === trackId)
-            const start = clipsOnTrack.length > 0 ? Math.max(...clipsOnTrack.map((c) => c.start + c.duration)) : 0
-            const newClip: TimelineClip = {
-                id: `clip-${Date.now()}`,
-                mediaId: item.id,
-                trackId,
-                start,
-                duration: item.duration,
-                offset: 0,
-                volume: 1,
-            }
-            setTimelineClips((prev) => [...prev, newClip])
-            setSelectedClipIds([newClip.id])
-            setIsPreviewStale(true) // Mark preview as needing re-render
-        },
-        [pushToHistory, timelineClips],
-    )
-
-    const handleGenerate = useCallback(
-        async (prompt: string, aspectRatio: string, type: 'video' | 'image' = 'video', model?: string, image?: string) => {
-            const newId = Math.random().toString(36).substr(2, 9)
-            const tempMedia: MediaItem = {
-                id: newId,
-                url: "",
-                prompt: prompt,
-                duration: type === 'video' ? defaultDuration : 5, // Default 5s for images
-                aspectRatio: aspectRatio,
-                status: "generating",
-                type: type,
-                resolution: { width: 1280, height: 720 },
-            }
-            setMedia((prev) => [tempMedia, ...prev])
-            setIsGenerating(true)
-
-            try {
-                let videoUrl = "";
-
-                if (type === 'video') {
-                    const response = await fetch("/api/generate-video", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            prompt,
-                            aspectRatio,
-                            model,
-                            imageUrl: image, // Pass image if present (as data URI)
-                        }),
-                    })
-
-                    if (!response.ok) {
-                        const err = await response.json()
-                        throw new Error(err.error || "Generation failed")
-                    }
-
-                    const result = await response.json()
-                    setGeneratedItem({ url: result.url, type: "video" })
-                    videoUrl = result.video?.url || result.data?.video?.url || result.url
-                } else {
-                    // Image Generation
-                    // Map aspect ratio to what API expects (landscape, portrait, square)
-                    let apiAspectRatio = "square";
-                    if (aspectRatio === "16:9") apiAspectRatio = "landscape";
-                    else if (aspectRatio === "9:16") apiAspectRatio = "portrait";
-
-                    const formData = new FormData();
-
-                    if (image) {
-                        formData.append("mode", "image-editing");
-                        // For API simplicity, we can pass the data URI as image1Url or convert to a file.
-                        // However, the current API route expects 'image1' (File) or 'image1Url' (string).
-                        // Since we have a data URI string, passing it as 'image1Url' should work if the backend handles data URIs in that field.
-                        // Looking at api/generate-image/route.ts:
-                        // const convertToDataUrl = async (source: File | string) ... check if string starts with data: ...
-                        // It seems the API *can* handle data URIs passed as strings if we verify the backend logic.
-                        // Actually, looking at the backend code:
-                        // const image1Url = formData.get("image1Url") as string
-                        // ...
-                        // const hasImage1 = image1 || image1Url
-                        // ...
-                        // const image1DataUrl = await convertToDataUrl(hasImage1 ? image1 || image1Url : "")
-                        // And convertToDataUrl handles strings by fetching them.
-                        // Fetching a data URI works in Node/Browser environments usually.
-                        // Let's pass it as image1Url.
-                        formData.append("image1Url", image);
-
-                    } else {
-                        formData.append("mode", "text-to-image");
-                    }
-
-                    formData.append("prompt", prompt);
-                    formData.append("aspectRatio", apiAspectRatio);
-                    if (model) {
-                        formData.append("model", model);
-                    }
-
-                    const response = await fetch("/api/generate-image", {
-                        method: "POST",
-                        body: formData,
-                    });
-
-                    if (!response.ok) {
-                        const err = await response.json()
-                        throw new Error(err.error || "Image generation failed")
-                    }
-
-                    const result = await response.json()
-                    setGeneratedItem({ url: result.url, type: "image" })
-                    videoUrl = result.url;
-                }
-
-                if (!videoUrl) throw new Error("No URL received")
-
-                if (isMountedRef.current) {
-                    setMedia((prev) => prev.map((m) => (m.id === newId ? { ...m, url: videoUrl, status: "ready" } : m)))
-                    setActiveView("library")
-
-                    // Auto-add to timeline if valid
-                    if (videoUrl) {
-                        const readyItem = { ...tempMedia, url: videoUrl, status: "ready" as const };
-                        handleAddToTimeline(readyItem);
-                    }
-                }
-            } catch (error: any) {
-                console.error(error)
-                if (isMountedRef.current) {
-                    setMedia((prev) => prev.map((m) => (m.id === newId ? { ...m, status: "error" } : m)))
-                    alert(error.message || "Generation failed")
-                }
-            } finally {
-                if (isMountedRef.current) setIsGenerating(false)
-            }
-        },
-        [defaultDuration, handleAddToTimeline],
-    )
-
-    const handleGenerateVideo = async () => {
-        setIsGenerating(true)
-        setVideoError(null)
-        setVideoResult(null)
-
-        try {
-            const response = await fetch("/api/generate-video", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ image1Url, prompt }),
-            })
-
-            const data = await response.json()
-
-            if (!response.ok) {
-                throw new Error(data.error || `HTTP ${response.status}`)
-            }
-
-            setVideoResult(data)
-        } catch (err: any) {
-            console.error("Video generation error:", err)
-            setVideoError(err.message)
-        } finally {
-            setIsGenerating(false)
-        }
+        video.addEventListener("loadedmetadata", h, { once: true })
+        setTimeout(() => {
+          video.removeEventListener("loadedmetadata", h)
+          resolve(null)
+        }, 2000)
+      })
     }
-
-    const handleImport = useCallback(
-        (file: File) => {
-            const url = URL.createObjectURL(file)
-            objectUrlsRef.current.push(url)
-            const newId = Math.random().toString(36).substr(2, 9)
-            const isAudio = file.type.startsWith("audio")
-            const newMedia: MediaItem = {
-                id: newId,
-                url,
-                prompt: file.name,
-                duration: defaultDuration,
-                aspectRatio: "16:9",
-                status: "ready",
-                type: isAudio ? "audio" : "video",
-            }
-            const el = isAudio ? document.createElement("audio") : document.createElement("video")
-            el.crossOrigin = "anonymous"
-            el.onloadedmetadata = () => {
-                newMedia.duration = el.duration
-                if (!isAudio) {
-                    const videoEl = el as HTMLVideoElement
-                    const r = videoEl.videoWidth / videoEl.videoHeight
-                    newMedia.resolution = { width: videoEl.videoWidth, height: videoEl.videoHeight }
-                    if (Math.abs(r - 16 / 9) < 0.1) newMedia.aspectRatio = "16:9"
-                    else if (Math.abs(r - 9 / 16) < 0.1) newMedia.aspectRatio = "9:16"
-                    else if (Math.abs(r - 1) < 0.1) newMedia.aspectRatio = "1:1"
-                    else newMedia.aspectRatio = "custom"
-                }
-                setMedia((prev) =>
-                    prev.map((m) =>
-                        m.id === newId
-                            ? { ...m, duration: el.duration, aspectRatio: newMedia.aspectRatio, resolution: newMedia.resolution }
-                            : m,
-                    ),
-                )
-            }
-            el.src = url
-            setMedia((prev) => [newMedia, ...prev])
-        },
-        [defaultDuration],
-    )
-
-    const handleRemoveMedia = useCallback(
-        (item: MediaItem) => {
-            const isUsed = timelineClips.some((c) => c.mediaId === item.id)
-            if (isUsed) {
-                if (!window.confirm("This media is used in the timeline. Removing it will delete associated clips. Continue?"))
-                    return
-            }
-            pushToHistory()
-            setTimelineClips((prev) => prev.filter((c) => c.mediaId !== item.id))
-            setMedia((prev) => prev.filter((m) => m.id !== item.id))
-            if (item.url.startsWith("blob:")) URL.revokeObjectURL(item.url)
-            if (selectedClipIds.length > 0) {
-                const stillExists = timelineClips.some((c) => selectedClipIds.includes(c.id))
-                if (!stillExists) setSelectedClipIds([])
-            }
-        },
-        [timelineClips, selectedClipIds, pushToHistory],
-    )
-
-
-
-    const handleSplitClip = useCallback(
-        (clipId: string, splitTime: number) => {
-            const clip = timelineClips.find((c) => c.id === clipId)
-            if (!clip) return
-            pushToHistory()
-            const relativeSplit = splitTime - clip.start
-            const firstDuration = relativeSplit
-            const secondDuration = clip.duration - relativeSplit
-            if (firstDuration < 0.1 || secondDuration < 0.1) return
-            const clip1: TimelineClip = { ...clip, duration: firstDuration }
-            const clip2: TimelineClip = {
-                ...clip,
-                id: `clip-${Date.now()}-split`,
-                start: splitTime,
-                duration: secondDuration,
-                offset: clip.offset + relativeSplit,
-            }
-            setTimelineClips((prev) => prev.map((c) => (c.id === clipId ? clip1 : c)).concat(clip2))
-            setIsPreviewStale(true) // Mark preview as needing re-render
-        },
-        [pushToHistory, timelineClips],
-    )
-
-    const handleDetachAudio = useCallback(
-        (clipId: string) => {
-            const clip = timelineClips.find((c) => c.id === clipId)
-            if (!clip) return
-            pushToHistory()
-            const targetTrackId =
-                ["a1", "a2"].find((tid) => {
-                    const collisions = timelineClips.filter(
-                        (c) => c.trackId === tid && !(c.start >= clip.start + clip.duration || c.start + c.duration <= clip.start),
-                    )
-                    return collisions.length === 0
-                }) || "a1"
-            const audioClip: TimelineClip = {
-                id: `audio-${Date.now()}`,
-                mediaId: clip.mediaId,
-                trackId: targetTrackId,
-                start: clip.start,
-                duration: clip.duration,
-                offset: clip.offset,
-                volume: 1,
-            }
-            setTimelineClips((prev) => [
-                ...prev.map((c) => (c.id === clipId ? { ...c, isAudioDetached: true } : c)),
-                audioClip,
-            ])
-            setIsPreviewStale(true) // Mark preview as needing re-render
-        },
-        [pushToHistory, timelineClips],
-    )
-
-    const handleDeleteClip = useCallback(
-        (clipIds: string[]) => {
-            pushToHistory()
-            setTimelineClips((prev) => prev.filter((c) => !clipIds.includes(c.id)))
-            setSelectedClipIds([])
-            setIsPreviewStale(true) // Mark preview as needing re-render
-        },
-        [pushToHistory],
-    )
-
-    const handleRippleDeleteClip = useCallback(
-        (clipIds: string[]) => {
-            if (clipIds.length === 0) return
-            pushToHistory()
-            const clipsToDelete = timelineClips.filter((c) => clipIds.includes(c.id))
-            const tracksAffected = new Set(clipsToDelete.map((c) => c.trackId))
-            setTimelineClips((prev) => {
-                let current = prev.filter((c) => !clipIds.includes(c.id))
-                tracksAffected.forEach((tid) => {
-                    const deletedOnTrack = clipsToDelete.filter((c) => c.trackId === tid).sort((a, b) => b.start - a.start)
-                    deletedOnTrack.forEach((dc) => {
-                        current = current.map((c) => {
-                            if (c.trackId === tid && c.start > dc.start) {
-                                return { ...c, start: c.start - dc.duration }
-                            }
-                            return c
-                        })
-                    })
-                })
-                return current
-            })
-            setSelectedClipIds([])
-            setIsPreviewStale(true) // Mark preview as needing re-render
-        },
-        [pushToHistory, timelineClips],
-    )
-
-    const handleDuplicateClip = useCallback(
-        (clipIds: string[]) => {
-            if (clipIds.length === 0) return
-            pushToHistory()
-            const newClips: TimelineClip[] = []
-            const clipsToDuplicate = timelineClips.filter((c) => clipIds.includes(c.id))
-            clipsToDuplicate.forEach((clip) => {
-                const insertPoint = clip.start + clip.duration
-                newClips.push({
-                    ...clip,
-                    id: `clip-${Date.now()}-${Math.random()}`,
-                    start: insertPoint,
-                    transition: undefined,
-                    volume: clip.volume ?? 1,
-                })
-            })
-            setTimelineClips((prev) => {
-                let updated = [...prev]
-                newClips.forEach((newClip) => {
-                    updated = updated.map((c) => {
-                        if (c.trackId === newClip.trackId && c.start >= newClip.start) {
-                            return { ...c, start: c.start + newClip.duration }
-                        }
-                        return c
-                    })
-                    updated.push(newClip)
-                })
-                return updated
-            })
-            setIsPreviewStale(true) // Mark preview as needing re-render
-        },
-        [pushToHistory, timelineClips],
-    )
-
-    const onToolChange = useCallback((newTool: "select" | "razor") => {
-        setTool(newTool)
-    }, [])
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (
-                document.activeElement?.tagName === "INPUT" ||
-                document.activeElement?.tagName === "TEXTAREA" ||
-                isExporting ||
-                isRendering
-            )
-                return
-            if (e.code === "Space") {
-                e.preventDefault()
-                setIsPlaying((p) => !p)
-            }
-            if ((e.ctrlKey || e.metaKey) && e.code === "KeyZ") {
-                e.preventDefault()
-                if (e.shiftKey) redo()
-                else undo()
-            }
-            if ((e.ctrlKey || e.metaKey) && e.code === "KeyC") {
-                e.preventDefault()
-                setTool((t) => (t === "select" ? "razor" : "select"))
-            }
-            if ((e.ctrlKey || e.metaKey) && e.code === "KeyD" && selectedClipIds.length > 0) {
-                e.preventDefault()
-                handleDuplicateClip(selectedClipIds)
-            }
-            if (e.code === "Delete" && selectedClipIds.length > 0) {
-                handleDeleteClip(selectedClipIds)
-            }
-            if (e.shiftKey && e.code === "Delete" && selectedClipIds.length > 0) {
-                handleRippleDeleteClip(selectedClipIds)
-            }
+    if (video.seeking) {
+      await new Promise((resolve) => {
+        const h = () => {
+          video.removeEventListener("seeked", h)
+          resolve(null)
         }
-        window.addEventListener("keydown", handleKeyDown)
-        return () => window.removeEventListener("keydown", handleKeyDown)
-    }, [
-        selectedClipIds,
-        isExporting,
-        isRendering,
-        pushToHistory,
-        timelineClips,
-        undo,
-        redo,
-        handleDuplicateClip,
-        handleDeleteClip,
-        handleRippleDeleteClip,
-    ])
+        video.addEventListener("seeked", h, { once: true })
+        setTimeout(() => {
+          video.removeEventListener("seeked", h)
+          resolve(null)
+        }, 2000)
+      })
+    }
+    if (video.readyState < 2) {
+      await new Promise((resolve) => {
+        const h = () => {
+          video.removeEventListener("canplay", h)
+          resolve(null)
+        }
+        video.addEventListener("canplay", h, { once: true })
+        setTimeout(() => {
+          video.removeEventListener("canplay", h)
+          resolve(null)
+        }, 2000)
+      })
+    }
+  }, [])
 
-    const handleCancelExport = () => {
-        abortExportRef.current = true
-        exportCancelledRef.current = true // This is the correct variable to set to true
+  const startExport = useCallback(
+    async (resolution: "720p" | "1080p", source: "all" | "selection") => {
+      if (!ffmpegRef.current) {
+        console.error("FFmpeg not loaded")
+        return
+      }
+
+      exportCancelledRef.current = false
+      setIsExporting(true)
+      abortExportRef.current = false
+      setDownloadUrl(null)
+      setExportProgress(0)
+      setExportPhase("init")
+      setIsPlaying(false)
+
+      const exportStartTime = source === "all" ? 0 : selectionBounds?.start || 0
+      const exportEndTime = source === "all" ? contentDuration : selectionBounds?.end || contentDuration
+      const exportDuration = exportEndTime - exportStartTime
+
+      if (exportDuration <= 0) {
+        alert("Export duration is too short or empty.")
         setIsExporting(false)
-        setIsExportModalOpen(false)
         setExportPhase("idle")
-    }
+        return
+      }
 
-    const startRenderPreview = useCallback(async () => {
-        renderCancelledRef.current = false
+      console.log(`Starting export: ${resolution}, ${exportDuration.toFixed(2)}s`)
 
-        if (!ffmpegLoaded || !ffmpegRef.current) {
-            console.log("FFmpeg not loaded, attempting lazy load...")
-            try {
-                await loadFFmpeg()
-            } catch (e) {
-                alert("Failed to load render engine. Please try again.")
-                return
-            }
-        }
+      const ffmpeg = ffmpeg.current!
+      let width: number, height: number
+      if (resolution === "1080p") {
+        width = 1920
+        height = 1080
+      } else {
+        width = 1280
+        height = 720
+      }
 
-        setIsRendering(true)
-        setRenderProgress(0)
-        setIsPlaying(false)
+      const canReusePreview = renderedPreviewUrl && !isPreviewStale && source === "all" && resolution === "720p"
 
-        // Revoke old preview URL if exists
-        if (renderedPreviewUrl) {
-            URL.revokeObjectURL(renderedPreviewUrl)
-            setRenderedPreviewUrl(null)
-        }
-
-        const exportStartTime = 0
-        const exportEndTime = contentDuration
-
-        if (contentDuration <= 0) {
-            alert("No content to render.")
-            setIsRendering(false)
-            return
-        }
-
-        console.log(`Starting render preview: ${contentDuration.toFixed(2)}s`)
-
-        const ffmpeg = ffmpegRef.current!
+      if (canReusePreview) {
+        console.log("Reusing rendered preview for export...")
+        setExportPhase("encoding")
+        setExportProgress(10)
 
         try {
-            // PASS 1: AUDIO RENDER
-            const sampleRate = 44100
-            const totalFrames = Math.ceil(contentDuration * sampleRate)
-            const OfflineCtx = window.OfflineAudioContext || (window as any).webkitOfflineAudioContext
-            const offlineCtx = new OfflineAudioContext(2, totalFrames, sampleRate)
-            const audioBufferMap = new Map<string, AudioBuffer>()
-            const uniqueMediaIds = new Set(
-                timelineClips.filter((c) => c.trackId.startsWith("a") || !c.isAudioDetached).map((c) => c.mediaId),
-            )
+          // Fetch the preview blob and write to FFmpeg
+          const response = await fetch(renderedPreviewUrl)
+          const previewBlob = await response.arrayBuffer()
+          await ffmpeg.writeFile("preview_input.mp4", new Uint8Array(previewBlob))
+          setExportProgress(30)
 
-            setRenderProgress(5)
+          // Re-encode with higher quality settings
+          console.log("Re-encoding preview with export quality...")
 
-            for (const mid of uniqueMediaIds) {
-                if (renderCancelledRef.current) throw new Error("Render cancelled")
-                const item = mediaMap[mid]
-                if (item && item.url) {
-                    try {
-                        const response = await fetch(item.url)
-                        const arrayBuffer = await response.arrayBuffer()
-                        const audioBuffer = await offlineCtx.decodeAudioData(arrayBuffer)
-                        audioBufferMap.set(mid, audioBuffer)
-                    } catch (e) {
-                        console.warn("Skipping corrupt audio:", e)
-                    }
-                }
-            }
+          ffmpeg.on("progress", ({ progress }) => {
+            setExportProgress(30 + Math.round(progress * 65))
+          })
 
-            setRenderProgress(15)
+          await ffmpeg.exec([
+            "-i",
+            "preview_input.mp4",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "medium",
+            "-crf",
+            "23",
+            "-c:a",
+            "aac",
+            "-b:a",
+            "192k",
+            "-pix_fmt",
+            "yuv420p",
+            "-movflags",
+            "+faststart",
+            "output.mp4",
+          ])
 
-            timelineClips.forEach((clip) => {
-                if (renderCancelledRef.current) return
-                const track = tracks.find((t) => t.id === clip.trackId)
-                const isVideoTrack = track?.type === "video"
-                if (track?.isMuted) return
-                if (isVideoTrack && clip.isAudioDetached) return
+          console.log("Export re-encoding complete")
+          setExportPhase("complete") // Changed this line
+          setExportProgress(95)
 
-                let startInDest = clip.start - exportStartTime
-                let clipOffset = clip.offset
-                let clipDuration = clip.duration
+          const data = (await ffmpeg.readFile("output.mp4")) as any
+          const url = URL.createObjectURL(new Blob([data], { type: "video/mp4" }))
+          setDownloadUrl(url)
+          setExportProgress(100)
 
-                if (startInDest < 0) {
-                    const diff = -startInDest
-                    if (diff >= clipDuration) return
-                    clipOffset += diff
-                    clipDuration -= diff
-                    startInDest = 0
-                }
-                if (startInDest + clipDuration > contentDuration) {
-                    const diff = startInDest + clipDuration - contentDuration
-                    clipDuration -= diff
-                }
-                if (clipDuration <= 0) return
+          // Cleanup
+          try {
+            await ffmpeg.deleteFile("preview_input.mp4")
+          } catch (e) {}
+          try {
+            await ffmpeg.deleteFile("output.mp4")
+          } catch (e) {}
 
-                const buffer = audioBufferMap.get(clip.mediaId)
-                if (buffer) {
-                    const source = offlineCtx.createBufferSource()
-                    source.buffer = buffer
-                    const gainNode = offlineCtx.createGain()
-                    const trackVol = track?.volume ?? 1
-                    const clipVol = clip.volume ?? 1
-                    const baseVolume = trackVol * clipVol
-
-                    if (
-                        clip.transition &&
-                        clip.transition.type !== "none" &&
-                        clip.transition.type !== "wipe-left" &&
-                        clip.transition.type !== "wipe-right"
-                    ) {
-                        const transDuration = Math.min(clip.transition.duration, clipDuration)
-                        gainNode.gain.setValueAtTime(0, offlineCtx.currentTime + startInDest)
-                        gainNode.gain.linearRampToValueAtTime(baseVolume, offlineCtx.currentTime + startInDest + transDuration)
-                    } else {
-                        gainNode.gain.setValueAtTime(baseVolume, offlineCtx.currentTime + startInDest)
-                    }
-                    const nextClip = timelineClips.find(
-                        (c) =>
-                            c.trackId === clip.trackId &&
-                            Math.abs(c.start - (clip.start + clip.duration)) < 0.05 &&
-                            c.transition &&
-                            c.transition.type !== "none",
-                    )
-                    if (
-                        nextClip &&
-                        nextClip.transition &&
-                        (nextClip.transition.type === "cross-dissolve" || nextClip.transition.type === "fade-black")
-                    ) {
-                        const fadeOutDuration = Math.min(nextClip.transition.duration, clipDuration)
-                        gainNode.gain.setValueAtTime(
-                            baseVolume,
-                            offlineCtx.currentTime + startInDest + clipDuration - fadeOutDuration,
-                        )
-                        gainNode.gain.linearRampToValueAtTime(0, offlineCtx.currentTime + startInDest + clipDuration)
-                    } else {
-                        gainNode.gain.setValueAtTime(baseVolume, offlineCtx.currentTime + startInDest + clipDuration - 0.01)
-                    }
-                    source.connect(gainNode)
-                    gainNode.connect(offlineCtx.destination)
-                    source.start(startInDest, clipOffset, clipDuration)
-                }
-            })
-
-            if (renderCancelledRef.current) throw new Error("Render cancelled")
-            const renderedBuffer = await offlineCtx.startRendering()
-            const wavData = audioBufferToWav(renderedBuffer)
-            await ffmpeg.writeFile("preview_audio.wav", new Uint8Array(wavData))
-
-            setRenderProgress(25)
-            console.log("Audio render complete for preview")
-
-            // PASS 2: VIDEO RENDER (720p for preview, faster)
-            let isVertical = false
-            const firstClip = timelineClips.sort((a, b) => a.start - b.start)[0]
-            if (firstClip) {
-                const m = mediaMap[firstClip.mediaId]
-                if (m && m.resolution && m.resolution.height > m.resolution.width) isVertical = true
-            }
-
-            let targetW = 1280
-            let targetH = 720
-            if (isVertical) {
-                const tmp = targetW
-                targetW = targetH
-                targetH = tmp
-            }
-
-            if (canvasRef.current) {
-                canvasRef.current.width = targetW
-                canvasRef.current.height = targetH
-            }
-            const ctx = canvasRef.current!.getContext("2d", { alpha: false })!
-            ctx.imageSmoothingEnabled = true
-            ctx.imageSmoothingQuality = "high"
-
-            const width = canvasRef.current!.width
-            const height = canvasRef.current!.height
-            const framerate = 30
-            const dt = 1 / framerate // Corrected dt redeclaration
-
-            let exportTime = 0
-            let frameCount = 0
-
-            console.log("Starting preview video rendering loop...")
-
-            while (exportTime < contentDuration && !renderCancelledRef.current) {
-                syncMediaToTime(exportTime, true)
-                await Promise.all([waitForVideoReady(videoRefA.current!), waitForVideoReady(videoRefB.current!)])
-                drawFrameToCanvas(ctx, width, height, exportTime)
-
-                const blob: Blob = await new Promise((resolve, reject) => {
-                    try {
-                        canvasRef.current!.toBlob(
-                            (b) => (b ? resolve(b) : reject(new Error("Canvas toBlob failed"))),
-                            "image/jpeg",
-                            0.85,
-                        )
-                    } catch (e) {
-                        reject(e)
-                    }
-                })
-
-                const buffer = await blob.arrayBuffer()
-                const fileName = `pframe${frameCount.toString().padStart(4, "0")}.jpg`
-                await ffmpeg.writeFile(fileName, new Uint8Array(buffer))
-
-                const progress = 5 + (exportTime / contentDuration) * 65
-                setRenderProgress(progress)
-
-                exportTime += dt
-                frameCount++
-
-                await new Promise<void>((resolve) => setTimeout(resolve, 0))
-            }
-
-            console.log(`Preview video render complete. Total frames: ${frameCount}`)
-
-            if (frameCount === 0) {
-                throw new Error("No frames were rendered.")
-            }
-
-            // PASS 3: FFmpeg Compile
-            if (renderCancelledRef.current) throw new Error("Render cancelled")
-            setRenderProgress(92)
-
-            console.log("Starting preview FFmpeg encoding...")
-
-            ffmpeg.on("progress", ({ progress }) => {
-                setRenderProgress(92 + Math.round(progress * 8))
-            })
-
-            await ffmpeg.exec([
-                "-framerate",
-                "30",
-                "-i",
-                "pframe%04d.jpg",
-                "-i",
-                "preview_audio.wav",
-                "-c:a",
-                "aac",
-                "-c:v",
-                "libx264",
-                "-preset",
-                "ultrafast",
-                "-crf",
-                "28",
-                "-pix_fmt",
-                "yuv420p",
-                "-shortest",
-                "preview.mp4",
-            ])
-
-            console.log("Preview FFmpeg encoding complete")
-
-            const data = (await ffmpeg.readFile("preview.mp4")) as any
-            const url = URL.createObjectURL(new Blob([data], { type: "video/mp4" }))
-            setRenderedPreviewUrl(url)
-            setIsPreviewStale(false)
-
-            setRenderProgress(100)
-
-            // Cleanup
-            try {
-                await ffmpeg.deleteFile("preview_audio.wav")
-            } catch (e) { }
-            try {
-                await ffmpeg.deleteFile("preview.mp4")
-            } catch (e) { }
-            for (let i = 0; i < frameCount; i++) {
-                try {
-                    await ffmpeg.deleteFile(`pframe${i.toString().padStart(4, "0")}.jpg`)
-                } catch (e) { }
-            }
-
-            console.log("Preview render complete!")
+          console.log("Export complete (reused preview)!")
         } catch (err: any) {
-            if (err.message !== "Render cancelled") {
-                console.error("Render Failed", err)
-                alert(`Render failed: ${err.message}`)
-            }
+          if (err.message !== "Export cancelled") {
+            console.error("Export Failed", err)
+            alert(`Export failed: ${err.message}`)
+          }
         } finally {
-            setIsRendering(false)
+          setIsExporting(false)
+          setExportPhase("idle")
         }
-    }, [
-        ffmpegLoaded,
-        loadFFmpeg,
-        contentDuration,
-        timelineClips,
-        mediaMap,
-        tracks,
-        syncMediaToTime,
-        waitForVideoReady,
-        drawFrameToCanvas,
-    ])
+        return
+      }
 
+      // Full render path
+      try {
+        const fps = 30
+        const dt = 1 / fps
+        const offscreen = document.createElement("canvas")
+        offscreen.width = width
+        offscreen.height = height
+        const ctx = offscreen.getContext("2d", { alpha: false })
+        if (!ctx) throw new Error("Could not create canvas context")
 
-    const handleCancelRender = () => {
-        renderCancelledRef.current = true
-        setIsRendering(false)
-        setRenderProgress(0)
+        // PASS 1: Audio
+        setExportPhase("audio")
+        console.log("Starting audio render...")
+        const sampleRate = 44100
+        const totalFrames = Math.ceil(exportDuration * sampleRate)
+        const OfflineCtx = window.OfflineAudioContext || (window as any).webkitOfflineAudioContext
+        const offlineCtx = new OfflineCtx(2, totalFrames, sampleRate)
+        const audioBufferMap = new Map<string, AudioBuffer>()
+        const uniqueMediaIds = new Set(
+          timelineClips.filter((c) => c.trackId.startsWith("a") || !c.isAudioDetached).map((c) => c.mediaId),
+        )
+
+        setExportProgress(10)
+
+        for (const mid of uniqueMediaIds) {
+          if (abortExportRef.current) throw new Error("Export cancelled")
+          const item = mediaMap[mid]
+          if (item && item.url) {
+            try {
+              const response = await fetch(item.url)
+              const arrayBuffer = await response.arrayBuffer()
+              const audioBuffer = await offlineCtx.decodeAudioData(arrayBuffer)
+              audioBufferMap.set(mid, audioBuffer)
+            } catch (e) {
+              console.warn("Skipping corrupt audio:", e)
+            }
+          }
+        }
+
+        setExportProgress(25)
+
+        timelineClips.forEach((clip) => {
+          if (abortExportRef.current) return
+          const track = tracks.find((t) => t.id === clip.trackId)
+          const isVideoTrack = track?.type === "video"
+          if (track?.isMuted) return
+          if (isVideoTrack && clip.isAudioDetached) return
+
+          let startInDest = clip.start - exportStartTime
+          let clipOffset = clip.offset
+          let clipDuration = clip.duration
+
+          if (startInDest < 0) {
+            const diff = -startInDest
+            if (diff >= clipDuration) return
+            clipOffset += diff
+            clipDuration -= diff
+            startInDest = 0
+          }
+          if (startInDest + clipDuration > exportDuration) {
+            const diff = startInDest + clipDuration - exportDuration
+            clipDuration -= diff
+          }
+          if (clipDuration <= 0) return
+
+          const buffer = audioBufferMap.get(clip.mediaId)
+          if (buffer) {
+            const source = offlineCtx.createBufferSource()
+            source.buffer = buffer
+            const gainNode = offlineCtx.createGain()
+            const trackVol = track?.volume ?? 1
+            const clipVol = clip.volume ?? 1
+            const baseVolume = trackVol * clipVol
+
+            if (
+              clip.transition &&
+              clip.transition.type !== "none" &&
+              clip.transition.type !== "wipe-left" &&
+              clip.transition.type !== "wipe-right"
+            ) {
+              const transDuration = Math.min(clip.transition.duration, clipDuration)
+              gainNode.gain.setValueAtTime(0, offlineCtx.currentTime + startInDest)
+              gainNode.gain.linearRampToValueAtTime(baseVolume, offlineCtx.currentTime + startInDest + transDuration)
+            } else {
+              gainNode.gain.setValueAtTime(baseVolume, offlineCtx.currentTime + startInDest)
+            }
+            const nextClip = timelineClips.find(
+              (c) =>
+                c.trackId === clip.trackId &&
+                Math.abs(c.start - (clip.start + clip.duration)) < 0.05 &&
+                c.transition &&
+                c.transition.type !== "none",
+            )
+            if (
+              nextClip &&
+              nextClip.transition &&
+              (nextClip.transition.type === "cross-dissolve" || nextClip.transition.type === "fade-black")
+            ) {
+              const fadeOutDuration = Math.min(nextClip.transition.duration, clipDuration)
+              gainNode.gain.setValueAtTime(
+                baseVolume,
+                offlineCtx.currentTime + startInDest + clipDuration - fadeOutDuration,
+              )
+              gainNode.gain.linearRampToValueAtTime(0, offlineCtx.currentTime + startInDest + clipDuration)
+            } else {
+              gainNode.gain.setValueAtTime(baseVolume, offlineCtx.currentTime + startInDest + clipDuration - 0.01)
+            }
+            source.connect(gainNode)
+            gainNode.connect(offlineCtx.destination)
+            source.start(startInDest, clipOffset, clipDuration)
+          }
+        })
+
+        if (abortExportRef.current) throw new Error("Export cancelled")
+        const renderedBuffer = await offlineCtx.startRendering()
+        const wavData = audioBufferToWav(renderedBuffer)
+        await ffmpeg.writeFile("audio.wav", new Uint8Array(wavData))
+        console.log("Audio render complete")
+        // Audio rendering complete section
+        console.log("Audio render complete")
+        setExportProgress(5)
+
+        // PASS 2: VIDEO RENDER (Frame by Frame)
+        if (abortExportRef.current || exportCancelledRef.current) throw new Error("Export cancelled")
+        setExportPhase("video")
+        console.log("Starting video rendering loop...")
+
+        let isVertical = false
+        const firstClip = timelineClips.sort((a, b) => a.start - b.start)[0]
+        if (firstClip) {
+          const m = mediaMap[firstClip.mediaId]
+          if (m && m.resolution && m.resolution.height > m.resolution.width) isVertical = true
+        }
+
+        let targetW = width
+        let targetH = height
+        if (isVertical) {
+          const tmp = targetW
+          targetW = targetH
+          targetH = tmp
+        }
+
+        if (canvasRef.current) {
+          canvasRef.current.width = targetW
+          canvasRef.current.height = targetH
+        }
+        const renderCtx = canvasRef.current!.getContext("2d", { alpha: false })! // Redeclared ctx to renderCtx
+        renderCtx.imageSmoothingEnabled = true
+        renderCtx.imageSmoothingQuality = "high"
+
+        const renderWidth = canvasRef.current!.width
+        const renderHeight = canvasRef.current!.height
+        const framerate = 30
+        // const dt = 1 / framerate // Corrected dt redeclaration
+
+        let exportTime = exportStartTime
+        let frameCount = 0
+
+        console.log("[v0] Loop conditions:", {
+          exportTime,
+          exportEndTime,
+          exportCancelled: exportCancelledRef.current,
+          willEnterLoop: exportTime < exportEndTime && !exportCancelledRef.current,
+        })
+
+        // Start from frame 0
+        while (exportTime < exportEndTime && !exportCancelledRef.current) {
+          if (abortExportRef.current) throw new Error("Export cancelled")
+
+          // Sync UI to time
+          syncMediaToTime(exportTime, true)
+
+          // Wait for frames to be ready (critical for scrubbing)
+          await Promise.all([waitForVideoReady(videoRefA.current!), waitForVideoReady(videoRefB.current!)])
+
+          // Draw to canvas
+          drawFrameToCanvas(renderCtx, renderWidth, renderHeight, exportTime) // Use renderCtx
+
+          // Create blob
+          const blob: Blob = await new Promise((resolve, reject) => {
+            try {
+              canvasRef.current!.toBlob(
+                (b) => (b ? resolve(b) : reject(new Error("Canvas toBlob failed"))),
+                "image/jpeg",
+                0.9,
+              )
+            } catch (e) {
+              reject(e)
+            }
+          })
+
+          const buffer = await blob.arrayBuffer()
+          const fileName = `frame${frameCount.toString().padStart(4, "0")}.jpg`
+
+          // Use Uint8Array to be explicit for ffmpeg.wasm
+          await ffmpeg.writeFile(fileName, new Uint8Array(buffer))
+
+          if (frameCount % 30 === 0) {
+            console.log(`Rendered frame ${frameCount} at ${exportTime.toFixed(2)}s`)
+          }
+
+          const progress = 5 + ((exportTime - exportStartTime) / exportDuration) * 70
+          setExportProgress(progress)
+
+          exportTime += dt
+          frameCount++
+
+          // Yield to main thread to allow UI updates and prevent blocking
+          await new Promise<void>((resolve) => setTimeout(resolve, 0))
+        }
+
+        console.log(`Video render complete. Total frames: ${frameCount}`)
+
+        if (frameCount === 0) {
+          throw new Error("No frames were rendered. Check timeline duration.")
+        }
+
+        // PASS 3: FFmpeg Compile
+        if (abortExportRef.current) throw new Error("Export cancelled")
+        setExportPhase("encoding")
+        setExportProgress(75)
+
+        console.log("Starting FFmpeg encoding...")
+
+        ffmpeg.on("progress", ({ progress }) => {
+          setExportProgress(75 + Math.round(progress * 23))
+        })
+
+        await ffmpeg.exec([
+          "-framerate",
+          "30",
+          "-i",
+          "frame%04d.jpg",
+          "-i",
+          "audio.wav",
+          "-c:a",
+          "aac",
+          "-c:v",
+          "libx264",
+          "-pix_fmt",
+          "yuv420p",
+          "-shortest",
+          "output.mp4",
+        ])
+
+        console.log("FFmpeg encoding complete")
+        setExportPhase("complete") // Changed this line
+        setExportProgress(98)
+
+        const data = (await ffmpeg.readFile("output.mp4")) as any
+        const url = URL.createObjectURL(new Blob([data], { type: "video/mp4" }))
+        setDownloadUrl(url)
+        setExportProgress(100)
+
+        // Cleanup
+        try {
+          await ffmpeg.deleteFile("audio.wav")
+        } catch (e) {}
+        try {
+          await ffmpeg.deleteFile("output.mp4")
+        } catch (e) {}
+
+        // Cleanup frames in batches to avoid blocking
+        for (let i = 0; i < frameCount; i++) {
+          try {
+            await ffmpeg.deleteFile(`frame${i.toString().padStart(4, "0")}.jpg`)
+          } catch (e) {}
+        }
+      } catch (err: any) {
+        if (err.message !== "Export cancelled") {
+          console.error("Export Failed", err)
+          alert(`Export failed: ${err.message}`)
+        }
+        setExportPhase("idle")
+      } finally {
+        setIsExporting(false)
+        setCurrentTime(0)
+        if (videoRefA.current) videoRefA.current.style.opacity = "1"
+        if (videoRefB.current) videoRefB.current.style.opacity = "0"
+        if (videoRefA.current) videoRefA.current.muted = false
+      }
+    },
+    [
+      ffmpegLoaded,
+      selectionBounds,
+      contentDuration,
+      renderedPreviewUrl,
+      isPreviewStale,
+      timelineClips,
+      mediaMap,
+      tracks,
+      setDownloadUrl,
+      setIsExporting,
+      abortExportRef,
+      exportCancelledRef,
+      setExportProgress,
+      setExportPhase,
+      setIsPlaying,
+      loadFFmpeg,
+      syncMediaToTime,
+      waitForVideoReady,
+      drawFrameToCanvas,
+    ],
+  )
+
+  const handleAddToTimeline = useCallback(
+    (item: MediaItem) => {
+      pushToHistory()
+      const trackId = item.type === "audio" ? "a1" : "v1"
+      const clipsOnTrack = timelineClips.filter((c) => c.trackId === trackId)
+      const start = clipsOnTrack.length > 0 ? Math.max(...clipsOnTrack.map((c) => c.start + c.duration)) : 0
+      const newClip: TimelineClip = {
+        id: `clip-${Date.now()}`,
+        mediaId: item.id,
+        trackId,
+        start,
+        duration: item.duration,
+        offset: 0,
+        volume: 1,
+      }
+      setTimelineClips((prev) => [...prev, newClip])
+      setSelectedClipIds([newClip.id])
+      setIsPreviewStale(true) // Mark preview as needing re-render
+    },
+    [pushToHistory, timelineClips],
+  )
+
+  const handleGenerate = useCallback(
+    async (prompt: string, aspectRatio: string, type: "video" | "image" = "video", model?: string, image?: string) => {
+      const newId = Math.random().toString(36).substr(2, 9)
+      const tempMedia: MediaItem = {
+        id: newId,
+        url: "",
+        prompt: prompt,
+        duration: type === "video" ? defaultDuration : 5, // Default 5s for images
+        aspectRatio: aspectRatio,
+        status: "generating",
+        type: type,
+        resolution: { width: 1280, height: 720 },
+      }
+      setMedia((prev) => [tempMedia, ...prev])
+      setIsGenerating(true)
+
+      try {
+        let videoUrl = ""
+
+        if (type === "video") {
+          const response = await fetch("/api/generate-video", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              prompt,
+              aspectRatio,
+              model,
+              imageUrl: image, // Pass image if present (as data URI)
+            }),
+          })
+
+          if (!response.ok) {
+            const err = await response.json()
+            throw new Error(err.error || "Generation failed")
+          }
+
+          const result = await response.json()
+          setGeneratedItem({ url: result.url, type: "video" })
+          videoUrl = result.video?.url || result.data?.video?.url || result.url
+        } else {
+          // Image Generation
+          // Map aspect ratio to what API expects (landscape, portrait, square)
+          let apiAspectRatio = "square"
+          if (aspectRatio === "16:9") apiAspectRatio = "landscape"
+          else if (aspectRatio === "9:16") apiAspectRatio = "portrait"
+
+          const formData = new FormData()
+
+          if (image) {
+            formData.append("mode", "image-editing")
+            // For API simplicity, we can pass the data URI as image1Url or convert to a file.
+            // However, the current API route expects 'image1' (File) or 'image1Url' (string).
+            // Looking at api/generate-image/route.ts:
+            // const image1Url = formData.get("image1Url") as string
+            // ...
+            // const hasImage1 = image1 || image1Url
+            // ...
+            // const image1DataUrl = await convertToDataUrl(hasImage1 ? image1 || image1Url : "")
+            // And convertToDataUrl handles strings by fetching them.
+            // Fetching a data URI works in Node/Browser environments usually.
+            // Let's pass it as image1Url.
+            formData.append("image1Url", image)
+          } else {
+            formData.append("mode", "text-to-image")
+          }
+
+          formData.append("prompt", prompt)
+          formData.append("aspectRatio", apiAspectRatio)
+          if (model) {
+            formData.append("model", model)
+          }
+
+          const response = await fetch("/api/generate-image", {
+            method: "POST",
+            body: formData,
+          })
+
+          if (!response.ok) {
+            const err = await response.json()
+            throw new Error(err.error || "Image generation failed")
+          }
+
+          const result = await response.json()
+          setGeneratedItem({ url: result.url, type: "image" })
+          videoUrl = result.url
+        }
+
+        if (!videoUrl) throw new Error("No URL received")
+
+        if (isMountedRef.current) {
+          setMedia((prev) => prev.map((m) => (m.id === newId ? { ...m, url: videoUrl, status: "ready" } : m)))
+          setActiveView("library")
+
+          // Auto-add to timeline if valid
+          if (videoUrl) {
+            const readyItem = { ...tempMedia, url: videoUrl, status: "ready" as const }
+            handleAddToTimeline(readyItem)
+          }
+        }
+      } catch (error: any) {
+        console.error(error)
+        if (isMountedRef.current) {
+          setMedia((prev) => prev.map((m) => (m.id === newId ? { ...m, status: "error" } : m)))
+          alert(error.message || "Generation failed")
+        }
+      } finally {
+        if (isMountedRef.current) setIsGenerating(false)
+      }
+    },
+    [defaultDuration, handleAddToTimeline],
+  )
+
+  const handleGenerateVideo = async () => {
+    setIsGenerating(true)
+    setVideoError(null)
+    setVideoResult(null)
+
+    try {
+      const response = await fetch("/api/generate-video", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image1Url, prompt }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`)
+      }
+
+      setVideoResult(data)
+    } catch (err: any) {
+      console.error("Video generation error:", err)
+      setVideoError(err.message)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const handleImport = useCallback(
+    (file: File) => {
+      const url = URL.createObjectURL(file)
+      objectUrlsRef.current.push(url)
+      const newId = Math.random().toString(36).substr(2, 9)
+      const isAudio = file.type.startsWith("audio")
+      const newMedia: MediaItem = {
+        id: newId,
+        url,
+        prompt: file.name,
+        duration: defaultDuration,
+        aspectRatio: "16:9",
+        status: "ready",
+        type: isAudio ? "audio" : "video",
+      }
+      const el = isAudio ? document.createElement("audio") : document.createElement("video")
+      el.crossOrigin = "anonymous"
+      el.onloadedmetadata = () => {
+        newMedia.duration = el.duration
+        if (!isAudio) {
+          const videoEl = el as HTMLVideoElement
+          const r = videoEl.videoWidth / videoEl.videoHeight
+          newMedia.resolution = { width: videoEl.videoWidth, height: videoEl.videoHeight }
+          if (Math.abs(r - 16 / 9) < 0.1) newMedia.aspectRatio = "16:9"
+          else if (Math.abs(r - 9 / 16) < 0.1) newMedia.aspectRatio = "9:16"
+          else if (Math.abs(r - 1) < 0.1) newMedia.aspectRatio = "1:1"
+          else newMedia.aspectRatio = "custom"
+        }
+        setMedia((prev) =>
+          prev.map((m) =>
+            m.id === newId
+              ? { ...m, duration: el.duration, aspectRatio: newMedia.aspectRatio, resolution: newMedia.resolution }
+              : m,
+          ),
+        )
+      }
+      el.src = url
+      setMedia((prev) => [newMedia, ...prev])
+    },
+    [defaultDuration],
+  )
+
+  const handleRemoveMedia = useCallback(
+    (item: MediaItem) => {
+      const isUsed = timelineClips.some((c) => c.mediaId === item.id)
+      if (isUsed) {
+        if (!window.confirm("This media is used in the timeline. Removing it will delete associated clips. Continue?"))
+          return
+      }
+      pushToHistory()
+      setTimelineClips((prev) => prev.filter((c) => c.mediaId !== item.id))
+      setMedia((prev) => prev.filter((m) => m.id !== item.id))
+      if (item.url.startsWith("blob:")) URL.revokeObjectURL(item.url)
+      if (selectedClipIds.length > 0) {
+        const stillExists = timelineClips.some((c) => selectedClipIds.includes(c.id))
+        if (!stillExists) setSelectedClipIds([])
+      }
+    },
+    [timelineClips, selectedClipIds, pushToHistory],
+  )
+
+  const handleSplitClip = useCallback(
+    (clipId: string, splitTime: number) => {
+      const clip = timelineClips.find((c) => c.id === clipId)
+      if (!clip) return
+      pushToHistory()
+      const relativeSplit = splitTime - clip.start
+      const firstDuration = relativeSplit
+      const secondDuration = clip.duration - relativeSplit
+      if (firstDuration < 0.1 || secondDuration < 0.1) return
+      const clip1: TimelineClip = { ...clip, duration: firstDuration }
+      const clip2: TimelineClip = {
+        ...clip,
+        id: `clip-${Date.now()}-split`,
+        start: splitTime,
+        duration: secondDuration,
+        offset: clip.offset + relativeSplit,
+      }
+      setTimelineClips((prev) => prev.map((c) => (c.id === clipId ? clip1 : c)).concat(clip2))
+      setIsPreviewStale(true) // Mark preview as needing re-render
+    },
+    [pushToHistory, timelineClips],
+  )
+
+  const handleDetachAudio = useCallback(
+    (clipId: string) => {
+      const clip = timelineClips.find((c) => c.id === clipId)
+      if (!clip) return
+      pushToHistory()
+      const targetTrackId =
+        ["a1", "a2"].find((tid) => {
+          const collisions = timelineClips.filter(
+            (c) => c.trackId === tid && !(c.start >= clip.start + clip.duration || c.start + c.duration <= clip.start),
+          )
+          return collisions.length === 0
+        }) || "a1"
+      const audioClip: TimelineClip = {
+        id: `audio-${Date.now()}`,
+        mediaId: clip.mediaId,
+        trackId: targetTrackId,
+        start: clip.start,
+        duration: clip.duration,
+        offset: clip.offset,
+        volume: 1,
+      }
+      setTimelineClips((prev) => [
+        ...prev.map((c) => (c.id === clipId ? { ...c, isAudioDetached: true } : c)),
+        audioClip,
+      ])
+      setIsPreviewStale(true) // Mark preview as needing re-render
+    },
+    [pushToHistory, timelineClips],
+  )
+
+  const handleDeleteClip = useCallback(
+    (clipIds: string[]) => {
+      pushToHistory()
+      setTimelineClips((prev) => prev.filter((c) => !clipIds.includes(c.id)))
+      setSelectedClipIds([])
+      setIsPreviewStale(true) // Mark preview as needing re-render
+    },
+    [pushToHistory],
+  )
+
+  const handleRippleDeleteClip = useCallback(
+    (clipIds: string[]) => {
+      if (clipIds.length === 0) return
+      pushToHistory()
+      const clipsToDelete = timelineClips.filter((c) => clipIds.includes(c.id))
+      const tracksAffected = new Set(clipsToDelete.map((c) => c.trackId))
+      setTimelineClips((prev) => {
+        let current = prev.filter((c) => !clipIds.includes(c.id))
+        tracksAffected.forEach((tid) => {
+          const deletedOnTrack = clipsToDelete.filter((c) => c.trackId === tid).sort((a, b) => b.start - a.start)
+          deletedOnTrack.forEach((dc) => {
+            current = current.map((c) => {
+              if (c.trackId === tid && c.start > dc.start) {
+                return { ...c, start: c.start - dc.duration }
+              }
+              return c
+            })
+          })
+        })
+        return current
+      })
+      setSelectedClipIds([])
+      setIsPreviewStale(true) // Mark preview as needing re-render
+    },
+    [pushToHistory, timelineClips],
+  )
+
+  const handleDuplicateClip = useCallback(
+    (clipIds: string[]) => {
+      if (clipIds.length === 0) return
+      pushToHistory()
+      const newClips: TimelineClip[] = []
+      const clipsToDuplicate = timelineClips.filter((c) => clipIds.includes(c.id))
+      clipsToDuplicate.forEach((clip) => {
+        const insertPoint = clip.start + clip.duration
+        newClips.push({
+          ...clip,
+          id: `clip-${Date.now()}-${Math.random()}`,
+          start: insertPoint,
+          transition: undefined,
+          volume: clip.volume ?? 1,
+        })
+      })
+      setTimelineClips((prev) => {
+        let updated = [...prev]
+        newClips.forEach((newClip) => {
+          updated = updated.map((c) => {
+            if (c.trackId === newClip.trackId && c.start >= newClip.start) {
+              return { ...c, start: c.start + newClip.duration }
+            }
+            return c
+          })
+          updated.push(newClip)
+        })
+        return updated
+      })
+      setIsPreviewStale(true) // Mark preview as needing re-render
+    },
+    [pushToHistory, timelineClips],
+  )
+
+  const onToolChange = useCallback((newTool: "select" | "razor") => {
+    setTool(newTool)
+  }, [])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA" ||
+        isExporting ||
+        isRendering
+      )
+        return
+      if (e.code === "Space") {
+        e.preventDefault()
+        setIsPlaying((p) => !p)
+      }
+      if ((e.ctrlKey || e.metaKey) && e.code === "KeyZ") {
+        e.preventDefault()
+        if (e.shiftKey) redo()
+        else undo()
+      }
+      if ((e.ctrlKey || e.metaKey) && e.code === "KeyC") {
+        e.preventDefault()
+        setTool((t) => (t === "select" ? "razor" : "select"))
+      }
+      if ((e.ctrlKey || e.metaKey) && e.code === "KeyD" && selectedClipIds.length > 0) {
+        e.preventDefault()
+        handleDuplicateClip(selectedClipIds)
+      }
+      if (e.code === "Delete" && selectedClipIds.length > 0) {
+        handleDeleteClip(selectedClipIds)
+      }
+      if (e.shiftKey && e.code === "Delete" && selectedClipIds.length > 0) {
+        handleRippleDeleteClip(selectedClipIds)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [
+    selectedClipIds,
+    isExporting,
+    isRendering,
+    pushToHistory,
+    timelineClips,
+    undo,
+    redo,
+    handleDuplicateClip,
+    handleDeleteClip,
+    handleRippleDeleteClip,
+  ])
+
+  const handleCancelExport = () => {
+    abortExportRef.current = true
+    exportCancelledRef.current = true // This is the correct variable to set to true
+    setIsExporting(false)
+    setIsExportModalOpen(false)
+    setExportPhase("idle")
+  }
+
+  const startRenderPreview = useCallback(async () => {
+    renderCancelledRef.current = false
+
+    if (!ffmpegLoaded || !ffmpegRef.current) {
+      console.log("FFmpeg not loaded, attempting lazy load...")
+      try {
+        await loadFFmpeg()
+      } catch (e) {
+        alert("Failed to load render engine. Please try again.")
+        return
+      }
     }
 
-    const handleTogglePreviewPlayback = useCallback(() => {
-        if (isPreviewPlayback) {
-            // Exiting preview mode - pause preview video and resume live
-            if (previewVideoRef.current) {
-                previewVideoRef.current.pause()
-            }
-            setIsPreviewPlayback(false)
-        } else {
-            // Entering preview mode - pause live playback
-            setIsPlaying(false)
-            setIsPreviewPlayback(true)
-            // Auto-play the preview when entering preview mode
-            setTimeout(() => {
-                if (previewVideoRef.current) {
-                    previewVideoRef.current.currentTime = 0
-                    previewVideoRef.current.play()
-                }
-            }, 100)
+    setIsRendering(true)
+    setRenderProgress(0)
+    setIsPlaying(false)
+
+    // Revoke old preview URL if exists
+    if (renderedPreviewUrl) {
+      URL.revokeObjectURL(renderedPreviewUrl)
+      setRenderedPreviewUrl(null)
+    }
+
+    const exportStartTime = 0
+    const exportEndTime = contentDuration
+
+    if (contentDuration <= 0) {
+      alert("No content to render.")
+      setIsRendering(false)
+      return
+    }
+
+    console.log(`Starting render preview: ${contentDuration.toFixed(2)}s`)
+
+    const ffmpeg = ffmpegRef.current!
+
+    try {
+      // PASS 1: AUDIO RENDER
+      const sampleRate = 44100
+      const totalFrames = Math.ceil(contentDuration * sampleRate)
+      const OfflineCtx = window.OfflineAudioContext || (window as any).webkitOfflineAudioContext
+      const offlineCtx = new OfflineCtx(2, totalFrames, sampleRate)
+      const audioBufferMap = new Map<string, AudioBuffer>()
+      const uniqueMediaIds = new Set(
+        timelineClips.filter((c) => c.trackId.startsWith("a") || !c.isAudioDetached).map((c) => c.mediaId),
+      )
+
+      setRenderProgress(5)
+
+      for (const mid of uniqueMediaIds) {
+        if (renderCancelledRef.current) throw new Error("Render cancelled")
+        const item = mediaMap[mid]
+        if (item && item.url) {
+          try {
+            const response = await fetch(item.url)
+            const arrayBuffer = await response.arrayBuffer()
+            const audioBuffer = await offlineCtx.decodeAudioData(arrayBuffer)
+            audioBufferMap.set(mid, audioBuffer)
+          } catch (e) {
+            console.warn("Skipping corrupt audio:", e)
+          }
         }
-    }, [isPreviewPlayback])
+      }
 
-    // --- Keyboard Shortcuts ---
-    useShortcuts({
-        onPlayPause: () => setIsPlaying(p => !p),
-        onUndo: () => { if (history.length > 0) undo() },
-        onRedo: () => { if (future.length > 0) redo() },
-        onCut: () => setTool(t => t === "select" ? "razor" : "select"),
-        onDuplicate: () => handleDuplicateClip(selectedClipIds),
-        onDelete: () => handleDeleteClip(selectedClipIds),
-        onRippleDelete: () => handleRippleDeleteClip(selectedClipIds),
-    }, [history.length, future.length, selectedClipIds, handleDuplicateClip, handleDeleteClip, handleRippleDeleteClip]);
+      setRenderProgress(15)
 
-    useEffect(() => {
-        if (isPreviewStale && isPreviewPlayback) {
-            setIsPreviewPlayback(false)
+      timelineClips.forEach((clip) => {
+        if (renderCancelledRef.current) return
+        const track = tracks.find((t) => t.id === clip.trackId)
+        const isVideoTrack = track?.type === "video"
+        if (track?.isMuted) return
+        if (isVideoTrack && clip.isAudioDetached) return
+
+        let startInDest = clip.start - exportStartTime
+        let clipOffset = clip.offset
+        let clipDuration = clip.duration
+
+        if (startInDest < 0) {
+          const diff = -startInDest
+          if (diff >= clipDuration) return
+          clipOffset += diff
+          clipDuration -= diff
+          startInDest = 0
         }
-    }, [isPreviewStale, isPreviewPlayback])
+        if (startInDest + clipDuration > contentDuration) {
+          const diff = startInDest + clipDuration - contentDuration
+          clipDuration -= diff
+        }
+        if (clipDuration <= 0) return
 
+        const buffer = audioBufferMap.get(clip.mediaId)
+        if (buffer) {
+          const source = offlineCtx.createBufferSource()
+          source.buffer = buffer
+          const gainNode = offlineCtx.createGain()
+          const trackVol = track?.volume ?? 1
+          const clipVol = clip.volume ?? 1
+          const baseVolume = trackVol * clipVol
 
+          if (
+            clip.transition &&
+            clip.transition.type !== "none" &&
+            clip.transition.type !== "wipe-left" &&
+            clip.transition.type !== "wipe-right"
+          ) {
+            const transDuration = Math.min(clip.transition.duration, clipDuration)
+            gainNode.gain.setValueAtTime(0, offlineCtx.currentTime + startInDest)
+            gainNode.gain.linearRampToValueAtTime(baseVolume, offlineCtx.currentTime + startInDest + transDuration)
+          } else {
+            gainNode.gain.setValueAtTime(baseVolume, offlineCtx.currentTime + startInDest)
+          }
+          const nextClip = timelineClips.find(
+            (c) =>
+              c.trackId === clip.trackId &&
+              Math.abs(c.start - (clip.start + clip.duration)) < 0.05 &&
+              c.transition &&
+              c.transition.type !== "none",
+          )
+          if (
+            nextClip &&
+            nextClip.transition &&
+            (nextClip.transition.type === "cross-dissolve" || nextClip.transition.type === "fade-black")
+          ) {
+            const fadeOutDuration = Math.min(nextClip.transition.duration, clipDuration)
+            gainNode.gain.setValueAtTime(
+              baseVolume,
+              offlineCtx.currentTime + startInDest + clipDuration - fadeOutDuration,
+            )
+            gainNode.gain.linearRampToValueAtTime(0, offlineCtx.currentTime + startInDest + clipDuration)
+          } else {
+            gainNode.gain.setValueAtTime(baseVolume, offlineCtx.currentTime + startInDest + clipDuration - 0.01)
+          }
+          source.connect(gainNode)
+          gainNode.connect(offlineCtx.destination)
+          source.start(startInDest, clipOffset, clipDuration)
+        }
+      })
 
-    return (
-        <div className="flex h-screen w-screen overflow-hidden bg-[#09090b] text-neutral-200 font-sans selection:bg-indigo-500/30">
-            <ExportModal
-                isOpen={isExportModalOpen}
-                onClose={() => {
-                    if (!isExporting) setIsExportModalOpen(false)
-                }}
-                onStartExport={(resolution) => startExport(resolution, "all")}
-                isExporting={isExporting}
-                exportProgress={exportProgress}
-                exportPhase={exportPhase}
-                downloadUrl={downloadUrl}
-                onCancel={handleCancelExport}
-                hasRenderedPreview={!!renderedPreviewUrl && !isPreviewStale}
-            />
-            <ShortcutsModal isOpen={isShortcutsOpen} onClose={() => setIsShortcutsOpen(false)} />
-            {tracks
-                .filter((t) => t.type === "audio")
-                .map((track) => (
-                    <audio
-                        key={track.id}
-                        ref={(el) => {
-                            if (el) audioRefs.current[track.id] = el
-                        }}
-                        className="hidden"
-                        crossOrigin="anonymous"
-                    />
-                ))}
-            <canvas ref={canvasRef} className="hidden" />
+      if (renderCancelledRef.current) throw new Error("Render cancelled")
+      const renderedBuffer = await offlineCtx.startRendering()
+      const wavData = audioBufferToWav(renderedBuffer)
+      await ffmpeg.writeFile("preview_audio.wav", new Uint8Array(wavData))
 
-            {/* Sidebar & Left Controls */}
-            <div className="w-[72px] flex flex-col items-center py-6 border-r border-neutral-800 bg-[#09090b] z-50 shrink-0">
-                <div
-                    onClick={onBack}
-                    className="w-10 h-10 bg-gradient-to-br from-[#8b5cf6] to-[#6366f1] rounded-xl flex items-center justify-center text-white shadow-lg cursor-pointer hover:scale-105 transition-transform mb-8"
-                >
-                    <LogoIcon className="w-6 h-6" />
-                </div>
-                <div className="flex flex-col gap-6 w-full items-center">
-                    {["create", "library", "storyboard", "transitions", "inspector", "settings"].map((v) => (
-                        <div
-                            key={v}
-                            onClick={() => {
-                                if (activeView === v) {
-                                    setIsPanelOpen(!isPanelOpen)
-                                } else {
-                                    setActiveView(v as any)
-                                    setIsPanelOpen(true)
-                                }
-                            }}
-                            className={`flex flex-col items-center gap-1 cursor-pointer ${activeView === v && isPanelOpen ? "text-indigo-400" : "text-neutral-500"}`}
-                        >
-                            <div
-                                className={`p-2 rounded-lg ${activeView === v && isPanelOpen ? "bg-indigo-500/10" : "hover:bg-neutral-800"}`}
-                            >
-                                {v === "create" && <PlusIcon className="w-5 h-5" />}
-                                {v === "library" && <GridIcon className="w-5 h-5" />}
-                                {v === "storyboard" && <StoryboardIcon className="w-5 h-5" />}
-                                {v === "transitions" && <TransitionIcon className="w-5 h-5" />}
-                                {v === "inspector" && <InfoIcon className="w-5 h-5" />}
-                                {v === "settings" && <SettingsIcon className="w-5 h-5" />}
-                            </div>
-                            <span className="text-[10px] capitalize">{v}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
+      setRenderProgress(25)
+      console.log("Audio render complete for preview")
 
-            {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-w-0">
-                <header className="h-14 border-b border-neutral-800 bg-[#09090b] flex items-center justify-between px-6 z-40 shrink-0">
-                    <div className="flex items-center gap-2">
-                        <button onClick={onBack} className="text-xs text-neutral-500 hover:text-white flex items-center gap-1">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="m15 18-6-6 6-6" />
-                            </svg>
-                            Back
-                        </button>
-                        <div className="h-4 w-px bg-neutral-800 mx-2"></div>
-                        <span className="text-white font-semibold">Timeline</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <button onClick={() => setIsShortcutsOpen(true)} className="text-neutral-500 hover:text-white">
-                            <KeyboardIcon className="w-4 h-4" />
-                        </button>
-                        <div className="flex items-center gap-1 bg-neutral-900 border border-neutral-800 rounded p-1">
-                            <button
-                                onClick={undo}
-                                disabled={history.length === 0}
-                                className="p-1 text-neutral-400 hover:text-white disabled:opacity-30"
-                            >
-                                <UndoIcon className="w-4 h-4" />
-                            </button>
-                            <button
-                                onClick={redo}
-                                disabled={future.length === 0}
-                                className="p-1 text-neutral-400 hover:text-white disabled:opacity-30"
-                            >
-                                <RedoIcon className="w-4 h-4" />
-                            </button>
-                        </div>
-                        <button
-                            onClick={() => setIsExportModalOpen(true)}
-                            className="bg-white text-black px-4 py-2 rounded text-xs font-bold flex items-center gap-2 hover:bg-neutral-200"
-                        >
-                            <DownloadIcon className="w-3.5 h-3.5" /> Export
-                        </button>
-                    </div>
-                </header>
+      // PASS 2: VIDEO RENDER (720p for preview, faster)
+      let isVertical = false
+      const firstClip = timelineClips.sort((a, b) => a.start - b.start)[0]
+      if (firstClip) {
+        const m = mediaMap[firstClip.mediaId]
+        if (m && m.resolution && m.resolution.height > m.resolution.width) isVertical = true
+      }
 
-                <div className="flex-1 flex overflow-hidden relative">
-                    {isPanelOpen && !isCinemaMode && (
-                        <div
-                            className="flex flex-col border-r border-neutral-800 bg-[#09090b] shrink-0 overflow-hidden relative"
-                            style={{ width: sidebarWidth }}
-                        >
-                            {activeView === "library" && (
-                                <ProjectLibrary
-                                    media={media}
-                                    selectedId={selectedClipIds[0]}
-                                    onSelect={(m) => setSelectedClipIds([m.id])}
-                                    onAddToTimeline={handleAddToTimeline}
-                                    onImport={handleImport}
-                                    onRemove={handleRemoveMedia}
-                                    onClose={() => setIsPanelOpen(false)}
-                                />
-                            )}
-                            {activeView === "create" && (
-                                <CreatePanel
-                                    onGenerate={handleGenerate}
-                                    isGenerating={isGenerating}
-                                    onClose={() => setIsPanelOpen(false)}
-                                    generatedItem={generatedItem}
-                                />
-                            )}
-                            {activeView === "settings" && (
-                                <SettingsPanel
-                                    onClose={() => setIsPanelOpen(false)}
-                                    onClearTimeline={() => setTimelineClips([])}
-                                    defaultDuration={defaultDuration}
-                                    onDurationChange={setDefaultDuration}
-                                />
-                            )}
-                            {activeView === "transitions" && (
-                                <TransitionsPanel
-                                    onClose={() => setIsPanelOpen(false)}
-                                    onApplyTransition={(t) => {
-                                        if (selectedClipIds.length > 0) {
-                                            const clip = timelineClips.find((c) => c.id === selectedClipIds[0])
-                                            if (clip) {
-                                                const safeDuration = Math.min(1.0, clip.duration / 2)
-                                                handleClipUpdate(clip.id, { transition: { type: t, duration: safeDuration } })
-                                            }
-                                        }
-                                    }}
-                                    selectedClipId={selectedClipIds[0]}
-                                />
-                            )}
-                            {activeView === "inspector" && (
-                                <InspectorPanel
-                                    onClose={() => setIsPanelOpen(false)}
-                                    selectedClipId={selectedClipIds[0]}
-                                    clips={timelineClips}
-                                    mediaMap={mediaMap}
-                                    tracks={tracks}
-                                    onUpdateClip={handleClipUpdate}
-                                />
-                            )}
-                            {activeView === 'storyboard' && (
-                                <StoryboardPanel
-                                    panels={storyboardPanels}
-                                    masterDescription={masterDescription}
-                                    setMasterDescription={setMasterDescription}
-                                    videoConfig={videoConfig}
-                                    setVideoConfig={setVideoConfig}
-                                    onClose={() => setIsPanelOpen(false)}
-                                    onAddPanel={handleAddStoryboardPanel}
-                                    onUpdatePanel={handleUpdateStoryboardPanel}
-                                    onDeletePanel={handleDeleteStoryboardPanel}
-                                    onGenerateImage={handleGenerate}
-                                    onGenerateVideo={handleGenerateVideo}
-                                    onAddToTimeline={handleAddStoryboardToTimeline}
-                                    isEnhancingMaster={false}
-                                    setIsEnhancingMaster={setIsEnhancingMaster}
-                                    setIsEnhancing={setIsEnhancing}
-                                    setPrompt={setPrompt} />
-                            )}
+      let targetW = 1280
+      let targetH = 720
+      if (isVertical) {
+        const tmp = targetW
+        targetW = targetH
+        targetH = tmp
+      }
 
-                            <div
-                                className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-indigo-500/50 z-50"
-                                onMouseDown={(e) => {
-                                    e.preventDefault()
-                                    setIsResizingSidebar(true)
-                                    sidebarResizeRef.current = { startX: e.clientX, startWidth: sidebarWidth }
-                                }}
-                            />
-                        </div>
-                    )}
+      if (canvasRef.current) {
+        canvasRef.current.width = targetW
+        canvasRef.current.height = targetH
+      }
+      const ctx = canvasRef.current!.getContext("2d", { alpha: false })!
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = "high"
 
-                    <div className="flex-1 flex flex-col bg-[#09090b] min-w-0 relative">
-                        <div className="flex-1 w-full bg-[#050505] relative flex items-center justify-center p-6 overflow-hidden min-h-[200px]">
-                            {isSafeGuidesVisible && (
-                                <div
-                                    className="absolute z-40 inset-0 pointer-events-none flex items-center justify-center"
-                                    style={{ transform: `scale(${playerZoom})` }}
-                                >
-                                    <div className="w-[90%] h-[90%] border border-white/20 border-dashed absolute aspect-video"></div>
-                                    <div className="w-[80%] h-[80%] border border-cyan-500/30 absolute aspect-video"></div>
-                                </div>
-                            )}
-                            {!isExporting && !isRendering && (
-                                <div className="absolute top-4 right-4 z-50 flex items-center gap-2 bg-black/60 backdrop-blur rounded p-1.5 border border-white/10">
-                                    <button
-                                        onClick={() => setPlayerZoom(1)}
-                                        className="text-[10px] text-neutral-400 hover:text-white px-2"
-                                    >
-                                        Fit
-                                    </button>
-                                    <button
-                                        onClick={() => setIsSafeGuidesVisible(!isSafeGuidesVisible)}
-                                        className={`p-1 ${isSafeGuidesVisible ? "text-indigo-400" : "text-neutral-400"}`}
-                                    >
-                                        <Grid3x3Icon className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                        onClick={() => setIsCinemaMode(!isCinemaMode)}
-                                        className="p-1 text-neutral-400 hover:text-white"
-                                    >
-                                        <MaximizeIcon className="w-3.5 h-3.5" />
-                                    </button>
-                                </div>
-                            )}
+      const width = canvasRef.current!.width
+      const height = canvasRef.current!.height
+      const framerate = 30
+      const dt = 1 / framerate // Corrected dt redeclaration
 
-                            <div
-                                className="relative aspect-video w-full max-h-full shadow-2xl bg-black flex items-center justify-center overflow-hidden"
-                                style={{ transform: `scale(${playerZoom})` }}
-                            >
-                                {isPreviewPlayback && renderedPreviewUrl && (
-                                    <video
-                                        ref={previewVideoRef}
-                                        src={renderedPreviewUrl}
-                                        className="absolute inset-0 w-full h-full object-contain bg-black z-10"
-                                        controls
-                                        crossOrigin="anonymous"
-                                    />
-                                )}
+      let exportTime = 0
+      let frameCount = 0
 
-                                {/* Live playback videos - hidden during preview playback */}
-                                <video
-                                    ref={videoRefA}
-                                    className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform ${isPreviewPlayback ? "hidden" : ""}`}
-                                    crossOrigin="anonymous"
-                                    onClick={() => !isExporting && !isRendering && !isPreviewPlayback && setIsPlaying(!isPlaying)}
-                                />
-                                <video
-                                    ref={videoRefB}
-                                    className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform opacity-0 ${isPreviewPlayback ? "hidden" : ""}`}
-                                    crossOrigin="anonymous"
-                                    onClick={() => !isExporting && !isRendering && !isPreviewPlayback && setIsPlaying(!isPlaying)}
-                                />
-                                <div
-                                    ref={whiteOverlayRef}
-                                    className={`absolute inset-0 bg-white pointer-events-none z-20 ${isPreviewPlayback ? "hidden" : ""}`}
-                                    style={{ opacity: 0 }}
-                                />
+      console.log("Starting preview video rendering loop...")
 
-                                {!isPlaying && !isExporting && !isRendering && !isPreviewPlayback && (
-                                    <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
-                                        <div
-                                            className="w-16 h-16 bg-white/10 backdrop-blur rounded-full flex items-center justify-center cursor-pointer pointer-events-auto hover:scale-105 transition-transform"
-                                            onClick={() => setIsPlaying(true)}
-                                        >
-                                            <PlayIcon className="w-6 h-6 text-white ml-1" />
-                                        </div>
-                                    </div>
-                                )}
+      while (exportTime < contentDuration && !renderCancelledRef.current) {
+        syncMediaToTime(exportTime, true)
+        await Promise.all([waitForVideoReady(videoRefA.current!), waitForVideoReady(videoRefB.current!)])
+        drawFrameToCanvas(ctx, width, height, exportTime)
 
-                                {isPreviewPlayback && (
-                                    <div className="absolute top-4 left-4 z-40 flex items-center gap-2 bg-cyan-500/20 backdrop-blur rounded px-3 py-1.5 border border-cyan-500/30">
-                                        <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
-                                        <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider">Rendered Preview</span>
-                                    </div>
-                                )}
+        const blob: Blob = await new Promise((resolve, reject) => {
+          try {
+            canvasRef.current!.toBlob(
+              (b) => (b ? resolve(b) : reject(new Error("Canvas toBlob failed"))),
+              "image/jpeg",
+              0.85,
+            )
+          } catch (e) {
+            reject(e)
+          }
+        })
 
-                                {isRendering && (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none bg-black/70 backdrop-blur">
-                                        <div className="w-12 h-12 border-t-2 border-indigo-500 rounded-full animate-spin mb-3"></div>
-                                        <p className="text-sm">Rendering Preview...</p>
-                                        <p className="text-xs text-neutral-400">{Math.round(renderProgress)}%</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+        const buffer = await blob.arrayBuffer()
+        const fileName = `pframe${frameCount.toString().padStart(4, "0")}.jpg`
+        await ffmpeg.writeFile(fileName, new Uint8Array(buffer))
 
-                        {!isCinemaMode && (
-                            <div
-                                className="h-1.5 bg-[#09090b] hover:bg-indigo-500/50 cursor-row-resize z-50 w-full border-y border-neutral-900"
-                                onMouseDown={(e) => {
-                                    e.preventDefault()
-                                    setIsResizingTimeline(true)
-                                    resizeRef.current = { startY: e.clientY, startHeight: timelineHeight }
-                                }}
-                            />
-                        )}
+        const progress = 5 + (exportTime / contentDuration) * 65
+        setRenderProgress(progress)
 
-                        <Timeline
-                            className={isCinemaMode ? "border-t-0" : ""}
-                            style={{ height: isCinemaMode ? 40 : timelineHeight }}
-                            tracks={tracks}
-                            clips={timelineClips}
-                            mediaMap={mediaMap}
-                            currentTime={currentTime}
-                            duration={timelineDuration}
-                            zoomLevel={zoomLevel}
-                            isPlaying={isPlaying}
-                            selectedClipIds={selectedClipIds}
-                            tool={tool}
-                            onSeek={handleSeek}
-                            onSelectClips={handleSelectClips}
-                            onZoomChange={handleZoomChange}
-                            onClipUpdate={handleClipUpdate}
-                            onTrackUpdate={handleTrackUpdate}
-                            onSplitClip={handleSplitClip}
-                            onDetachAudio={handleDetachAudio}
-                            onDeleteClip={handleDeleteClip}
-                            onRippleDeleteClip={handleRippleDeleteClip}
-                            onRenderPreview={startRenderPreview}
-                            onCancelRender={handleCancelRender}
-                            isRendering={isRendering}
-                            renderProgress={renderProgress}
-                            renderedPreviewUrl={renderedPreviewUrl}
-                            isPreviewStale={isPreviewStale}
-                            onDuplicateClip={handleDuplicateClip}
-                            onToolChange={onToolChange}
-                            onDragStart={pushToHistory}
-                            onAddTrack={handleAddTrack}
-                            isPreviewPlayback={isPreviewPlayback}
-                            onTogglePreviewPlayback={handleTogglePreviewPlayback}
-                        />
-                    </div>
-                </div>
-            </div>
+        exportTime += dt
+        frameCount++
+
+        await new Promise<void>((resolve) => setTimeout(resolve, 0))
+      }
+
+      console.log(`Preview video render complete. Total frames: ${frameCount}`)
+
+      if (frameCount === 0) {
+        throw new Error("No frames were rendered.")
+      }
+
+      // PASS 3: FFmpeg Compile
+      if (renderCancelledRef.current) throw new Error("Render cancelled")
+      setRenderProgress(92)
+
+      console.log("Starting preview FFmpeg encoding...")
+
+      ffmpeg.on("progress", ({ progress }) => {
+        setRenderProgress(92 + Math.round(progress * 8))
+      })
+
+      await ffmpeg.exec([
+        "-framerate",
+        "30",
+        "-i",
+        "pframe%04d.jpg",
+        "-i",
+        "preview_audio.wav",
+        "-c:a",
+        "aac",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "-crf",
+        "28",
+        "-pix_fmt",
+        "yuv420p",
+        "-shortest",
+        "preview.mp4",
+      ])
+
+      console.log("Preview FFmpeg encoding complete")
+
+      const data = (await ffmpeg.readFile("preview.mp4")) as any
+      const url = URL.createObjectURL(new Blob([data], { type: "video/mp4" }))
+      setRenderedPreviewUrl(url)
+      setIsPreviewStale(false)
+
+      setRenderProgress(100)
+
+      // Cleanup
+      try {
+        await ffmpeg.deleteFile("preview_audio.wav")
+      } catch (e) {}
+      try {
+        await ffmpeg.deleteFile("preview.mp4")
+      } catch (e) {}
+      for (let i = 0; i < frameCount; i++) {
+        try {
+          await ffmpeg.deleteFile(`pframe${i.toString().padStart(4, "0")}.jpg`)
+        } catch (e) {}
+      }
+
+      console.log("Preview render complete!")
+    } catch (err: any) {
+      if (err.message !== "Render cancelled") {
+        console.error("Render Failed", err)
+        alert(`Render failed: ${err.message}`)
+      }
+    } finally {
+      setIsRendering(false)
+    }
+  }, [
+    ffmpegLoaded,
+    loadFFmpeg,
+    contentDuration,
+    timelineClips,
+    mediaMap,
+    tracks,
+    syncMediaToTime,
+    waitForVideoReady,
+    drawFrameToCanvas,
+  ])
+
+  const handleCancelRender = () => {
+    renderCancelledRef.current = true
+    setIsRendering(false)
+    setRenderProgress(0)
+  }
+
+  const handleTogglePreviewPlayback = useCallback(() => {
+    if (isPreviewPlayback) {
+      // Exiting preview mode - pause preview video and resume live
+      if (previewVideoRef.current) {
+        previewVideoRef.current.pause()
+      }
+      setIsPreviewPlayback(false)
+    } else {
+      // Entering preview mode - pause live playback
+      setIsPlaying(false)
+      setIsPreviewPlayback(true)
+      // Auto-play the preview when entering preview mode
+      setTimeout(() => {
+        if (previewVideoRef.current) {
+          previewVideoRef.current.currentTime = 0
+          previewVideoRef.current.play()
+        }
+      }, 100)
+    }
+  }, [isPreviewPlayback])
+
+  // --- Keyboard Shortcuts ---
+  useShortcuts(
+    {
+      onPlayPause: () => setIsPlaying((p) => !p),
+      onUndo: () => {
+        if (history.length > 0) undo()
+      },
+      onRedo: () => {
+        if (future.length > 0) redo()
+      },
+      onCut: () => setTool((t) => (t === "select" ? "razor" : "select")),
+      onDuplicate: () => handleDuplicateClip(selectedClipIds),
+      onDelete: () => handleDeleteClip(selectedClipIds),
+      onRippleDelete: () => handleRippleDeleteClip(selectedClipIds),
+    },
+    [history.length, future.length, selectedClipIds, handleDuplicateClip, handleDeleteClip, handleRippleDeleteClip],
+  )
+
+  useEffect(() => {
+    if (isPreviewStale && isPreviewPlayback) {
+      setIsPreviewPlayback(false)
+    }
+  }, [isPreviewStale, isPreviewPlayback])
+
+  return (
+    <div className="flex h-screen w-screen overflow-hidden bg-[#09090b] text-neutral-200 font-sans selection:bg-indigo-500/30">
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => {
+          if (!isExporting) setIsExportModalOpen(false)
+        }}
+        onStartExport={(resolution) => startExport(resolution, "all")}
+        isExporting={isExporting}
+        exportProgress={exportProgress}
+        exportPhase={exportPhase}
+        downloadUrl={downloadUrl}
+        onCancel={handleCancelExport}
+        hasRenderedPreview={!!renderedPreviewUrl && !isPreviewStale}
+      />
+      <ShortcutsModal isOpen={isShortcutsOpen} onClose={() => setIsShortcutsOpen(false)} />
+      {tracks
+        .filter((t) => t.type === "audio")
+        .map((track) => (
+          <audio
+            key={track.id}
+            ref={(el) => {
+              if (el) audioRefs.current[track.id] = el
+            }}
+            className="hidden"
+            crossOrigin="anonymous"
+          />
+        ))}
+      <canvas ref={canvasRef} className="hidden" />
+
+      {/* Sidebar & Left Controls */}
+      <div className="w-[72px] flex flex-col items-center py-6 border-r border-neutral-800 bg-[#09090b] z-50 shrink-0">
+        <div
+          onClick={onBack}
+          className="w-10 h-10 bg-gradient-to-br from-[#8b5cf6] to-[#6366f1] rounded-xl flex items-center justify-center text-white shadow-lg cursor-pointer hover:scale-105 transition-transform mb-8"
+        >
+          <LogoIcon className="w-6 h-6" />
         </div>
-    )
+        <div className="flex flex-col gap-6 w-full items-center">
+          {["create", "library", "storyboard", "transitions", "inspector", "settings"].map((v) => (
+            <div
+              key={v}
+              onClick={() => {
+                if (activeView === v) {
+                  setIsPanelOpen(!isPanelOpen)
+                } else {
+                  setActiveView(v as any)
+                  setIsPanelOpen(true)
+                }
+              }}
+              className={`flex flex-col items-center gap-1 cursor-pointer ${activeView === v && isPanelOpen ? "text-indigo-400" : "text-neutral-500"}`}
+            >
+              <div
+                className={`p-2 rounded-lg ${activeView === v && isPanelOpen ? "bg-indigo-500/10" : "hover:bg-neutral-800"}`}
+              >
+                {v === "create" && <PlusIcon className="w-5 h-5" />}
+                {v === "library" && <GridIcon className="w-5 h-5" />}
+                {v === "storyboard" && <StoryboardIcon className="w-5 h-5" />}
+                {v === "transitions" && <TransitionIcon className="w-5 h-5" />}
+                {v === "inspector" && <InfoIcon className="w-5 h-5" />}
+                {v === "settings" && <SettingsIcon className="w-5 h-5" />}
+              </div>
+              <span className="text-[10px] capitalize">{v}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="h-14 border-b border-neutral-800 bg-[#09090b] flex items-center justify-between px-6 z-40 shrink-0">
+          <div className="flex items-center gap-2">
+            <button onClick={onBack} className="text-xs text-neutral-500 hover:text-white flex items-center gap-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+              Back
+            </button>
+            <div className="h-4 w-px bg-neutral-800 mx-2"></div>
+            <span className="text-white font-semibold">Timeline</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <button onClick={() => setIsShortcutsOpen(true)} className="text-neutral-500 hover:text-white">
+              <KeyboardIcon className="w-4 h-4" />
+            </button>
+            <div className="flex items-center gap-1 bg-neutral-900 border border-neutral-800 rounded p-1">
+              <button
+                onClick={undo}
+                disabled={history.length === 0}
+                className="p-1 text-neutral-400 hover:text-white disabled:opacity-30"
+              >
+                <UndoIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={redo}
+                disabled={future.length === 0}
+                className="p-1 text-neutral-400 hover:text-white disabled:opacity-30"
+              >
+                <RedoIcon className="w-4 h-4" />
+              </button>
+            </div>
+            <button
+              onClick={() => setIsExportModalOpen(true)}
+              className="bg-white text-black px-4 py-2 rounded text-xs font-bold flex items-center gap-2 hover:bg-neutral-200"
+            >
+              <DownloadIcon className="w-3.5 h-3.5" /> Export
+            </button>
+          </div>
+        </header>
+
+        <div className="flex-1 flex overflow-hidden relative">
+          {isPanelOpen && !isCinemaMode && (
+            <div
+              className="flex flex-col border-r border-neutral-800 bg-[#09090b] shrink-0 overflow-hidden relative"
+              style={{ width: sidebarWidth }}
+            >
+              {activeView === "library" && (
+                <ProjectLibrary
+                  media={media}
+                  selectedId={selectedClipIds[0]}
+                  onSelect={(m) => setSelectedClipIds([m.id])}
+                  onAddToTimeline={handleAddToTimeline}
+                  onImport={handleImport}
+                  onRemove={handleRemoveMedia}
+                  onClose={() => setIsPanelOpen(false)}
+                />
+              )}
+              {activeView === "create" && (
+                <CreatePanel
+                  onGenerate={handleGenerate}
+                  isGenerating={isGenerating}
+                  onClose={() => setIsPanelOpen(false)}
+                  generatedItem={generatedItem}
+                />
+              )}
+              {activeView === "settings" && (
+                <SettingsPanel
+                  onClose={() => setIsPanelOpen(false)}
+                  onClearTimeline={() => setTimelineClips([])}
+                  defaultDuration={defaultDuration}
+                  onDurationChange={setDefaultDuration}
+                />
+              )}
+              {activeView === "transitions" && (
+                <TransitionsPanel
+                  onClose={() => setIsPanelOpen(false)}
+                  onApplyTransition={(t) => {
+                    if (selectedClipIds.length > 0) {
+                      const clip = timelineClips.find((c) => c.id === selectedClipIds[0])
+                      if (clip) {
+                        const safeDuration = Math.min(1.0, clip.duration / 2)
+                        handleClipUpdate(clip.id, { transition: { type: t, duration: safeDuration } })
+                      }
+                    }
+                  }}
+                  selectedClipId={selectedClipIds[0]}
+                />
+              )}
+              {activeView === "inspector" && (
+                <InspectorPanel
+                  onClose={() => setIsPanelOpen(false)}
+                  selectedClipId={selectedClipIds[0]}
+                  clips={timelineClips}
+                  mediaMap={mediaMap}
+                  tracks={tracks}
+                  onUpdateClip={handleClipUpdate}
+                />
+              )}
+              {activeView === "storyboard" && (
+                <StoryboardPanel
+                  panels={storyboardPanels}
+                  masterDescription={masterDescription}
+                  setMasterDescription={setMasterDescription}
+                  videoConfig={videoConfig}
+                  setVideoConfig={setVideoConfig}
+                  onClose={() => setIsPanelOpen(false)}
+                  onAddPanel={handleAddStoryboardPanel}
+                  onUpdatePanel={handleUpdateStoryboardPanel}
+                  onDeletePanel={handleDeleteStoryboardPanel}
+                  onGenerateImage={handleStoryboardImageGenerate}
+                  onGenerateVideo={handleStoryboardVideoGenerate}
+                  onUpscaleImage={handleStoryboardImageUpscale}
+                  onAddToTimeline={handleAddStoryboardToTimeline}
+                  isEnhancingMaster={isEnhancingMaster}
+                  setIsEnhancingMaster={setIsEnhancingMaster}
+                  setIsEnhancing={setIsEnhancing}
+                  setPrompt={setPrompt}
+                />
+              )}
+
+              <div
+                className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-indigo-500/50 z-50"
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  setIsResizingSidebar(true)
+                  sidebarResizeRef.current = { startX: e.clientX, startWidth: sidebarWidth }
+                }}
+              />
+            </div>
+          )}
+
+          <div className="flex-1 flex flex-col bg-[#09090b] min-w-0 relative">
+            <div className="flex-1 w-full bg-[#050505] relative flex items-center justify-center p-6 overflow-hidden min-h-[200px]">
+              {isSafeGuidesVisible && (
+                <div
+                  className="absolute z-40 inset-0 pointer-events-none flex items-center justify-center"
+                  style={{ transform: `scale(${playerZoom})` }}
+                >
+                  <div className="w-[90%] h-[90%] border border-white/20 border-dashed absolute aspect-video"></div>
+                  <div className="w-[80%] h-[80%] border border-cyan-500/30 absolute aspect-video"></div>
+                </div>
+              )}
+              {!isExporting && !isRendering && (
+                <div className="absolute top-4 right-4 z-50 flex items-center gap-2 bg-black/60 backdrop-blur rounded p-1.5 border border-white/10">
+                  <button
+                    onClick={() => setPlayerZoom(1)}
+                    className="text-[10px] text-neutral-400 hover:text-white px-2"
+                  >
+                    Fit
+                  </button>
+                  <button
+                    onClick={() => setIsSafeGuidesVisible(!isSafeGuidesVisible)}
+                    className={`p-1 ${isSafeGuidesVisible ? "text-indigo-400" : "text-neutral-400"}`}
+                  >
+                    <Grid3x3Icon className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setIsCinemaMode(!isCinemaMode)}
+                    className="p-1 text-neutral-400 hover:text-white"
+                  >
+                    <MaximizeIcon className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              <div
+                className="relative aspect-video w-full max-h-full shadow-2xl bg-black flex items-center justify-center overflow-hidden"
+                style={{ transform: `scale(${playerZoom})` }}
+              >
+                {isPreviewPlayback && renderedPreviewUrl && (
+                  <video
+                    ref={previewVideoRef}
+                    src={renderedPreviewUrl}
+                    className="absolute inset-0 w-full h-full object-contain bg-black z-10"
+                    controls
+                    crossOrigin="anonymous"
+                  />
+                )}
+
+                {/* Live playback videos - hidden during preview playback */}
+                <video
+                  ref={videoRefA}
+                  className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform ${isPreviewPlayback ? "hidden" : ""}`}
+                  crossOrigin="anonymous"
+                  onClick={() => !isExporting && !isRendering && !isPreviewPlayback && setIsPlaying(!isPlaying)}
+                />
+                <video
+                  ref={videoRefB}
+                  className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform opacity-0 ${isPreviewPlayback ? "hidden" : ""}`}
+                  crossOrigin="anonymous"
+                  onClick={() => !isExporting && !isRendering && !isPreviewPlayback && setIsPlaying(!isPlaying)}
+                />
+                <div
+                  ref={whiteOverlayRef}
+                  className={`absolute inset-0 bg-white pointer-events-none z-20 ${isPreviewPlayback ? "hidden" : ""}`}
+                  style={{ opacity: 0 }}
+                />
+
+                {!isPlaying && !isExporting && !isRendering && !isPreviewPlayback && (
+                  <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+                    <div
+                      className="w-16 h-16 bg-white/10 backdrop-blur rounded-full flex items-center justify-center cursor-pointer pointer-events-auto hover:scale-105 transition-transform"
+                      onClick={() => setIsPlaying(true)}
+                    >
+                      <PlayIcon className="w-6 h-6 text-white ml-1" />
+                    </div>
+                  </div>
+                )}
+
+                {isPreviewPlayback && (
+                  <div className="absolute top-4 left-4 z-40 flex items-center gap-2 bg-cyan-500/20 backdrop-blur rounded px-3 py-1.5 border border-cyan-500/30">
+                    <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                    <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider">Rendered Preview</span>
+                  </div>
+                )}
+
+                {isRendering && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none bg-black/70 backdrop-blur">
+                    <div className="w-12 h-12 border-t-2 border-indigo-500 rounded-full animate-spin mb-3"></div>
+                    <p className="text-sm">Rendering Preview...</p>
+                    <p className="text-xs text-neutral-400">{Math.round(renderProgress)}%</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {!isCinemaMode && (
+              <div
+                className="h-1.5 bg-[#09090b] hover:bg-indigo-500/50 cursor-row-resize z-50 w-full border-y border-neutral-900"
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  setIsResizingTimeline(true)
+                  resizeRef.current = { startY: e.clientY, startHeight: timelineHeight }
+                }}
+              />
+            )}
+
+            <Timeline
+              className={isCinemaMode ? "border-t-0" : ""}
+              style={{ height: isCinemaMode ? 40 : timelineHeight }}
+              tracks={tracks}
+              clips={timelineClips}
+              mediaMap={mediaMap}
+              currentTime={currentTime}
+              duration={timelineDuration}
+              zoomLevel={zoomLevel}
+              isPlaying={isPlaying}
+              selectedClipIds={selectedClipIds}
+              tool={tool}
+              onSeek={handleSeek}
+              onSelectClips={handleSelectClips}
+              onZoomChange={handleZoomChange}
+              onClipUpdate={handleClipUpdate}
+              onTrackUpdate={handleTrackUpdate}
+              onSplitClip={handleSplitClip}
+              onDetachAudio={handleDetachAudio}
+              onDeleteClip={handleDeleteClip}
+              onRippleDeleteClip={handleRippleDeleteClip}
+              onRenderPreview={startRenderPreview}
+              onCancelRender={handleCancelRender}
+              isRendering={isRendering}
+              renderProgress={renderProgress}
+              renderedPreviewUrl={renderedPreviewUrl}
+              isPreviewStale={isPreviewStale}
+              onDuplicateClip={handleDuplicateClip}
+              onToolChange={onToolChange}
+              onDragStart={pushToHistory}
+              onAddTrack={handleAddTrack}
+              isPreviewPlayback={isPreviewPlayback}
+              onTogglePreviewPlayback={handleTogglePreviewPlayback}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default Editor

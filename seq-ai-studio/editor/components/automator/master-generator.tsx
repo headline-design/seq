@@ -1,4 +1,3 @@
-
 "use client"
 
 import type React from "react"
@@ -137,7 +136,6 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
       if (response.ok) {
         const data = await response.json()
         if (data.panelCount) {
-          console.log("[v0] Analysis Result:", data.panelCount)
           setAnalyzedCount(data.panelCount)
         }
       }

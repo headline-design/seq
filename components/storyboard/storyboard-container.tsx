@@ -43,10 +43,8 @@ export function StoryboardContainer({
 
   useEffect(() => {
     if (initialPanels && initialPanels.length > 0) {
-
       const savedSession = loadSession()
-      const savedVideoUrls = initialVideoUrls || savedSession?.videoUrls || {} // Use initialVideoUrls first
-      console.log("[v0] Using video URLs:", savedVideoUrls)
+      const savedVideoUrls = initialVideoUrls || savedSession?.videoUrls || {}
 
       const newPanels: StoryboardPanelData[] = initialPanels.map((url, index) => ({
         id: Math.random().toString(36).substring(7),
@@ -54,15 +52,13 @@ export function StoryboardContainer({
         linkedImageUrl: initialLinkedPanelData?.[index],
         prompt: initialPrompts?.[index] || "",
         duration: (initialDurations?.[index] || 5) as 5 | 3 | 8,
-        videoUrl: savedVideoUrls[index], // Use savedVideoUrls which includes initialVideoUrls
+        videoUrl: savedVideoUrls[index],
         model: initialLinkedPanelData?.[index] ? ("veo3.1-fast" as VideoModel) : ("veo3.1-fast" as VideoModel),
-        isGenerating: false, // Default value for isGenerating
+        isGenerating: false,
       }))
       setPanels(newPanels)
-
-      console.log("[v0] Created newPanels with transitions, prompts, durations, and restored videos:", newPanels)
     }
-  }, [initialPanels, initialLinkedPanelData, initialPrompts, initialDurations, initialVideoUrls]) // Added initialVideoUrls dependency
+  }, [initialPanels, initialLinkedPanelData, initialPrompts, initialDurations, initialVideoUrls])
 
   useEffect(() => {
     if (panels.length > 0 || masterDescription) {
@@ -83,7 +79,6 @@ export function StoryboardContainer({
       })
 
       if (Object.keys(videoUrls).length > 0) {
-        console.log("[v0] Saving video URLs to localStorage:", videoUrls)
         saveSession({ videoUrls })
       }
     }

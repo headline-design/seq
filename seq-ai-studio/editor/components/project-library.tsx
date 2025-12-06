@@ -1,5 +1,3 @@
-
-
 import React, { useRef, useState } from 'react';
 import { MediaItem } from '../types';
 import { MusicIcon, PanelLeftClose, TrashIcon } from './icons';

@@ -236,7 +236,7 @@ export async function POST(request: NextRequest) {
 async function uploadImageToBlob(base64: string, mimeType: string): Promise<string | null> {
   try {
     if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      console.warn("[v0] Blob storage not configured. Skipping upload.")
+      console.warn("Blob storage not configured. Skipping upload.")
       return null
     }
 
@@ -246,7 +246,6 @@ async function uploadImageToBlob(base64: string, mimeType: string): Promise<stri
       bytes[i] = binaryString.charCodeAt(i)
     }
 
-    // Create a proper Blob object
     const blob = new Blob([bytes], { type: mimeType })
 
     const extension = mimeType.split("/")[1] || "png"
@@ -256,13 +255,9 @@ async function uploadImageToBlob(base64: string, mimeType: string): Promise<stri
       access: "public",
     })
 
-    console.log("[v0] Successfully uploaded to Blob:", result.url)
     return result.url
   } catch (error) {
-    console.error("[v0] Failed to upload to Blob storage:", error instanceof Error ? error.message : String(error))
-    if (error instanceof Error && error.stack) {
-      console.error("[v0] Stack trace:", error.stack)
-    }
+    console.error("Failed to upload to Blob storage:", error instanceof Error ? error.message : String(error))
     return null
   }
 }

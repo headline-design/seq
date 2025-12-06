@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { TimelineClip, MediaItem, Track } from '../types';
 import { FilmIcon, MusicIcon, InfoIcon, PanelLeftClose, VolumeIcon } from './icons';

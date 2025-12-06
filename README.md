@@ -1,4 +1,3 @@
-
 # Seq - AI-Native Video Production Studio
 
 ![Seq Banner](/public/og-image.png)
@@ -56,7 +55,7 @@ Visit [v0 Template](https://v0.app/templates/seq-ZAICjqmFe5w) to start building 
 
 ### Local Development
 
-```bash
+\`\`\`bash
 # Clone the repository
 git clone https://github.com/headline-design/seq.git
 cd seq
@@ -70,7 +69,7 @@ cp .env.example .env.local
 
 # Start the development server
 npm run dev
-```
+\`\`\`
 
 Open [http://localhost:3000](http://localhost:3000) to see the app.
 
@@ -78,7 +77,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 ## Architecture
 
-```plaintext
+\`\`\`plaintext
 seq/
 ├── app/                    # Next.js App Router pages
 │   ├── api/               # AI service endpoints
@@ -91,7 +90,7 @@ seq/
 │   ├── storyboard/        # Storyboard generator
 │   └── landing-page/      # Marketing site
 └── components/            # Shared UI components
-```
+\`\`\`
 
 ---
 

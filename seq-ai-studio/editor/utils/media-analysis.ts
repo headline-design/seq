@@ -1,4 +1,3 @@
-
 export interface MediaInfo {
   duration: number
   width?: number

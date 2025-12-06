@@ -317,20 +317,7 @@ export function PanelSelector({
     const linkedData: Record<number, string> = {}
     const promptsData: Record<number, string> = {}
     const durationsData: Record<number, number> = {}
-    const videoUrlsData: Record<number, string> = {} // Added videoUrlsData from demo config
-
-    console.log("[v0] handleConfirm called with finalPanels:", finalPanels)
-    console.log("[v0] Each panel details:")
-    finalPanels.forEach((panel, index) => {
-      console.log(`[v0] Panel ${index}:`, {
-        type: panel.type,
-        imageUrl: panel.imageUrl?.substring(0, 50),
-        linkedImageUrl: panel.linkedImageUrl?.substring(0, 50),
-        prompt: panel.prompt,
-        duration: panel.duration,
-        videoUrl: panel.videoUrl, // Added videoUrl from panel
-      })
-    })
+    const videoUrlsData: Record<number, string> = {}
 
     finalPanels.forEach((panel, index) => {
       if (panel.type === "transition") {
@@ -344,34 +331,26 @@ export function PanelSelector({
         }
         selectedPanels.push(panel.imageUrl)
         linkedData[index] = panel.linkedImageUrl
-        console.log(`[v0] Transition panel ${index} - prompt: "${panel.prompt}", duration: ${panel.duration}`)
         if (panel.prompt) {
           promptsData[index] = panel.prompt
-          console.log(`[v0] Added transition prompt for panel ${index}:`, panel.prompt)
         }
         if (panel.duration) {
           durationsData[index] = panel.duration
-          console.log(`[v0] Added transition duration for panel ${index}:`, panel.duration)
         }
         if (panel.videoUrl) {
           videoUrlsData[index] = panel.videoUrl
-          console.log(`[v0] Added transition videoUrl for panel ${index}:`, panel.videoUrl)
         }
       } else {
         if (!panel.imageUrl) return
         selectedPanels.push(panel.imageUrl)
-        console.log(`[v0] Single panel ${index} - prompt: "${panel.prompt}", duration: ${panel.duration}`)
         if (panel.prompt) {
           promptsData[index] = panel.prompt
-          console.log(`[v0] Added single panel prompt for panel ${index}:`, panel.prompt)
         }
         if (panel.duration) {
           durationsData[index] = panel.duration
-          console.log(`[v0] Added single panel duration for panel ${index}:`, panel.duration)
         }
         if (panel.videoUrl) {
           videoUrlsData[index] = panel.videoUrl
-          console.log(`[v0] Added single panel videoUrl for panel ${index}:`, panel.videoUrl)
         }
       }
     })
@@ -385,25 +364,11 @@ export function PanelSelector({
       return
     }
 
-    console.log("[v0] Final extracted data before onConfirm:", {
-      selectedPanelsCount: selectedPanels.length,
-      linkedDataKeys: Object.keys(linkedData),
-      promptsKeys: Object.keys(promptsData),
-      promptsValues: promptsData,
-      durationsKeys: Object.keys(durationsData),
-      durationsValues: durationsData,
-      videoUrlsKeys: Object.keys(videoUrlsData),
-      videoUrlsValues: videoUrlsData,
-    })
-
     onConfirm(selectedPanels, linkedData, promptsData, durationsData, videoUrlsData)
   }
 
   const loadDemoSequence = () => {
-    console.log("[v0] Loading demo sequence from DEMO_FINAL_SEQUENCE:", DEMO_FINAL_SEQUENCE)
-
     const demoFinalPanels: FinalPanel[] = DEMO_FINAL_SEQUENCE.panels.map((demoPanel) => {
-      // Check if this is a transition panel by checking for linkedImageUrl
       if (demoPanel.linkedImageUrl) {
         const panel: FinalPanel = {
           id: Math.random().toString(36).substring(7),
@@ -412,9 +377,8 @@ export function PanelSelector({
           linkedImageUrl: demoPanel.linkedImageUrl,
           prompt: demoPanel.prompt,
           duration: demoPanel.duration,
-          videoUrl: demoPanel.videoUrl, // Added videoUrl from demo config
+          videoUrl: demoPanel.videoUrl,
         }
-        console.log("[v0] Created demo transition panel:", panel)
         return panel
       } else {
         const panel: FinalPanel = {
@@ -423,14 +387,12 @@ export function PanelSelector({
           imageUrl: demoPanel.imageUrl,
           prompt: demoPanel.prompt,
           duration: demoPanel.duration,
-          videoUrl: demoPanel.videoUrl, // Added videoUrl from demo config
+          videoUrl: demoPanel.videoUrl,
         }
-        console.log("[v0] Created demo single panel:", panel)
         return panel
       }
     })
 
-    console.log("[v0] Setting finalPanels to:", demoFinalPanels)
     setFinalPanels(demoFinalPanels)
     toast({
       title: "Demo Loaded",

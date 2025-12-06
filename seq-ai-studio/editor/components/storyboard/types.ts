@@ -1,4 +1,3 @@
-
 export type VideoModel = "veo3.1-fast" | "veo3.1-standard" | "wan-2.5" | "wan-2.2-transition"
 
 export interface StoryboardPanelData {

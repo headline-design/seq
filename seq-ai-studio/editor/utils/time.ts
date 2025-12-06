@@ -1,4 +1,3 @@
-
 export const formatTimecode = (seconds: number, fps: number = 30): string => {
   const totalFrames = Math.floor(seconds * fps)
   const frames = totalFrames % fps
