@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect } from "react"
+import { memo, useState, useEffect, useCallback } from "react"
 import { DownloadIcon, CheckCircleIcon } from "./icons"
 
 interface ExportModalProps {
@@ -33,7 +32,95 @@ const getPhaseInfo = (phase: ExportModalProps["exportPhase"], progress: number) 
   }
 }
 
-export const ExportModal: React.FC<ExportModalProps> = ({
+const StepIndicator = memo(function StepIndicator({
+  exportPhase,
+}: {
+  exportPhase: ExportModalProps["exportPhase"]
+}) {
+  const phases = ["init", "audio", "video", "encoding", "complete"]
+  const currentIdx = phases.indexOf(exportPhase)
+
+  return (
+    <div className="flex items-center justify-between px-2">
+      {(["audio", "video", "encoding"] as const).map((step, idx) => {
+        const stepLabels = { audio: "Audio", video: "Video", encoding: "Encode" }
+        const stepIdx = phases.indexOf(step)
+        const isActive = exportPhase === step
+        const isComplete = currentIdx > stepIdx
+
+        return (
+          <div key={step} className="flex items-center flex-1">
+            <div className="flex flex-col items-center flex-1">
+              <div
+                className={`
+                w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all
+                ${
+                  isComplete
+                    ? "bg-emerald-500 text-white"
+                    : isActive
+                      ? "bg-indigo-500 text-white ring-4 ring-indigo-500/30"
+                      : "bg-neutral-800 text-neutral-500"
+                }
+              `}
+              >
+                {isComplete ? (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  idx + 1
+                )}
+              </div>
+              <span
+                className={`text-[10px] mt-1.5 font-medium ${isActive ? "text-indigo-400" : isComplete ? "text-emerald-400" : "text-neutral-600"}`}
+              >
+                {stepLabels[step]}
+              </span>
+            </div>
+            {idx < 2 && <div className={`h-0.5 flex-1 mx-1 ${isComplete ? "bg-emerald-500" : "bg-neutral-800"}`} />}
+          </div>
+        )
+      })}
+    </div>
+  )
+})
+
+const ResolutionSelector = memo(function ResolutionSelector({
+  resolution,
+  onSelect,
+  hasRenderedPreview,
+}: {
+  resolution: "720p" | "1080p"
+  onSelect: (res: "720p" | "1080p") => void
+  hasRenderedPreview: boolean
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      <button
+        onClick={() => onSelect("1080p")}
+        className={`p-3 rounded-lg border text-left transition-all ${resolution === "1080p" ? "bg-indigo-500/10 border-indigo-500" : "bg-neutral-900 border-neutral-800 hover:border-neutral-700"}`}
+      >
+        <div className={`text-sm font-medium ${resolution === "1080p" ? "text-indigo-200" : "text-neutral-300"}`}>
+          1080p High
+        </div>
+        <div className="text-[10px] text-neutral-500 mt-1">1920x1080 - Best quality</div>
+      </button>
+      <button
+        onClick={() => onSelect("720p")}
+        className={`p-3 rounded-lg border text-left transition-all ${resolution === "720p" ? "bg-indigo-500/10 border-indigo-500" : "bg-neutral-900 border-neutral-800 hover:border-neutral-700"}`}
+      >
+        <div className={`text-sm font-medium ${resolution === "720p" ? "text-indigo-200" : "text-neutral-300"}`}>
+          720p Fast
+        </div>
+        <div className="text-[10px] text-neutral-500 mt-1">
+          1280x720 - {hasRenderedPreview ? "Instant export" : "Faster export"}
+        </div>
+      </button>
+    </div>
+  )
+})
+
+export const ExportModal = memo(function ExportModal({
   isOpen,
   onClose,
   onStartExport,
@@ -43,7 +130,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   downloadUrl,
   onCancel,
   hasRenderedPreview = false,
-}) => {
+}: ExportModalProps) {
   const [resolution, setResolution] = useState<"720p" | "1080p">("1080p")
   const [isInitializing, setIsInitializing] = useState(false)
 
@@ -59,15 +146,18 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     }
   }, [isExporting])
 
-  if (!isOpen) return null
-
-  const handleStartClick = async () => {
+  const handleStartClick = useCallback(async () => {
     setIsInitializing(true)
     onStartExport(resolution)
-  }
+  }, [onStartExport, resolution])
+
+  const handleResolutionChange = useCallback((res: "720p" | "1080p") => {
+    setResolution(res)
+  }, [])
+
+  if (!isOpen) return null
 
   const willReusePreview = hasRenderedPreview && resolution === "720p"
-
   const phaseInfo = getPhaseInfo(exportPhase, exportProgress)
 
   return (
@@ -121,58 +211,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             </div>
           ) : isExporting || isInitializing ? (
             <div className="flex flex-col gap-5 py-4">
-              {/* Phase steps indicator */}
-              <div className="flex items-center justify-between px-2">
-                {(["audio", "video", "encoding"] as const).map((step, idx) => {
-                  const stepLabels = { audio: "Audio", video: "Video", encoding: "Encode" }
-                  const phases = ["init", "audio", "video", "encoding", "complete"]
-                  const currentIdx = phases.indexOf(exportPhase)
-                  const stepIdx = phases.indexOf(step)
-                  const isActive = exportPhase === step
-                  const isComplete = currentIdx > stepIdx
-
-                  return (
-                    <div key={step} className="flex items-center flex-1">
-                      <div className="flex flex-col items-center flex-1">
-                        <div
-                          className={`
-                          w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all
-                          ${
-                            isComplete
-                              ? "bg-emerald-500 text-white"
-                              : isActive
-                                ? "bg-indigo-500 text-white ring-4 ring-indigo-500/30"
-                                : "bg-neutral-800 text-neutral-500"
-                          }
-                        `}
-                        >
-                          {isComplete ? (
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={3}
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                          ) : (
-                            idx + 1
-                          )}
-                        </div>
-                        <span
-                          className={`text-[10px] mt-1.5 font-medium ${isActive ? "text-indigo-400" : isComplete ? "text-emerald-400" : "text-neutral-600"}`}
-                        >
-                          {stepLabels[step]}
-                        </span>
-                      </div>
-                      {idx < 2 && (
-                        <div className={`h-0.5 flex-1 mx-1 ${isComplete ? "bg-emerald-500" : "bg-neutral-800"}`} />
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+              <StepIndicator exportPhase={exportPhase} />
 
               {/* Current phase info */}
               <div className="text-center">
@@ -262,32 +301,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               {/* Resolution */}
               <div className="space-y-3">
                 <label className="text-xs font-bold text-neutral-500 uppercase">Quality</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setResolution("1080p")}
-                    className={`p-3 rounded-lg border text-left transition-all ${resolution === "1080p" ? "bg-indigo-500/10 border-indigo-500" : "bg-neutral-900 border-neutral-800 hover:border-neutral-700"}`}
-                  >
-                    <div
-                      className={`text-sm font-medium ${resolution === "1080p" ? "text-indigo-200" : "text-neutral-300"}`}
-                    >
-                      1080p High
-                    </div>
-                    <div className="text-[10px] text-neutral-500 mt-1">1920x1080 • Best quality</div>
-                  </button>
-                  <button
-                    onClick={() => setResolution("720p")}
-                    className={`p-3 rounded-lg border text-left transition-all ${resolution === "720p" ? "bg-indigo-500/10 border-indigo-500" : "bg-neutral-900 border-neutral-800 hover:border-neutral-700"}`}
-                  >
-                    <div
-                      className={`text-sm font-medium ${resolution === "720p" ? "text-indigo-200" : "text-neutral-300"}`}
-                    >
-                      720p Fast
-                    </div>
-                    <div className="text-[10px] text-neutral-500 mt-1">
-                      1280x720 • {hasRenderedPreview ? "Instant export" : "Faster export"}
-                    </div>
-                  </button>
-                </div>
+                <ResolutionSelector
+                  resolution={resolution}
+                  onSelect={handleResolutionChange}
+                  hasRenderedPreview={hasRenderedPreview}
+                />
               </div>
 
               <button
@@ -302,4 +320,6 @@ export const ExportModal: React.FC<ExportModalProps> = ({
       </div>
     </div>
   )
-}
+})
+
+ExportModal.displayName = "ExportModal"

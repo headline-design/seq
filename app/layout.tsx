@@ -4,6 +4,7 @@ import { Inter, JetBrains_Mono } from "next/font/google"
 import { Suspense } from "react"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { Toaster, ToastProvider } from "@/components/ui/sonner"
+import { DeploymentNotice } from "@/components/deployment-notice"
 import "./globals.css"
 
 const inter = Inter({
@@ -93,6 +94,7 @@ export default function RootLayout({
             <Suspense fallback={null}>{children}</Suspense>
           </ErrorBoundary>
           <Toaster />
+          <DeploymentNotice />
         </ToastProvider>
       </body>
     </html>

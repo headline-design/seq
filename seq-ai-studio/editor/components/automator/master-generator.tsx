@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useRef } from "react"
+import { memo, useState, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card } from "@/components/ui/card"
@@ -18,7 +17,68 @@ interface MasterGeneratorProps {
   onLoadDemo?: () => void
 }
 
-export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps) {
+const PreviewOverlay = memo(function PreviewOverlay({
+  isAnalyzing,
+  isEditingCount,
+  analyzedCount,
+  onCountChange,
+  onEditToggle,
+}: {
+  isAnalyzing: boolean
+  isEditingCount: boolean
+  analyzedCount: number | null
+  onCountChange: (count: number) => void
+  onEditToggle: (editing: boolean) => void
+}) {
+  return (
+    <div className="absolute top-2 right-2 bg-black/70 px-3 py-1 rounded text-xs font-medium text-white backdrop-blur-sm flex items-center gap-2">
+      {isAnalyzing ? (
+        <>
+          <Loader2 className="w-3 h-3 animate-spin" />
+          Analyzing Layout...
+        </>
+      ) : (
+        <>
+          <Check className="w-3 h-3 text-green-400" />
+          {isEditingCount ? (
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={1}
+                max={12}
+                className="h-6 w-16 text-xs bg-zinc-800 border-zinc-600"
+                value={analyzedCount || 6}
+                onChange={(e) => onCountChange(Number.parseInt(e.target.value) || 6)}
+                onClick={(e) => e.stopPropagation()}
+              />
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6 hover:bg-zinc-700"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEditToggle(false)
+                }}
+              >
+                <Check className="w-3 h-3" />
+              </Button>
+            </div>
+          ) : (
+            <div
+              className="flex items-center gap-2 cursor-pointer hover:text-zinc-300"
+              onClick={() => onEditToggle(true)}
+            >
+              <span>{analyzedCount ? `${analyzedCount} Panels Detected` : "Preview Ready"}</span>
+              <Pencil className="w-3 h-3 opacity-50" />
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+})
+
+export const MasterGenerator = memo(function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps) {
   const [prompt, setPrompt] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
   const [isEnhancing, setIsEnhancing] = useState(false)
@@ -29,14 +89,14 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
   const [mode, setMode] = useState<"generate" | "upload">("generate")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleLoadDemo = () => {
+  const handleLoadDemo = useCallback(() => {
     setGeneratedUrl(DEMO_STORYBOARD.masterImageUrl)
     setPrompt(DEMO_STORYBOARD.masterDescription)
     setAnalyzedCount(DEMO_STORYBOARD.panelCount)
-    setMode("upload") // Treat as uploaded
-  }
+    setMode("upload")
+  }, [])
 
-  const handleEnhancePrompt = async () => {
+  const handleEnhancePrompt = useCallback(async () => {
     if (!prompt.trim()) return
 
     setIsEnhancing(true)
@@ -60,70 +120,9 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
     } finally {
       setIsEnhancing(false)
     }
-  }
+  }, [prompt])
 
-  const handleGenerate = async () => {
-    if (!prompt.trim()) return
-
-    setIsGenerating(true)
-    setGeneratedUrl(null) // Reset previous result if any
-    try {
-      const formData = new FormData()
-      formData.append("mode", "text-to-image")
-      const systemPrompt =
-        "You are a professional storyboard artist creating a source image for a video generation pipeline. " +
-        "Create a strict 3x2 grid of 6 cinematic keyframes. " +
-        "CRITICAL RULES: " +
-        "1. NO TEXT, NO CAPTIONS, NO NUMBERING, NO TITLES. The image must be purely visual. " +
-        "2. NO BORDERS, NO FRAMES, NO PADDING. The panels should fill the space or have minimal separation. " +
-        "3. High-fidelity cinematic style, consistent character and lighting across all panels. " +
-        "4. Do not render the 'paper' or 'document' of a storyboard, just the raw panel images arranged in a grid. " +
-        "5. TRANSITION HANDLING: If the user describes a transition effect (zoom, pan, rotation, blur, time-shift), " +
-        "render the INTERMEDIATE STATE as a visual reference. This helps users see what the effect should look like, " +
-        "though they will generate separate first/last frames later for the actual video generation."
-
-      const enhancedPrompt = `${systemPrompt}\n\nUser Request: ${prompt}`
-      formData.append("prompt", enhancedPrompt)
-      formData.append("aspectRatio", "3:2") // Wide aspect ratio for 3x2 grid
-
-      const response = await fetch("/api/generate-image", {
-        method: "POST",
-        body: formData,
-      })
-
-      if (!response.ok) throw new Error("Generation failed")
-
-      const data = await response.json()
-      setGeneratedUrl(data.url)
-      setMode("generate") // Ensure we stay on generate tab
-
-      // Auto-analyze generated images
-      analyzeImage(data.url)
-    } catch (error) {
-      console.error("Error:", error)
-    } finally {
-      setIsGenerating(false)
-    }
-  }
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      const result = event.target?.result as string
-      setGeneratedUrl(result)
-      // For uploads, we use a generic prompt or filename if prompt is empty
-      if (!prompt) setPrompt(`Uploaded Master: ${file.name}`)
-
-      // Auto-analyze uploaded images
-      analyzeImage(result)
-    }
-    reader.readAsDataURL(file)
-  }
-
-  const analyzeImage = async (url: string) => {
+  const analyzeImage = useCallback(async (url: string) => {
     setIsAnalyzing(true)
     setIsEditingCount(false)
     try {
@@ -141,26 +140,92 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
       }
     } catch (error) {
       console.error("Analysis failed:", error)
-      setAnalyzedCount(6) // Fallback to 6
+      setAnalyzedCount(6)
     } finally {
       setIsAnalyzing(false)
     }
-  }
+  }, [])
 
-  const handleApprove = () => {
+  const handleGenerate = useCallback(async () => {
+    if (!prompt.trim()) return
+
+    setIsGenerating(true)
+    setGeneratedUrl(null)
+    try {
+      const formData = new FormData()
+      formData.append("mode", "text-to-image")
+      const systemPrompt =
+        "You are a professional storyboard artist creating a source image for a video generation pipeline. " +
+        "Create a strict 3x2 grid of 6 cinematic keyframes. " +
+        "CRITICAL RULES: " +
+        "1. NO TEXT, NO CAPTIONS, NO NUMBERING, NO TITLES. The image must be purely visual. " +
+        "2. NO BORDERS, NO FRAMES, NO PADDING. The panels should fill the space or have minimal separation. " +
+        "3. High-fidelity cinematic style, consistent character and lighting across all panels. " +
+        "4. Do not render the 'paper' or 'document' of a storyboard, just the raw panel images arranged in a grid. " +
+        "5. TRANSITION HANDLING: If the user describes a transition effect (zoom, pan, rotation, blur, time-shift), " +
+        "render the INTERMEDIATE STATE as a visual reference. This helps users see what the effect should look like, " +
+        "though they will generate separate first/last frames later for the actual video generation."
+
+      const enhancedPrompt = `${systemPrompt}\n\nUser Request: ${prompt}`
+      formData.append("prompt", enhancedPrompt)
+      formData.append("aspectRatio", "3:2")
+
+      const response = await fetch("/api/generate-image", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) throw new Error("Generation failed")
+
+      const data = await response.json()
+      setGeneratedUrl(data.url)
+      setMode("generate")
+      analyzeImage(data.url)
+    } catch (error) {
+      console.error("Error:", error)
+    } finally {
+      setIsGenerating(false)
+    }
+  }, [prompt, analyzeImage])
+
+  const handleFileUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const result = event.target?.result as string
+        setGeneratedUrl(result)
+        if (!prompt) setPrompt(`Uploaded Master: ${file.name}`)
+        analyzeImage(result)
+      }
+      reader.readAsDataURL(file)
+    },
+    [prompt, analyzeImage],
+  )
+
+  const handleApprove = useCallback(() => {
     if (generatedUrl) {
-      // Pass the analyzed count (or fallback to 6)
       onGenerate(generatedUrl, prompt || "Uploaded Storyboard Master", analyzedCount || 6)
     }
-  }
+  }, [generatedUrl, prompt, analyzedCount, onGenerate])
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setGeneratedUrl(null)
     setAnalyzedCount(null)
     if (mode === "upload" && fileInputRef.current) {
       fileInputRef.current.value = ""
     }
-  }
+  }, [mode])
+
+  const handlePromptChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+    setPrompt(e.target.value)
+  }, [])
+
+  const handleModeChange = useCallback((v: string) => {
+    setMode(v as "generate" | "upload")
+  }, [])
 
   return (
     <div className="space-y-4 max-w-2xl mx-auto">
@@ -187,7 +252,7 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
 
       <Card className="p-6 bg-zinc-900 border-zinc-800 space-y-6">
         {!generatedUrl ? (
-          <Tabs defaultValue="generate" className="w-full" onValueChange={(v) => setMode(v as any)}>
+          <Tabs defaultValue="generate" className="w-full" onValueChange={handleModeChange}>
             <TabsList className="grid w-full grid-cols-2 mb-6 bg-zinc-800">
               <TabsTrigger value="generate">Generate New</TabsTrigger>
               <TabsTrigger value="upload">Upload Existing</TabsTrigger>
@@ -216,7 +281,7 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
                   placeholder="E.g., A sci-fi sequence where a robot discovers a flower in a ruined city. 6 panels showing the approach, discovery, and reaction..."
                   className="min-h-[120px] bg-black border-zinc-700 resize-none text-lg"
                   value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
+                  onChange={handlePromptChange}
                 />
               </div>
 
@@ -260,7 +325,7 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
                   placeholder="Describe the style or content for better upscaling context..."
                   className="bg-black border-zinc-700"
                   value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
+                  onChange={handlePromptChange}
                 />
               </div>
             </TabsContent>
@@ -269,50 +334,13 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="relative aspect-[3/2] rounded-lg overflow-hidden border border-zinc-700">
               <Image src={generatedUrl || "/placeholder.svg"} alt="Storyboard Master" fill className="object-cover" />
-              <div className="absolute top-2 right-2 bg-black/70 px-3 py-1 rounded text-xs font-medium text-white backdrop-blur-sm flex items-center gap-2">
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    Analyzing Layout...
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-3 h-3 text-green-400" />
-                    {isEditingCount ? (
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          min={1}
-                          max={12}
-                          className="h-6 w-16 text-xs bg-zinc-800 border-zinc-600"
-                          value={analyzedCount || 6}
-                          onChange={(e) => setAnalyzedCount(Number.parseInt(e.target.value) || 6)}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-6 w-6 hover:bg-zinc-700"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setIsEditingCount(false)
-                          }}
-                        >
-                          <Check className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div
-                        className="flex items-center gap-2 cursor-pointer hover:text-zinc-300"
-                        onClick={() => setIsEditingCount(true)}
-                      >
-                        <span>{analyzedCount ? `${analyzedCount} Panels Detected` : "Preview Ready"}</span>
-                        <Pencil className="w-3 h-3 opacity-50" />
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
+              <PreviewOverlay
+                isAnalyzing={isAnalyzing}
+                isEditingCount={isEditingCount}
+                analyzedCount={analyzedCount}
+                onCountChange={setAnalyzedCount}
+                onEditToggle={setIsEditingCount}
+              />
             </div>
 
             <div className="flex gap-4">
@@ -337,7 +365,7 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
 
               <Button
                 onClick={handleApprove}
-                disabled={isAnalyzing} // Prevent approving while still analyzing
+                disabled={isAnalyzing}
                 className="flex-1 h-12 text-lg bg-white text-black hover:bg-zinc-200"
               >
                 <Check className="mr-2 h-5 w-5" />
@@ -354,4 +382,6 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
       </Card>
     </div>
   )
-}
+})
+
+MasterGenerator.displayName = "MasterGenerator"

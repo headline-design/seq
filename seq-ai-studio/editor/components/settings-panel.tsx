@@ -1,71 +1,452 @@
-import React from 'react';
-import { SettingsIcon, PanelLeftClose } from './icons';
+"use client"
 
-interface SettingsPanelProps {
-  onClose: () => void;
-  onClearTimeline: () => void;
-  defaultDuration: number;
-  onDurationChange: (val: number) => void;
+import type React from "react"
+import { memo, useCallback, useState } from "react"
+import { SettingsIcon, PanelLeftClose, ChevronDownIcon, ChevronRightIcon } from "./icons"
+import { ASPECT_RATIOS, PLAYBACK_CONSTANTS } from "../constants"
+
+interface ProjectSettings {
+  projectName: string
+  aspectRatio: string
+  frameRate: number
+  defaultClipDuration: number
+  autoSave: boolean
+  autoSaveInterval: number
+  snapToGrid: boolean
+  showWaveforms: boolean
+  showThumbnails: boolean
 }
 
-export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose, onClearTimeline, defaultDuration, onDurationChange }) => {
+interface SettingsPanelProps {
+  onClose: () => void
+  onClearTimeline: () => void
+  onClearLibrary: () => void
+  defaultDuration: number
+  onDurationChange: (val: number) => void
+  projectSettings?: Partial<ProjectSettings>
+  onSettingsChange?: (settings: Partial<ProjectSettings>) => void
+}
+
+const Section = memo(function Section({
+  title,
+  icon,
+  children,
+  defaultOpen = true,
+}: {
+  title: string
+  icon?: React.ReactNode
+  children: React.ReactNode
+  defaultOpen?: boolean
+}) {
+  const [isOpen, setIsOpen] = useState(defaultOpen)
+
+  return (
+    <div className="border border-neutral-800 rounded-lg">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center gap-2 p-3 bg-neutral-900/50 hover:bg-neutral-800/50 transition-colors rounded-t-lg"
+      >
+        {isOpen ? (
+          <ChevronDownIcon className="w-4 h-4 text-neutral-500" />
+        ) : (
+          <ChevronRightIcon className="w-4 h-4 text-neutral-500" />
+        )}
+        {icon}
+        <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wide">{title}</span>
+      </button>
+      {isOpen && <div className="p-4 space-y-4 border-t border-neutral-800 rounded-b-lg">{children}</div>}
+    </div>
+  )
+})
+
+const Toggle = memo(function Toggle({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string
+  description?: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+}) {
+  return (
+    <label className="flex items-start gap-3 cursor-pointer group">
+      <div className="relative mt-0.5">
+        <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="sr-only" />
+        <div className={`w-9 h-5 rounded-full transition-colors ${checked ? "bg-indigo-500" : "bg-neutral-700"}`} />
+        <div
+          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+            checked ? "translate-x-4" : "translate-x-0"
+          }`}
+        />
+      </div>
+      <div className="flex-1">
+        <div className="text-sm text-neutral-200 group-hover:text-white transition-colors">{label}</div>
+        {description && <div className="text-xs text-neutral-500 mt-0.5">{description}</div>}
+      </div>
+    </label>
+  )
+})
+
+const Select = memo(function Select({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string
+  value: string | number
+  options: { value: string | number; label: string }[]
+  onChange: (value: string) => void
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs text-neutral-400">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer"
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+})
+
+const NumberInput = memo(function NumberInput({
+  label,
+  value,
+  min,
+  max,
+  step,
+  unit,
+  onChange,
+}: {
+  label: string
+  value: number
+  min?: number
+  max?: number
+  step?: number
+  unit?: string
+  onChange: (value: number) => void
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs text-neutral-400">{label}</label>
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="flex-1 bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:border-indigo-500"
+        />
+        {unit && <span className="text-xs text-neutral-500">{unit}</span>}
+      </div>
+    </div>
+  )
+})
+
+export const SettingsPanel = memo(function SettingsPanel({
+  onClose,
+  onClearTimeline,
+  onClearLibrary,
+  defaultDuration,
+  onDurationChange,
+  projectSettings,
+  onSettingsChange,
+}: SettingsPanelProps) {
+  const [settings, setSettings] = useState<ProjectSettings>({
+    projectName: projectSettings?.projectName || "Untitled Project",
+    aspectRatio: projectSettings?.aspectRatio || "16:9",
+    frameRate: projectSettings?.frameRate || PLAYBACK_CONSTANTS.DEFAULT_FPS,
+    defaultClipDuration: defaultDuration,
+    autoSave: projectSettings?.autoSave ?? true,
+    autoSaveInterval: projectSettings?.autoSaveInterval || 60,
+    snapToGrid: projectSettings?.snapToGrid ?? true,
+    showWaveforms: projectSettings?.showWaveforms ?? true,
+    showThumbnails: projectSettings?.showThumbnails ?? true,
+  })
+
+  const updateSetting = useCallback(
+    <K extends keyof ProjectSettings>(key: K, value: ProjectSettings[K]) => {
+      setSettings((prev) => {
+        const next = { ...prev, [key]: value }
+        onSettingsChange?.(next)
+        return next
+      })
+      if (key === "defaultClipDuration") {
+        onDurationChange(value as number)
+      }
+    },
+    [onSettingsChange, onDurationChange],
+  )
+
+  const handleClearTimeline = useCallback(() => {
+    if (window.confirm("Are you sure you want to clear the timeline? This cannot be undone.")) {
+      onClearTimeline()
+    }
+  }, [onClearTimeline])
+
+  const handleClearLibrary = useCallback(() => {
+    if (window.confirm("Are you sure you want to clear the media library? This cannot be undone.")) {
+      onClearLibrary()
+    }
+  }, [onClearLibrary])
+
+  const handleResetSettings = useCallback(() => {
+    if (window.confirm("Reset all settings to defaults?")) {
+      const defaults: ProjectSettings = {
+        projectName: "Untitled Project",
+        aspectRatio: "16:9",
+        frameRate: 30,
+        defaultClipDuration: 5,
+        autoSave: true,
+        autoSaveInterval: 60,
+        snapToGrid: true,
+        showWaveforms: true,
+        showThumbnails: true,
+      }
+      setSettings(defaults)
+      onSettingsChange?.(defaults)
+      onDurationChange(5)
+    }
+  }, [onSettingsChange, onDurationChange])
+
   return (
     <div className="w-full flex flex-col bg-[#09090b] border-r border-neutral-800 h-full">
       {/* Header */}
       <div className="h-14 flex items-center px-4 justify-between shrink-0 border-b border-neutral-800">
         <h2 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400">Project Settings</h2>
-        <div
+        <button
           className="p-1.5 rounded hover:bg-neutral-800 cursor-pointer text-neutral-500 transition-colors"
           onClick={onClose}
         >
           <PanelLeftClose className="w-4 h-4" />
-        </div>
+        </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
-
-        {/* Section */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-neutral-200">
-            <SettingsIcon className="w-4 h-4" />
-            <h3 className="text-sm font-semibold">Timeline Defaults</h3>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs text-neutral-400">Default Clip Duration (Seconds)</label>
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-4">
+        {/* Project Info Section */}
+        <Section title="Project" icon={<SettingsIcon className="w-4 h-4 text-indigo-400" />}>
+          <div className="space-y-1.5">
+            <label className="text-xs text-neutral-400">Project Name</label>
             <input
-              type="number"
-              min="1"
-              max="60"
-              value={defaultDuration}
-              onChange={(e) => onDurationChange(Number(e.target.value))}
-              className="w-full bg-[#18181b] border border-neutral-700 rounded px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:border-indigo-500"
+              type="text"
+              value={settings.projectName}
+              onChange={(e) => updateSetting("projectName", e.target.value)}
+              className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:border-indigo-500"
+              placeholder="Enter project name..."
             />
           </div>
-        </div>
 
-        <div className="h-px bg-neutral-800" />
+          <Select
+            label="Aspect Ratio"
+            value={settings.aspectRatio}
+            options={ASPECT_RATIOS.map((ar) => ({ value: ar.value, label: ar.label }))}
+            onChange={(v) => updateSetting("aspectRatio", v)}
+          />
 
-        {/* Section */}
-        <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-red-400">Danger Zone</h3>
+          <Select
+            label="Frame Rate"
+            value={settings.frameRate}
+            options={[
+              { value: 24, label: "24 fps (Film)" },
+              { value: 25, label: "25 fps (PAL)" },
+              { value: 30, label: "30 fps (Standard)" },
+              { value: 60, label: "60 fps (Smooth)" },
+            ]}
+            onChange={(v) => updateSetting("frameRate", Number(v))}
+          />
+        </Section>
 
-          <button
-            onClick={() => {
-              if (window.confirm('Are you sure you want to clear the timeline? This cannot be undone.')) {
-                onClearTimeline();
-              }
-            }}
-            className="w-full py-2 px-4 rounded border border-red-900/30 bg-red-900/10 text-red-400 hover:bg-red-900/20 text-xs font-medium transition-colors"
-          >
-            Clear All Timeline Clips
-          </button>
-        </div>
+        {/* Timeline Section */}
+        <Section
+          title="Timeline"
+          icon={
+            <svg
+              className="w-4 h-4 text-emerald-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M3 9h18" />
+              <path d="M3 15h18" />
+              <path d="M9 3v18" />
+            </svg>
+          }
+        >
+          <NumberInput
+            label="Default Clip Duration"
+            value={settings.defaultClipDuration}
+            min={1}
+            max={60}
+            step={1}
+            unit="seconds"
+            onChange={(v) => updateSetting("defaultClipDuration", v)}
+          />
 
-        <div className="mt-auto pt-8 text-center">
-          <p className="text-[10px] text-neutral-600">Seq v1.0.2</p>
+          <Toggle
+            label="Snap to Grid"
+            description="Snap clips to other clips and markers"
+            checked={settings.snapToGrid}
+            onChange={(v) => updateSetting("snapToGrid", v)}
+          />
+
+          <Toggle
+            label="Show Waveforms"
+            description="Display audio waveforms on clips"
+            checked={settings.showWaveforms}
+            onChange={(v) => updateSetting("showWaveforms", v)}
+          />
+
+          <Toggle
+            label="Show Thumbnails"
+            description="Display video thumbnails on clips"
+            checked={settings.showThumbnails}
+            onChange={(v) => updateSetting("showThumbnails", v)}
+          />
+        </Section>
+
+        {/* Auto-Save Section */}
+        <Section
+          title="Auto-Save"
+          icon={
+            <svg
+              className="w-4 h-4 text-amber-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+          }
+        >
+          <Toggle
+            label="Enable Auto-Save"
+            description="Automatically save your project at regular intervals"
+            checked={settings.autoSave}
+            onChange={(v) => updateSetting("autoSave", v)}
+          />
+
+          {settings.autoSave && (
+            <Select
+              label="Save Interval"
+              value={settings.autoSaveInterval}
+              options={[
+                { value: 30, label: "Every 30 seconds" },
+                { value: 60, label: "Every 1 minute" },
+                { value: 120, label: "Every 2 minutes" },
+                { value: 300, label: "Every 5 minutes" },
+              ]}
+              onChange={(v) => updateSetting("autoSaveInterval", Number(v))}
+            />
+          )}
+        </Section>
+
+        {/* Keyboard Shortcuts */}
+        <Section
+          title="Keyboard Shortcuts"
+          icon={
+            <svg
+              className="w-4 h-4 text-purple-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <path d="M6 8h.01" />
+              <path d="M10 8h.01" />
+              <path d="M14 8h.01" />
+              <path d="M18 8h.01" />
+              <path d="M8 12h.01" />
+              <path d="M12 12h.01" />
+              <path d="M16 12h.01" />
+              <path d="M7 16h10" />
+            </svg>
+          }
+          defaultOpen={false}
+        >
+          <div className="space-y-2">
+            {[
+              { keys: "Space", action: "Play / Pause" },
+              { keys: "Cmd/Ctrl + Z", action: "Undo" },
+              { keys: "Cmd/Ctrl + Shift + Z", action: "Redo" },
+              { keys: "Delete / Backspace", action: "Delete clip" },
+              { keys: "Cmd/Ctrl + D", action: "Duplicate clip" },
+              { keys: "Cmd/Ctrl + A", action: "Select all clips" },
+              { keys: "Arrow Left/Right", action: "Navigate clips" },
+              { keys: "Alt + Arrow", action: "Nudge clip" },
+              { keys: "Home / End", action: "Jump to start/end" },
+              { keys: "J / K / L", action: "Rewind / Pause / Forward" },
+            ].map((shortcut) => (
+              <div key={shortcut.action} className="flex items-center justify-between py-1">
+                <span className="text-xs text-neutral-400">{shortcut.action}</span>
+                <kbd className="px-2 py-0.5 bg-neutral-800 border border-neutral-700 rounded text-[10px] text-neutral-300 font-mono">
+                  {shortcut.keys}
+                </kbd>
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        {/* Danger Zone */}
+        <Section
+          title="Danger Zone"
+          icon={
+            <svg className="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+              <path d="M12 9v4" />
+              <path d="M12 17h.01" />
+            </svg>
+          }
+          defaultOpen={false}
+        >
+          <div className="space-y-3">
+            <button
+              onClick={handleClearTimeline}
+              className="w-full py-2.5 px-4 rounded-lg border border-red-900/30 bg-red-900/10 text-red-400 hover:bg-red-900/20 text-xs font-medium transition-colors"
+            >
+              Clear Timeline
+            </button>
+
+            <button
+              onClick={handleClearLibrary}
+              className="w-full py-2.5 px-4 rounded-lg border border-red-900/30 bg-red-900/10 text-red-400 hover:bg-red-900/20 text-xs font-medium transition-colors"
+            >
+              Clear Media Library
+            </button>
+
+            <button
+              onClick={handleResetSettings}
+              className="w-full py-2.5 px-4 rounded-lg border border-neutral-700 bg-neutral-800/50 text-neutral-400 hover:bg-neutral-800 text-xs font-medium transition-colors"
+            >
+              Reset All Settings
+            </button>
+          </div>
+        </Section>
+
+        {/* Footer */}
+        <div className="mt-auto pt-4 text-center border-t border-neutral-800">
+          <p className="text-[10px] text-neutral-600">Seq Video Editor v1.0.2</p>
+          <p className="text-[10px] text-neutral-700 mt-1">Built with Next.js & FFmpeg</p>
         </div>
       </div>
     </div>
-  );
-};
+  )
+})
+
+SettingsPanel.displayName = "SettingsPanel"

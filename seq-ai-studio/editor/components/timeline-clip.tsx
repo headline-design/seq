@@ -1,6 +1,7 @@
 "use client"
 
-import React, { memo } from "react"
+import type React from "react"
+import { memo } from "react"
 import type { TimelineClip, MediaItem, Track } from "../types"
 
 interface TimelineClipItemProps {
@@ -12,9 +13,16 @@ interface TimelineClipItemProps {
   tool: "select" | "razor"
   onMouseDown: (e: React.MouseEvent, mode: "move" | "trim-start" | "trim-end") => void
   onContextMenu: (e: React.MouseEvent) => void
+  onKeyDown?: (e: React.KeyboardEvent) => void
+  tabIndex?: number
 }
 
-const ClipWaveform = ({ duration, offset, isAudio, isSelected }: { duration: number; offset: number; isAudio: boolean; isSelected: boolean }) => {
+const ClipWaveform = ({
+  duration,
+  offset,
+  isAudio,
+  isSelected,
+}: { duration: number; offset: number; isAudio: boolean; isSelected: boolean }) => {
   const bars = Math.min(100, Math.max(10, Math.floor(duration * 8)))
   return (
     <div className="w-full h-full flex items-end gap-[1px] overflow-hidden opacity-80 pointer-events-none">
@@ -34,75 +42,104 @@ const ClipWaveform = ({ duration, offset, isAudio, isSelected }: { duration: num
   )
 }
 
-export const TimelineClipItem = memo(({
-  clip,
-  media,
-  track,
-  zoomLevel,
-  isSelected,
-  tool,
-  onMouseDown,
-  onContextMenu
-}: TimelineClipItemProps) => {
-  const isAudio = track.type === "audio"
-  
-  const baseColor = isAudio ? "bg-emerald-900/40" : "bg-[#18181b]"
-  const hoverColor = isAudio ? "hover:bg-emerald-900/60" : "hover:bg-[#202023]"
-  const cursorClass = tool === "razor" ? "cursor-crosshair" : "cursor-pointer"
-  
-  const selectedClass = isSelected
-    ? isAudio
-      ? "bg-emerald-900/60 border-emerald-400 z-20 ring-1 ring-emerald-400 shadow-md"
-      : "bg-[#1e1e24] border-[#6366f1] z-20 ring-1 ring-[#6366f1] shadow-md"
-    : `${baseColor} ${hoverColor} border-transparent hover:border-neutral-600 z-10`
-    
-  const borderClass = "border"
-  const verticalPos = isAudio ? "top-1 bottom-1" : "top-0 bottom-0"
+export const TimelineClipItem = memo(
+  ({
+    clip,
+    media,
+    track,
+    zoomLevel,
+    isSelected,
+    tool,
+    onMouseDown,
+    onContextMenu,
+    onKeyDown,
+    tabIndex = 0,
+  }: TimelineClipItemProps) => {
+    const isAudio = track.type === "audio"
 
-  return (
-    <div
-      className={`clip-item absolute ${verticalPos} rounded-md overflow-visible ${cursorClass} flex flex-col ${borderClass} transition-colors select-none group/item ${selectedClass}`}
-      style={{
-        left: `${clip.start * zoomLevel}px`,
-        width: `${clip.duration * zoomLevel}px`,
-        opacity: track.isMuted ? 0.5 : 1,
-        pointerEvents: track.isLocked ? "none" : "auto",
-      }}
-      onMouseDown={(e) => onMouseDown(e, "move")}
-      onContextMenu={onContextMenu}
-    >
-      {/* Transition Indicator */}
-      {clip.transition && clip.transition.type !== "none" && (
-        <div
-          className="absolute left-0 top-0 bottom-0 z-30 bg-gradient-to-r from-white/30 to-transparent pointer-events-none border-r border-white/20 flex items-center justify-start pl-1"
-          style={{ width: `${clip.transition.duration * zoomLevel}px` }}
-        >
-          <div className="text-[9px] text-white/80 font-bold -rotate-90 origin-left translate-y-4 truncate w-full">
-            {clip.transition.type.replace("-", " ")}
+    const baseColor = isAudio ? "bg-emerald-900/40" : "bg-[#18181b]"
+    const hoverColor = isAudio ? "hover:bg-emerald-900/60" : "hover:bg-[#202023]"
+    const cursorClass = tool === "razor" ? "cursor-crosshair" : "cursor-pointer"
+
+    const selectedClass = isSelected
+      ? isAudio
+        ? "bg-emerald-900/60 border-emerald-400 z-20 ring-1 ring-emerald-400 shadow-md"
+        : "bg-[#1e1e24] border-[#6366f1] z-20 ring-1 ring-[#6366f1] shadow-md"
+      : `${baseColor} ${hoverColor} border-transparent hover:border-neutral-600 z-10`
+
+    const borderClass = "border"
+    const verticalPos = isAudio ? "top-1 bottom-1" : "top-0 bottom-0"
+
+    const formatTimeForSR = (seconds: number) => {
+      const mins = Math.floor(seconds / 60)
+      const secs = Math.floor(seconds % 60)
+      return `${mins} minutes ${secs} seconds`
+    }
+
+    const clipLabel = `${isAudio ? "Audio" : "Video"} clip: ${media?.prompt || "Untitled"}. Duration: ${formatTimeForSR(clip.duration)}. Starts at ${formatTimeForSR(clip.start)}.${isSelected ? " Selected." : ""}`
+
+    return (
+      <div
+        role="button"
+        aria-label={clipLabel}
+        aria-selected={isSelected}
+        tabIndex={track.isLocked ? -1 : tabIndex}
+        onKeyDown={onKeyDown}
+        className={`clip-item absolute ${verticalPos} rounded-md overflow-visible ${cursorClass} flex flex-col ${borderClass} transition-colors select-none group/item ${selectedClass} focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-neutral-900 focus-visible:ring-indigo-500`}
+        style={{
+          left: `${clip.start * zoomLevel}px`,
+          width: `${clip.duration * zoomLevel}px`,
+          opacity: track.isMuted ? 0.5 : 1,
+          pointerEvents: track.isLocked ? "none" : "auto",
+        }}
+        onMouseDown={(e) => onMouseDown(e, "move")}
+        onContextMenu={onContextMenu}
+      >
+        {/* Transition Indicator */}
+        {clip.transition && clip.transition.type !== "none" && (
+          <div
+            className="absolute left-0 top-0 bottom-0 z-30 bg-gradient-to-r from-white/30 to-transparent pointer-events-none border-r border-white/20 flex items-center justify-start pl-1"
+            style={{ width: `${clip.transition.duration * zoomLevel}px` }}
+            aria-hidden="true"
+          >
+            <div className="text-[9px] text-white/80 font-bold -rotate-90 origin-left translate-y-4 truncate w-full">
+              {clip.transition.type.replace("-", " ")}
+            </div>
           </div>
+        )}
+
+        {/* Resize Handles - Only visible on hover or selection */}
+        <div
+          role="slider"
+          aria-label="Trim start"
+          aria-valuemin={0}
+          aria-valuemax={clip.start + clip.duration}
+          aria-valuenow={clip.start}
+          className={`absolute -left-3 top-0 bottom-0 w-6 cursor-ew-resize z-30 flex items-center justify-center group/handle opacity-0 group-hover/item:opacity-100 ${isSelected && "opacity-100"}`}
+          onMouseDown={(e) => onMouseDown(e, "trim-start")}
+        >
+          <div className="w-1 h-6 bg-white rounded-full shadow-sm group-hover/handle:scale-110 transition-transform"></div>
         </div>
-      )}
 
-      {/* Resize Handles - Only visible on hover or selection */}
-      <div
-        className={`absolute -left-3 top-0 bottom-0 w-6 cursor-ew-resize z-30 flex items-center justify-center group/handle opacity-0 group-hover/item:opacity-100 ${isSelected && "opacity-100"}`}
-        onMouseDown={(e) => onMouseDown(e, "trim-start")}
-      >
-        <div className="w-1 h-6 bg-white rounded-full shadow-sm group-hover/handle:scale-110 transition-transform"></div>
-      </div>
+        <div
+          role="slider"
+          aria-label="Trim end"
+          aria-valuemin={clip.start}
+          aria-valuemax={clip.start + clip.duration + 10}
+          aria-valuenow={clip.start + clip.duration}
+          className={`absolute -right-3 top-0 bottom-0 w-6 cursor-ew-resize z-30 flex items-center justify-center group/handle opacity-0 group-hover/item:opacity-100 ${isSelected && "opacity-100"}`}
+          onMouseDown={(e) => onMouseDown(e, "trim-end")}
+        >
+          <div className="w-1 h-6 bg-white rounded-full shadow-sm group-hover/handle:scale-110 transition-transform"></div>
+        </div>
 
-      <div
-        className={`absolute -right-3 top-0 bottom-0 w-6 cursor-ew-resize z-30 flex items-center justify-center group/handle opacity-0 group-hover/item:opacity-100 ${isSelected && "opacity-100"}`}
-        onMouseDown={(e) => onMouseDown(e, "trim-end")}
-      >
-        <div className="w-1 h-6 bg-white rounded-full shadow-sm group-hover/handle:scale-110 transition-transform"></div>
-      </div>
-
-      {/* Content Render */}
-      <div className="flex-1 overflow-hidden relative px-2 py-1 flex flex-col justify-center">
-        {/* Video Thumbnails or Image Preview */}
-        {!isAudio && !clip.isAudioDetached && media?.status === "ready" && (
-           media.type === 'video' ? (
+        {/* Content Render */}
+        <div className="flex-1 overflow-hidden relative px-2 py-1 flex flex-col justify-center" aria-hidden="true">
+          {/* Video Thumbnails or Image Preview */}
+          {!isAudio &&
+            !clip.isAudioDetached &&
+            media?.status === "ready" &&
+            (media.type === "video" ? (
               clip.duration * zoomLevel > 60 && (
                 <div className="absolute inset-0 flex opacity-20 pointer-events-none">
                   {[...Array(Math.floor((clip.duration * zoomLevel) / 60))].map((_, i) => (
@@ -112,34 +149,31 @@ export const TimelineClipItem = memo(({
                   ))}
                 </div>
               )
-           ) : media.type === 'image' ? (
+            ) : media.type === "image" ? (
               <div className="absolute inset-0 opacity-30 pointer-events-none">
-                 <img src={media.url} className="w-full h-full object-cover" alt="" />
+                <img src={media.url || "/placeholder.svg"} className="w-full h-full object-cover" alt="" />
               </div>
-           ) : null
-        )}
+            ) : null)}
 
-        {/* Label */}
-        <div className="relative z-10 flex items-center gap-2">
-          <span className={`text-[10px] font-medium truncate drop-shadow-md ${isAudio ? "text-emerald-100" : "text-white"}`}>
-            {media?.prompt || "Media"}
-          </span>
-        </div>
+          {/* Label */}
+          <div className="relative z-10 flex items-center gap-2">
+            <span
+              className={`text-[10px] font-medium truncate drop-shadow-md ${isAudio ? "text-emerald-100" : "text-white"}`}
+            >
+              {media?.prompt || "Media"}
+            </span>
+          </div>
 
-        {/* Waveform */}
-        <div className="absolute bottom-0 left-0 right-0 h-1/2 opacity-50 px-0.5">
-          {media && (
-            <ClipWaveform
-              duration={clip.duration}
-              offset={clip.offset}
-              isAudio={isAudio}
-              isSelected={isSelected}
-            />
-          )}
+          {/* Waveform */}
+          <div className="absolute bottom-0 left-0 right-0 h-1/2 opacity-50 px-0.5">
+            {media && (
+              <ClipWaveform duration={clip.duration} offset={clip.offset} isAudio={isAudio} isSelected={isSelected} />
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  )
-})
+    )
+  },
+)
 
 TimelineClipItem.displayName = "TimelineClipItem"
