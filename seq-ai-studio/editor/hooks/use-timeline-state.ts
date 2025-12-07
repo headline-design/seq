@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useCallback, useMemo } from "react"
-import type { TimelineClip, Track, MediaItem } from "../types"
+import type { TimelineClip, Track, MediaItem, StoryboardPanel } from "../types"
 
 const INITIAL_TRACKS: Track[] = [
   { id: "v1", name: "Video 1", type: "video", volume: 1 },
@@ -15,6 +15,7 @@ const INITIAL_TRACKS: Track[] = [
 export interface UseTimelineStateOptions {
   initialMedia?: MediaItem[]
   initialClips?: TimelineClip[]
+  initialStoryboard?: StoryboardPanel[]
   onPreviewStale?: () => void
 }
 
@@ -75,6 +76,7 @@ export interface UseTimelineStateResult {
 export function useTimelineState({
   initialMedia,
   initialClips,
+  initialStoryboard,
   onPreviewStale,
 }: UseTimelineStateOptions): UseTimelineStateResult {
   // Media state
@@ -181,6 +183,7 @@ export function useTimelineState({
       const clipsOnTrack = timelineClips.filter((c) => c.trackId === trackId)
       const start = clipsOnTrack.length > 0 ? Math.max(...clipsOnTrack.map((c) => c.start + c.duration)) : 0
       const newClip: TimelineClip = {
+        speed: 1,
         id: `clip-${Date.now()}`,
         mediaId: item.id,
         trackId,
@@ -251,6 +254,7 @@ export function useTimelineState({
           return collisions.length === 0
         }) || "a1"
       const audioClip: TimelineClip = {
+        speed: 1,
         id: `audio-${Date.now()}`,
         mediaId: clip.mediaId,
         trackId: targetTrackId,

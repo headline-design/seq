@@ -13,6 +13,7 @@ export interface MediaItem {
 export type TransitionType = 'none' | 'cross-dissolve' | 'fade-black' | 'fade-white' | 'wipe-left' | 'wipe-right';
 
 export interface TimelineClip {
+  speed: number;
   id: string; // Unique instance ID on timeline
   mediaId: string; // Reference to source media
   trackId: string;
@@ -50,7 +51,7 @@ export interface StoryboardPanel {
 }
 
 export interface VideoConfig {
-  aspectRatio: '16:9' | '9:16';
+  aspectRatio: '16:9' | '9:16' | '1:1' | '4:3' | '3:4' | '21:9';
   useFastModel: boolean;
 }
 

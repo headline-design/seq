@@ -25,6 +25,7 @@ function App() {
 
   initialMedia.forEach((m, i) => {
     initialClips.push({
+      speed: 1,
       id: `clip-${i}`,
       mediaId: m.id,
       trackId: 'v1',

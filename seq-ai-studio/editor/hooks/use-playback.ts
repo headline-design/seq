@@ -41,6 +41,7 @@ export interface UsePlaybackResult {
   waitForVideoReady: (video: HTMLVideoElement) => Promise<void>
   setupAudioGraph: () => void
   handleSeek: (time: number) => void
+  handleDragStart: () => void
   handleTogglePreviewPlayback: () => void
 }
 
@@ -396,6 +397,12 @@ export function usePlayback({
     setCurrentTime(time)
   }, [])
 
+  const handleDragStart = useCallback(() => {
+    if (isPlaying) {
+      setIsPlaying(false)
+    }
+  }, [isPlaying])
+
   const handleTogglePreviewPlayback = useCallback(() => {
     if (isPreviewPlayback) {
       if (previewVideoRef.current) {
@@ -477,6 +484,7 @@ export function usePlayback({
     drawFrameToCanvas,
     waitForVideoReady,
     setupAudioGraph,
+    handleDragStart,
     handleSeek,
     handleTogglePreviewPlayback,
   }

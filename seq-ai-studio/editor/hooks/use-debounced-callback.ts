@@ -68,7 +68,7 @@ export function useRafCallback<T extends (...args: Parameters<T>) => ReturnType<
     if (rafRef.current === null) {
       rafRef.current = requestAnimationFrame(() => {
         if (argsRef.current !== null) {
-          callbackRef.current(...argsRef.current)
+          callbackRef.current(...(argsRef.current as Parameters<T>))
         }
         rafRef.current = null
       })

@@ -116,7 +116,7 @@ export function useImageGeneration({
     }
 
     const numVariations = 1
-    const generationPromises = []
+    const generationPromises: Promise<void>[] = []
 
     for (let i = 0; i < numVariations; i++) {
       const generationId = `gen-${Date.now()}-${Math.random().toString(36).substring(7)}`

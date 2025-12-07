@@ -33,7 +33,9 @@ export function rafThrottle<T extends (...args: Parameters<T>) => ReturnType<T>>
     if (rafId === null) {
       rafId = requestAnimationFrame(() => {
         if (latestArgs !== null) {
-          fn(...latestArgs)
+          if (latestArgs !== null) {
+            fn(...(latestArgs as Parameters<T>))
+          }
         }
         rafId = null
       })
