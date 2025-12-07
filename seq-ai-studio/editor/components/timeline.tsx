@@ -46,6 +46,7 @@ interface TimelineProps {
   onCancelRender?: () => void
   isPreviewPlayback?: boolean
   onTogglePreviewPlayback?: () => void
+  onExportAudio?: (clipId: string) => void
 }
 
 export const Timeline = memo(function Timeline({
@@ -81,6 +82,7 @@ export const Timeline = memo(function Timeline({
   onCancelRender,
   isPreviewPlayback = false,
   onTogglePreviewPlayback,
+  onExportAudio,
 }: TimelineProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const headerContainerRef = useRef<HTMLDivElement>(null)
@@ -342,9 +344,18 @@ export const Timeline = memo(function Timeline({
             onDuplicateClip([clipId])
           }
           break
+        // Added export audio logic
+        case "e":
+          if (e.metaKey || e.ctrlKey) {
+            e.preventDefault()
+            if (onExportAudio) {
+              onExportAudio(clipId)
+            }
+          }
+          break
       }
     },
-    [clips, selectedClipIds, onSelectClips, onDeleteClip, onClipUpdate, onDuplicateClip],
+    [clips, selectedClipIds, onSelectClips, onDeleteClip, onClipUpdate, onDuplicateClip, onExportAudio],
   )
 
   return (
@@ -514,6 +525,7 @@ export const Timeline = memo(function Timeline({
             onDetachAudio={onDetachAudio}
             onRippleDeleteClip={onRippleDeleteClip}
             onDeleteClip={onDeleteClip}
+            onExportAudio={onExportAudio}
             onClose={() => setContextMenu(null)}
           />
         )}

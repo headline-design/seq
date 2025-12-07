@@ -65,6 +65,73 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
     onPreviewStale: () => ffmpeg.setIsPreviewStale(true),
   })
 
+  const handleExportAudio = useCallback(
+    async (clipId: string) => {
+      const clip = timeline.timelineClips.find((c) => c.id === clipId)
+      if (!clip) return
+
+      const media = timeline.mediaMap[clip.mediaId]
+      if (!media?.url) {
+        toastCtx.error("No audio source found for this clip")
+        return
+      }
+
+      try {
+        toastCtx.info("Processing audio clip...")
+
+        // Fetch the audio data
+        const response = await fetch(media.url)
+        const arrayBuffer = await response.arrayBuffer()
+
+        // Create offline audio context to decode and extract the audio segment
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+
+        // Calculate the segment to extract based on clip offset and duration
+        const sampleRate = audioBuffer.sampleRate
+        const startSample = Math.floor(clip.offset * sampleRate)
+        const durationSamples = Math.floor(clip.duration * sampleRate)
+        const endSample = Math.min(startSample + durationSamples, audioBuffer.length)
+        const actualDurationSamples = endSample - startSample
+
+        // Create a new buffer for the segment
+        const segmentBuffer = audioContext.createBuffer(audioBuffer.numberOfChannels, actualDurationSamples, sampleRate)
+
+        // Copy the segment data
+        for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+          const sourceData = audioBuffer.getChannelData(channel)
+          const destData = segmentBuffer.getChannelData(channel)
+          for (let i = 0; i < actualDurationSamples; i++) {
+            destData[i] = sourceData[startSample + i]
+          }
+        }
+
+        // Convert to WAV
+        const wavData = audioBufferToWav(segmentBuffer)
+        const blob = new Blob([wavData], { type: "audio/wav" })
+        const url = URL.createObjectURL(blob)
+
+        // Trigger download
+        const a = document.createElement("a")
+        a.href = url
+        a.download = `audio_export_${Date.now()}.wav`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+
+        // Cleanup
+        setTimeout(() => URL.revokeObjectURL(url), 1000)
+        audioContext.close()
+
+        toastCtx.success("Audio file downloaded successfully")
+      } catch (error) {
+        console.error("Audio export failed:", error)
+        toastCtx.error("Failed to export audio clip")
+      }
+    },
+    [timeline.timelineClips, timeline.mediaMap, toastCtx],
+  )
+
   const playback = usePlayback({
     timelineClips: timeline.timelineClips,
     tracks: timeline.tracks,
@@ -1017,7 +1084,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
   }, [ffmpeg])
 
   // Render preview handler
-  const startRenderPreview = useCallback(async () => {
+  const handleRenderPreview = useCallback(async () => {
     ffmpeg.renderCancelledRef.current = false
 
     if (!ffmpeg.ffmpegLoaded || !ffmpeg.ffmpegRef.current) {
@@ -1451,18 +1518,20 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
               onDetachAudio={timeline.handleDetachAudio}
               onDeleteClip={timeline.handleDeleteClip}
               onRippleDeleteClip={timeline.handleRippleDeleteClip}
-              onRenderPreview={startRenderPreview}
-              onCancelRender={handleCancelRender}
+              onDuplicateClip={timeline.handleDuplicateClip}
+              onToolChange={timeline.onToolChange}
+              onDragStart={playback.handleDragStart}
+              onAddTrack={timeline.handleAddTrack}
               isRendering={ffmpeg.isRendering}
               renderProgress={ffmpeg.renderProgress}
               renderedPreviewUrl={ffmpeg.renderedPreviewUrl}
               isPreviewStale={ffmpeg.isPreviewStale}
-              onDuplicateClip={timeline.handleDuplicateClip}
-              onToolChange={timeline.onToolChange}
-              onDragStart={timeline.pushToHistory}
-              onAddTrack={timeline.handleAddTrack}
               isPreviewPlayback={playback.isPreviewPlayback}
-              onTogglePreviewPlayback={playback.handleTogglePreviewPlayback}
+              onRenderPreview={handleRenderPreview}
+              onCancelRender={handleCancelRender}
+              onTogglePreviewPlayback={() => playback.setIsPreviewPlayback((p) => !p)}
+              onExportAudio={handleExportAudio}
+              className="shrink-0"
             />
           </div>
         </div>

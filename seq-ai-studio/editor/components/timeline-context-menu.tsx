@@ -2,7 +2,7 @@
 
 import { memo } from "react"
 import type { TimelineClip, Track } from "../types"
-import { SplitIcon, CopyIcon, MusicIcon, LayoutIcon, TrashIcon } from "./icons"
+import { SplitIcon, CopyIcon, MusicIcon, LayoutIcon, TrashIcon, DownloadIcon } from "./icons"
 
 interface TimelineContextMenuProps {
   x: number
@@ -16,6 +16,7 @@ interface TimelineContextMenuProps {
   onDetachAudio: (clipId: string) => void
   onRippleDeleteClip: (clipIds: string[]) => void
   onDeleteClip: (clipIds: string[]) => void
+  onExportAudio?: (clipId: string) => void
   onClose: () => void
 }
 
@@ -31,11 +32,13 @@ export const TimelineContextMenu = memo(function TimelineContextMenu({
   onDetachAudio,
   onRippleDeleteClip,
   onDeleteClip,
+  onExportAudio,
   onClose,
 }: TimelineContextMenuProps) {
   const clip = clips.find((c) => c.id === clipId)
   const track = clip ? tracks.find((t) => t.id === clip.trackId) : null
   const canDetachAudio = clip && !clip.isAudioDetached && track?.type === "video"
+  const isAudioTrack = track?.type === "audio"
 
   return (
     <div
@@ -76,6 +79,18 @@ export const TimelineContextMenu = memo(function TimelineContextMenu({
           className="w-full px-3 py-1.5 text-left text-xs text-neutral-200 hover:bg-neutral-800 flex items-center gap-2"
         >
           <MusicIcon className="w-3.5 h-3.5 text-neutral-500" /> Detach Audio
+        </button>
+      )}
+
+      {isAudioTrack && onExportAudio && (
+        <button
+          onClick={() => {
+            onExportAudio(clipId)
+            onClose()
+          }}
+          className="w-full px-3 py-1.5 text-left text-xs text-neutral-200 hover:bg-neutral-800 flex items-center gap-2"
+        >
+          <DownloadIcon className="w-3.5 h-3.5 text-neutral-500" /> Export Audio
         </button>
       )}
 
