@@ -56,7 +56,6 @@ interface EditorProps {
 }
 
 export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, initialStoryboard, onBack }) => {
-
   const isMobile = useMobile()
   const { toast: toastCtx } = useToastContext()
 
@@ -99,48 +98,105 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
   })
 
   const handleExportAudio = useCallback(
-    async (clipId: string) => {
-      const clip = timeline.timelineClips.find((c) => c.id === clipId)
-      if (!clip) return
+    async (clipIds: string[]) => {
+      // Filter to only audio track clips and sort by start time
+      const clips = timeline.timelineClips.filter((c) => clipIds.includes(c.id)).sort((a, b) => a.start - b.start)
 
-      const media = timeline.mediaMap[clip.mediaId]
-      if (!media?.url) {
-        toastCtx.error("No audio source found for this clip")
+      if (clips.length === 0) return
+
+      // Verify all clips are on audio tracks
+      const audioClips = clips.filter((clip) => {
+        const track = timeline.tracks.find((t) => t.id === clip.trackId)
+        return track?.type === "audio"
+      })
+
+      if (audioClips.length === 0) {
+        toastCtx.error("No audio clips selected")
         return
       }
 
       try {
-        toastCtx.info("Processing audio clip...")
-
-        const response = await fetch(media.url)
-        const arrayBuffer = await response.arrayBuffer()
+        toastCtx.info(`Processing ${audioClips.length} audio clip${audioClips.length > 1 ? "s" : ""}...`)
 
         const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
 
-        const sampleRate = audioBuffer.sampleRate
-        const startSample = Math.floor(clip.offset * sampleRate)
-        const durationSamples = Math.floor(clip.duration * sampleRate)
-        const endSample = Math.min(startSample + durationSamples, audioBuffer.length)
-        const actualDurationSamples = endSample - startSample
+        // Decode all audio sources
+        const decodedClips: Array<{
+          clip: (typeof audioClips)[0]
+          buffer: AudioBuffer
+        }> = []
 
-        const segmentBuffer = audioContext.createBuffer(audioBuffer.numberOfChannels, actualDurationSamples, sampleRate)
+        for (const clip of audioClips) {
+          const media = timeline.mediaMap[clip.mediaId]
+          if (!media?.url) continue
 
-        for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
-          const sourceData = audioBuffer.getChannelData(channel)
-          const destData = segmentBuffer.getChannelData(channel)
-          for (let i = 0; i < actualDurationSamples; i++) {
-            destData[i] = sourceData[startSample + i]
+          const response = await fetch(media.url)
+          const arrayBuffer = await response.arrayBuffer()
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0))
+          decodedClips.push({ clip, buffer: audioBuffer })
+        }
+
+        if (decodedClips.length === 0) {
+          toastCtx.error("No audio sources found")
+          audioContext.close()
+          return
+        }
+
+        // Calculate total duration based on clip positions
+        const firstClipStart = Math.min(...audioClips.map((c) => c.start))
+        const lastClipEnd = Math.max(...audioClips.map((c) => c.start + c.duration))
+        const totalDuration = lastClipEnd - firstClipStart
+
+        // Use the sample rate from the first clip
+        const sampleRate = decodedClips[0].buffer.sampleRate
+        const totalSamples = Math.ceil(totalDuration * sampleRate)
+        const numChannels = Math.max(...decodedClips.map((d) => d.buffer.numberOfChannels))
+
+        // Create output buffer
+        const outputBuffer = audioContext.createBuffer(numChannels, totalSamples, sampleRate)
+
+        // Mix all clips into the output buffer
+        for (const { clip, buffer } of decodedClips) {
+          const clipStartInOutput = (clip.start - firstClipStart) * sampleRate
+          const sourceStartSample = Math.floor(clip.offset * buffer.sampleRate)
+          const sourceDurationSamples = Math.floor(clip.duration * buffer.sampleRate)
+          const sourceEndSample = Math.min(sourceStartSample + sourceDurationSamples, buffer.length)
+
+          for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const sourceData = buffer.getChannelData(channel)
+            const destData = outputBuffer.getChannelData(channel)
+
+            for (let i = 0; i < sourceEndSample - sourceStartSample; i++) {
+              const destIndex = Math.floor(clipStartInOutput) + i
+              if (destIndex >= 0 && destIndex < totalSamples) {
+                // Mix audio (add samples together)
+                destData[destIndex] += sourceData[sourceStartSample + i]
+              }
+            }
           }
         }
 
-        const wavData = audioBufferToWav(segmentBuffer)
+        // Normalize to prevent clipping if multiple clips overlap
+        for (let channel = 0; channel < numChannels; channel++) {
+          const data = outputBuffer.getChannelData(channel)
+          let maxAbs = 0
+          for (let i = 0; i < data.length; i++) {
+            maxAbs = Math.max(maxAbs, Math.abs(data[i]))
+          }
+          if (maxAbs > 1) {
+            for (let i = 0; i < data.length; i++) {
+              data[i] /= maxAbs
+            }
+          }
+        }
+
+        const wavData = audioBufferToWav(outputBuffer)
         const blob = new Blob([wavData], { type: "audio/wav" })
         const url = URL.createObjectURL(blob)
 
         const a = document.createElement("a")
         a.href = url
-        a.download = `audio_export_${Date.now()}.wav`
+        a.download = `audio_export_${audioClips.length > 1 ? "combined_" : ""}${Date.now()}.wav`
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
@@ -148,13 +204,17 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
         setTimeout(() => URL.revokeObjectURL(url), 1000)
         audioContext.close()
 
-        toastCtx.success("Audio file downloaded successfully")
+        toastCtx.success(
+          audioClips.length > 1
+            ? `${audioClips.length} audio clips combined and downloaded`
+            : "Audio file downloaded successfully",
+        )
       } catch (error) {
         console.error("Audio export failed:", error)
         toastCtx.error("Failed to export audio clip")
       }
     },
-    [timeline.timelineClips, timeline.mediaMap, toastCtx],
+    [timeline.timelineClips, timeline.tracks, timeline.mediaMap, toastCtx],
   )
 
   const playback = usePlayback({
@@ -379,7 +439,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
     addGeneration,
     onToast: showToast,
     onImageUpload: handleImageUpload,
-    onOutOfCredits: () => { },
+    onOutOfCredits: () => {},
     onApiKeyMissing: () => setApiKeyMissing(true),
   })
 
@@ -598,10 +658,10 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
 
           try {
             await ffmpegInstance.deleteFile("preview_input.mp4")
-          } catch (e) { }
+          } catch (e) {}
           try {
             await ffmpegInstance.deleteFile("output.mp4")
-          } catch (e) { }
+          } catch (e) {}
         } catch (err: any) {
           if (err.message !== "Export cancelled") {
             console.error("Export Failed", err)
@@ -641,7 +701,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
               const arrayBuffer = await response.arrayBuffer()
               const audioBuffer = await offlineCtx.decodeAudioData(arrayBuffer)
               audioBufferMap.set(mid, audioBuffer)
-            } catch (e) { }
+            } catch (e) {}
           }
         }
 
@@ -782,14 +842,14 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
         // Cleanup
         try {
           await ffmpegInstance.deleteFile("audio.wav")
-        } catch (e) { }
+        } catch (e) {}
         try {
           await ffmpegInstance.deleteFile("output.mp4")
-        } catch (e) { }
+        } catch (e) {}
         for (let i = 0; i < frameCount; i++) {
           try {
             await ffmpegInstance.deleteFile(`frame${i.toString().padStart(4, "0")}.jpg`)
-          } catch (e) { }
+          } catch (e) {}
         }
       } catch (err: any) {
         if (err.message !== "Export cancelled") {
@@ -867,7 +927,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
             const response = await fetch(item.url)
             const arrayBuffer = await response.arrayBuffer()
             audioBufferMap.set(mid, await offlineCtx.decodeAudioData(arrayBuffer))
-          } catch (e) { }
+          } catch (e) {}
         }
       }
 
@@ -983,14 +1043,14 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
       // Cleanup
       try {
         await ffmpegInstance.deleteFile("preview_audio.wav")
-      } catch (e) { }
+      } catch (e) {}
       try {
         await ffmpegInstance.deleteFile("preview.mp4")
-      } catch (e) { }
+      } catch (e) {}
       for (let i = 0; i < frameCount; i++) {
         try {
           await ffmpegInstance.deleteFile(`pframe${i.toString().padStart(4, "0")}.jpg`)
-        } catch (e) { }
+        } catch (e) {}
       }
     } catch (err: any) {
       if (err.message !== "Render cancelled") {
@@ -1311,7 +1371,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                       clips={timeline.timelineClips}
                       selectedClipIds={timeline.selectedClipIds}
                       onUpdateClip={timeline.handleClipUpdate}
-                      onApplyTransition={() => { }}
+                      onApplyTransition={() => {}}
                       selectedClipId={timeline.selectedClipIds[0] ?? null}
                     />
                   </PanelErrorBoundary>
@@ -1352,7 +1412,8 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                       setIsEnhancing={setIsEnhancing}
                       setMasterDescription={storyboard.setMasterDescription}
                       setPrompt={setPrompt}
-                      setVideoConfig={setVideoConfig} />
+                      setVideoConfig={setVideoConfig}
+                    />
                   </PanelErrorBoundary>
                 )}
               </ErrorBoundary>

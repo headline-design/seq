@@ -11,12 +11,13 @@ interface TimelineContextMenuProps {
   clips: TimelineClip[]
   tracks: Track[]
   currentTime: number
+  selectedClipIds: string[]
   onSplitClip: (clipId: string, time: number) => void
   onDuplicateClip: (clipIds: string[]) => void
   onDetachAudio: (clipId: string) => void
   onRippleDeleteClip: (clipIds: string[]) => void
   onDeleteClip: (clipIds: string[]) => void
-  onExportAudio?: (clipId: string) => void
+  onExportAudio?: (clipIds: string[]) => void
   onClose: () => void
 }
 
@@ -27,6 +28,7 @@ export const TimelineContextMenu = memo(function TimelineContextMenu({
   clips,
   tracks,
   currentTime,
+  selectedClipIds,
   onSplitClip,
   onDuplicateClip,
   onDetachAudio,
@@ -39,6 +41,25 @@ export const TimelineContextMenu = memo(function TimelineContextMenu({
   const track = clip ? tracks.find((t) => t.id === clip.trackId) : null
   const canDetachAudio = clip && !clip.isAudioDetached && track?.type === "video"
   const isAudioTrack = track?.type === "audio"
+
+  const selectedAudioClipIds = selectedClipIds.filter((id) => {
+    const c = clips.find((clip) => clip.id === id)
+    if (!c) return false
+    const t = tracks.find((track) => track.id === c.trackId)
+    return t?.type === "audio"
+  })
+
+  // Include current clip if it's an audio clip and not already selected
+  const audioClipsToExport =
+    isAudioTrack && !selectedAudioClipIds.includes(clipId)
+      ? [...selectedAudioClipIds, clipId]
+      : selectedAudioClipIds.length > 0
+        ? selectedAudioClipIds
+        : isAudioTrack
+          ? [clipId]
+          : []
+
+  const hasMultipleAudioClips = audioClipsToExport.length > 1
 
   return (
     <div
@@ -82,15 +103,16 @@ export const TimelineContextMenu = memo(function TimelineContextMenu({
         </button>
       )}
 
-      {isAudioTrack && onExportAudio && (
+      {audioClipsToExport.length > 0 && onExportAudio && (
         <button
           onClick={() => {
-            onExportAudio(clipId)
+            onExportAudio(audioClipsToExport)
             onClose()
           }}
           className="w-full px-3 py-1.5 text-left text-xs text-neutral-200 hover:bg-neutral-800 flex items-center gap-2"
         >
-          <DownloadIcon className="w-3.5 h-3.5 text-neutral-500" /> Export Audio
+          <DownloadIcon className="w-3.5 h-3.5 text-neutral-500" />
+          {hasMultipleAudioClips ? `Export ${audioClipsToExport.length} Audio Clips` : "Export Audio"}
         </button>
       )}
 

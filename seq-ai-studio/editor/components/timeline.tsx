@@ -49,7 +49,7 @@ interface TimelineProps {
   onCancelRender?: () => void
   isPreviewPlayback?: boolean
   onTogglePreviewPlayback?: () => void
-  onExportAudio?: (clipId: string) => void
+  onExportAudio?: (clipIds: string[]) => void
   frameRate?: number
 }
 
@@ -354,13 +354,19 @@ export const Timeline = memo(function Timeline({
           if (e.metaKey || e.ctrlKey) {
             e.preventDefault()
             if (onExportAudio) {
-              onExportAudio(clipId)
+              const audioClipIds = selectedClipIds.filter((id) => {
+                const c = clips.find((clip) => clip.id === id)
+                if (!c) return false
+                const t = tracks.find((track) => track.id === c.trackId)
+                return t?.type === "audio"
+              })
+              onExportAudio(audioClipIds.length > 0 ? audioClipIds : [clipId])
             }
           }
           break
       }
     },
-    [clips, selectedClipIds, onSelectClips, onDeleteClip, onClipUpdate, onDuplicateClip, onExportAudio],
+    [clips, tracks, selectedClipIds, onSelectClips, onDeleteClip, onClipUpdate, onDuplicateClip, onExportAudio],
   )
 
   return (
@@ -532,6 +538,7 @@ export const Timeline = memo(function Timeline({
             clips={clips}
             tracks={tracks}
             currentTime={currentTime}
+            selectedClipIds={selectedClipIds}
             onSplitClip={onSplitClip}
             onDuplicateClip={onDuplicateClip}
             onDetachAudio={onDetachAudio}
