@@ -226,7 +226,7 @@ export function TransitionGenerator({
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <Card className="p-4 bg-zinc-900 border-zinc-800">
             <Label className="text-sm text-zinc-400 mb-2">Main Storyboard Reference</Label>
-            <div className="aspect-[3/2] relative rounded-lg overflow-hidden border border-zinc-700">
+            <div className="aspect-3/2 relative rounded-lg overflow-hidden border border-zinc-700">
               <Image src={masterUrl || "/placeholder.svg"} alt="Main Storyboard" fill className="object-cover" />
             </div>
             <p className="text-xs text-zinc-500 mt-2 line-clamp-2">{masterPrompt}</p>
@@ -278,7 +278,7 @@ export function TransitionGenerator({
       {generatedUrl && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
           <Card className="p-4 bg-zinc-900 border-zinc-800">
-            <div className="aspect-[3/2] relative rounded-lg overflow-hidden border border-zinc-700">
+            <div className="aspect-3/2 relative rounded-lg overflow-hidden border border-zinc-700">
               <Image src={generatedUrl || "/placeholder.svg"} alt="Transition Master" fill className="object-cover" />
               <div className="absolute top-2 right-2 bg-black/70 px-3 py-1 rounded text-xs font-medium text-white backdrop-blur-sm flex items-center gap-2">
                 {isAnalyzing ? (

@@ -415,7 +415,7 @@ export function PanelSelector({
         </CardDescription>
         <details className="mt-3 text-xs bg-secondary/50 border border-border rounded-lg">
           <summary className="px-3 py-2 cursor-pointer text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
-            <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
             <span className="font-medium">Content Guidelines</span>
           </summary>
           <div className="px-3 pb-3 text-muted-foreground">

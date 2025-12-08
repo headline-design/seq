@@ -224,7 +224,7 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
           </Tabs>
         ) : (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="relative aspect-[3/2] rounded-lg overflow-hidden border border-zinc-700">
+            <div className="relative aspect-3/2 rounded-lg overflow-hidden border border-zinc-700">
               <Image src={generatedUrl || "/placeholder.svg"} alt="Storyboard Master" fill className="object-cover" />
               <div className="absolute top-2 right-2 bg-black/70 px-3 py-1 rounded text-xs font-medium text-white backdrop-blur-sm flex items-center gap-2">
                 {isAnalyzing ? (

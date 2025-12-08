@@ -80,7 +80,7 @@ export default function DemoPage() {
             {/* Storyboard Tool */}
             <div className="p-6 rounded-xl bg-secondary/50 border border-border hover:border-indigo-500/30 transition-colors group">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center text-indigo-400 flex-shrink-0 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center text-indigo-400 shrink-0 group-hover:scale-110 transition-transform">
                   <Layers className="w-6 h-6" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -107,7 +107,7 @@ export default function DemoPage() {
             {/* Timeline Editor */}
             <div className="p-6 rounded-xl bg-secondary/50 border border-border hover:border-purple-500/30 transition-colors group">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-purple-400 flex-shrink-0 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-purple-400 shrink-0 group-hover:scale-110 transition-transform">
                   <Film className="w-6 h-6" />
                 </div>
                 <div className="flex-1 min-w-0">

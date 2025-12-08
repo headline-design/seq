@@ -281,7 +281,7 @@ export function StoryboardContainer({
       {panels.length > 0 && panels.every((p) => !p.prompt) && (
         <div className="px-1">
           <div className="text-xs text-white/40 bg-white/5 border border-white/10 rounded-lg p-3 flex items-start gap-2">
-            <Layers className="h-3.5 w-3.5 text-white/40 mt-0.5 flex-shrink-0" />
+            <Layers className="h-3.5 w-3.5 text-white/40 mt-0.5 shrink-0" />
             <div>
               <p className="font-medium text-white/60 mb-1">Your Storyboard is Ready</p>
               <p>

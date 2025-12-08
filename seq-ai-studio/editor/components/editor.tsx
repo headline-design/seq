@@ -48,14 +48,6 @@ import {
 import { UI_CONSTANTS, AUTOSAVE_CONSTANTS, FFMPEG_CONSTANTS } from "../constants"
 import { createDemoData } from "../app"
 
-// Removed duplicate INITIAL_TRACKS definition from constants
-// const INITIAL_TRACKS: Track[] = [
-//   { id: "v1", name: "Video 1", type: "video", volume: 1 },
-//   { id: "v2", name: "Video 2", type: "video", volume: 1 },
-//   { id: "a1", name: "Audio 1", type: "audio", volume: 1 },
-//   { id: "a2", name: "Audio 2", type: "audio", volume: 1 },
-// ]
-
 interface EditorProps {
   initialMedia?: MediaItem[]
   initialClips?: TimelineClip[]
@@ -64,10 +56,6 @@ interface EditorProps {
 }
 
 export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, initialStoryboard, onBack }) => {
-  // FFmpeg Local State
-  // const ffmpegRef = useRef<FFmpeg | null>(null) // REMOVED, now handled by useFFmpeg
-  // const [ffmpegLoaded, setFfmpegLoaded] = useState(false) // REMOVED, now handled by useFFmpeg
-  // const [ffmpegLoading, setFfmpegLoading] = useState(false) // REMOVED, now handled by useFFmpeg
 
   const isMobile = useMobile()
   const { toast: toastCtx } = useToastContext()
@@ -196,28 +184,6 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
     onRedo: timeline.redo,
   })
 
-  // --- State ---
-  // const [media, setMedia] = useState<MediaItem[]>(initialMedia || []) // REMOVED, now handled by useTimelineState
-  // const [tracks, setTracks] = useState<Track[]>(INITIAL_TRACKS) // REMOVED, now handled by useTimelineState
-
-  // Storyboard State
-  // const [storyboardPanels, setStoryboardPanels] = useState<IStoryboardPanel[]>(initialStoryboard || []) // REMOVED, now handled by useStoryboard
-  // const [masterDescription, setMasterDescription] = useState( // REMOVED, now handled by useStoryboard
-  //   'A live-action flashback scene inspired by the "zoom out to the past" effect from Ratatouille.',
-  // )
-  // const [videoConfig, setVideoConfig] = useState<VideoConfig>({ aspectRatio: "16:9", useFastModel: true }) // REMOVED, now handled by useStoryboard and state above
-
-  // Timeline State
-  // const [timelineClips, setTimelineClips] = useState<TimelineClip[]>(initialClips || []) // REMOVED, now handled by useTimelineState
-  // const [history, setFuture] = useState<TimelineClip[][]>([]) // REMOVED, now handled by useTimelineState
-  // const [future, setFuture] = useState<TimelineClip[][]>([]) // REMOVED, now handled by useTimelineState
-
-  // const [currentTime, setCurrentTime] = useState(0) // REMOVED, now handled by usePlayback
-  // const [isPlaying, setIsPlaying] = useState(false) // REMOVED, now handled by usePlayback
-  // const [zoomLevel, setZoomLevel] = useState(40) // REMOVED, now handled by useTimelineState
-  // const [selectedClipIds, setSelectedClipIds] = useState<string[]>([]) // REMOVED, now handled by useTimelineState
-  // const [tool, setTool] = useState<"select" | "razor">("select") // REMOVED, now handled by useTimelineState
-
   // UI State - Use constants for default values
   const [activeView, setActiveView] = useState<SidebarView>("library")
   const [isPanelOpen, setIsPanelOpen] = useState(true)
@@ -226,47 +192,16 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
   // const [defaultDuration, setDefaultDuration] = useState(5) // REMOVED, now handled by mediaGeneration hook
   const [playerZoom, setPlayerZoom] = useState(1)
   const [isCinemaMode, setIsCinemaMode] = useState(false)
-  const [timelineHeight, setTimelineHeight] = useState(UI_CONSTANTS.TIMELINE_DEFAULT_HEIGHT)
+  const [timelineHeight, setTimelineHeight] = useState<number>(UI_CONSTANTS.TIMELINE_DEFAULT_HEIGHT)
   const [isResizingTimeline, setIsResizingTimeline] = useState(false)
-  const [sidebarWidth, setSidebarWidth] = useState(UI_CONSTANTS.SIDEBAR_DEFAULT_WIDTH)
+  const [sidebarWidth, setSidebarWidth] = useState<number>(UI_CONSTANTS.SIDEBAR_DEFAULT_WIDTH)
   const [isResizingSidebar, setIsResizingSidebar] = useState(false)
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false)
   const [isSafeGuidesVisible, setIsSafeGuidesVisible] = useState(false)
   const [isLooping, setIsLooping] = useState(false) // Added for loop playback
 
-  // Export State
-  // const [isExportModalOpen, setIsExportModalOpen] = useState(false) // REMOVED, now handled by useFFmpeg
-  // const [isExporting, setIsExporting] = useState(false) // REMOVED, now handled by useFFmpeg
-  // const [exportProgress, setExportProgress] = useState(0) // REMOVED, now handled by useFFmpeg
-  // const [exportPhase, setExportPhase] = useState<"idle" | "init" | "audio" | "video" | "encoding" | "complete">("idle") // REMOVED, now handled by useFFmpeg
-  // const [downloadUrl, setDownloadUrl] = useState<string | null>(null) // REMOVED, now handled by useFFmpeg
-  // const abortExportRef = useRef(false) // REMOVED, now handled by useFFmpeg
-  // const exportCancelledRef = useRef(false) // REMOVED, now handled by useFFmpeg
   const [isExportModalOpen, setIsExportModalOpen] = useState(false) // Added back for the modal itself
 
-  // Render Preview State
-  // const [isRendering, setIsRendering] = useState(false) // REMOVED, now handled by useFFmpeg
-  // const [renderProgress, setRenderProgress] = useState(0) // REMOVED, now handled by useFFmpeg
-  // const [renderedPreviewUrl, setRenderedPreviewUrl] = useState<string | null>(null) // REMOVED, now handled by useFFmpeg
-  // const [isPreviewStale, setIsPreviewStale] = useState(false) // REMOVED, now handled by useFFmpeg
-  // const renderCancelledRef = useRef(false) // REMOVED, now handled by useFFmpeg
-  // const [isPreviewPlayback, setIsPreviewPlayback] = useState(false) // REMOVED, now handled by usePlayback
-
-  // Refs for rendering
-  // const videoRefA = useRef<HTMLVideoElement>(null) // REMOVED, now handled by usePlayback
-  // const videoRefB = useRef<HTMLVideoElement>(null) // REMOVED, now handled by usePlayback
-  // const whiteOverlayRef = useRef<HTMLDivElement>(null) // REMOVED, now handled by usePlayback
-  // const previewVideoRef = useRef<HTMLVideoElement>(null) // REMOVED, now handled by usePlayback
-  // const audioRefs = useRef<Record<string, HTMLAudioElement>>({}) // REMOVED, now handled by usePlayback
-  // const canvasRef = useRef<HTMLCanvasElement>(null) // REMOVED, now handled by usePlayback
-
-  // Audio Context // REMOVED, now handled by usePlayback
-  // const audioContextRef = useRef<AudioContext | null>(null)
-  // const audioDestRef = useRef<MediaStreamAudioDestinationNode | null>(null)
-  // const sourceNodesRef = useRef<Map<string, MediaElementAudioSourceNode>>(new Map())
-
-  // const requestRef = useRef<number | null>(null) // REMOVED, now handled by usePlayback
-  // const lastTimeRef = useRef<number | null>(null) // REMOVED, now handled by usePlayback
   const resizeRef = useRef<{ startY: number; startHeight: number } | null>(null)
   const sidebarResizeRef = useRef<{ startX: number; startWidth: number } | null>(null)
 
@@ -444,7 +379,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
     addGeneration,
     onToast: showToast,
     onImageUpload: handleImageUpload,
-    onOutOfCredits: () => {},
+    onOutOfCredits: () => { },
     onApiKeyMissing: () => setApiKeyMissing(true),
   })
 
@@ -663,10 +598,10 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
 
           try {
             await ffmpegInstance.deleteFile("preview_input.mp4")
-          } catch (e) {}
+          } catch (e) { }
           try {
             await ffmpegInstance.deleteFile("output.mp4")
-          } catch (e) {}
+          } catch (e) { }
         } catch (err: any) {
           if (err.message !== "Export cancelled") {
             console.error("Export Failed", err)
@@ -706,7 +641,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
               const arrayBuffer = await response.arrayBuffer()
               const audioBuffer = await offlineCtx.decodeAudioData(arrayBuffer)
               audioBufferMap.set(mid, audioBuffer)
-            } catch (e) {}
+            } catch (e) { }
           }
         }
 
@@ -847,14 +782,14 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
         // Cleanup
         try {
           await ffmpegInstance.deleteFile("audio.wav")
-        } catch (e) {}
+        } catch (e) { }
         try {
           await ffmpegInstance.deleteFile("output.mp4")
-        } catch (e) {}
+        } catch (e) { }
         for (let i = 0; i < frameCount; i++) {
           try {
             await ffmpegInstance.deleteFile(`frame${i.toString().padStart(4, "0")}.jpg`)
-          } catch (e) {}
+          } catch (e) { }
         }
       } catch (err: any) {
         if (err.message !== "Export cancelled") {
@@ -932,7 +867,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
             const response = await fetch(item.url)
             const arrayBuffer = await response.arrayBuffer()
             audioBufferMap.set(mid, await offlineCtx.decodeAudioData(arrayBuffer))
-          } catch (e) {}
+          } catch (e) { }
         }
       }
 
@@ -1048,14 +983,14 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
       // Cleanup
       try {
         await ffmpegInstance.deleteFile("preview_audio.wav")
-      } catch (e) {}
+      } catch (e) { }
       try {
         await ffmpegInstance.deleteFile("preview.mp4")
-      } catch (e) {}
+      } catch (e) { }
       for (let i = 0; i < frameCount; i++) {
         try {
           await ffmpegInstance.deleteFile(`pframe${i.toString().padStart(4, "0")}.jpg`)
-        } catch (e) {}
+        } catch (e) { }
       }
     } catch (err: any) {
       if (err.message !== "Render cancelled") {
@@ -1376,6 +1311,8 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                       clips={timeline.timelineClips}
                       selectedClipIds={timeline.selectedClipIds}
                       onUpdateClip={timeline.handleClipUpdate}
+                      onApplyTransition={() => { }}
+                      selectedClipId={timeline.selectedClipIds[0] ?? null}
                     />
                   </PanelErrorBoundary>
                 )}
@@ -1388,8 +1325,8 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                       onUpdateClip={timeline.handleClipUpdate}
                       onClose={() => setIsPanelOpen(false)}
                       tracks={timeline.tracks}
-                      onDeleteClip={timeline.handleDeleteClip}
-                      onDuplicateClip={timeline.handleDuplicateClip}
+                      onDeleteClip={(id) => timeline.handleDeleteClip([id])}
+                      onDuplicateClip={(id) => timeline.handleDuplicateClip([id])}
                       onSplitClip={timeline.handleSplitClip}
                     />
                   </PanelErrorBoundary>
@@ -1410,7 +1347,12 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                       masterDescription={storyboard.masterDescription}
                       onMasterDescriptionChange={storyboard.setMasterDescription}
                       onClose={() => setIsPanelOpen(false)}
-                    />
+                      isEnhancingMaster={false}
+                      setIsEnhancingMaster={setIsEnhancingMaster}
+                      setIsEnhancing={setIsEnhancing}
+                      setMasterDescription={storyboard.setMasterDescription}
+                      setPrompt={setPrompt}
+                      setVideoConfig={setVideoConfig} />
                   </PanelErrorBoundary>
                 )}
               </ErrorBoundary>
@@ -1447,7 +1389,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                 onCancelRender={handleCancelRender}
                 isRendering={ffmpeg.isRendering}
                 renderProgress={ffmpeg.renderProgress}
-                onTogglePreviewPlayback={() => playback.setIsPreviewPlayback((p) => !p)}
+                onTogglePreviewPlayback={() => playback.setIsPreviewPlayback(!playback.isPreviewPlayback)}
                 playerZoom={playerZoom}
                 onZoomChange={setPlayerZoom}
                 isCinemaMode={isCinemaMode}
@@ -1459,6 +1401,9 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                 onLoadFFmpeg={ffmpeg.loadFFmpeg}
                 timelineClips={timeline.timelineClips}
                 mediaMap={timeline.mediaMap}
+                isExporting={ffmpeg.isExporting}
+                onPlay={() => playback.setIsPlaying(true)}
+                onZoomReset={() => setPlayerZoom(1)}
               />
             </PanelErrorBoundary>
 

@@ -12,11 +12,13 @@ interface StoryboardPanelProps {
   masterDescription: string
   isEnhancingMaster: boolean
   setIsEnhancingMaster: (isEnhancing: boolean) => void
+  onMasterDescriptionChange: (desc: string) => void
   setIsEnhancing: (isEnhancing: boolean) => void
   setMasterDescription: (desc: string) => void
   setPrompt: (prompt: string) => void
   videoConfig: VideoConfig
   setVideoConfig: (config: VideoConfig) => void
+  onVideoConfigChange: (config: VideoConfig) => void
   onAddPanel: () => void
   onUpdatePanel: (id: string, changes: Partial<IStoryboardPanel>) => void
   onDeletePanel: (id: string) => void
@@ -38,12 +40,14 @@ export const StoryboardPanel = memo<StoryboardPanelProps>(
     panels,
     masterDescription,
     setMasterDescription,
+    onMasterDescriptionChange,
     setIsEnhancing,
     setPrompt,
     isEnhancingMaster,
     setIsEnhancingMaster,
     videoConfig,
     setVideoConfig,
+    onVideoConfigChange,
     onAddPanel,
     onUpdatePanel,
     onDeletePanel,

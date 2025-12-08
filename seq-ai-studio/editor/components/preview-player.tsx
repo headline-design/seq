@@ -3,30 +3,46 @@
 import type React from "react"
 import { memo } from "react"
 import { PlayIcon, Grid3x3Icon, MaximizeIcon } from "./icons"
+import { MediaItem, TimelineClip } from "../types"
 
 export interface PreviewPlayerProps {
+  currentTime: number
   // Video refs
   videoRefA: React.RefObject<HTMLVideoElement | null>
   videoRefB: React.RefObject<HTMLVideoElement | null>
   whiteOverlayRef: React.RefObject<HTMLDivElement | null>
   previewVideoRef: React.RefObject<HTMLVideoElement | null>
+  duration: number
 
   // State
   isPlaying: boolean
   isExporting: boolean
   isRendering: boolean
   isPreviewPlayback: boolean
+  isPreviewStale: boolean
+  isCinemaMode: boolean
   renderProgress: number
   renderedPreviewUrl: string | null
+  timelineClips: TimelineClip[]
+  mediaMap: Record<string, MediaItem>
   playerZoom: number
   isSafeGuidesVisible: boolean
 
+  ffmpegLoaded: boolean
+  ffmpegLoading: boolean
+
   // Callbacks
   onPlay: () => void
+  onSeek: (time: number) => void
   onTogglePlay: () => void
+  onTogglePreviewPlayback: () => void
   onZoomReset: () => void
+  onZoomChange: (zoom: number) => void
   onToggleSafeGuides: () => void
+  onCancelRender: () => void
   onToggleCinemaMode: () => void
+  onLoadFFmpeg: () => void
+  onRenderPreview: () => void
 }
 
 export const PreviewPlayer = memo(function PreviewPlayer({
@@ -35,16 +51,26 @@ export const PreviewPlayer = memo(function PreviewPlayer({
   whiteOverlayRef,
   previewVideoRef,
   isPlaying,
+  duration,
   isExporting,
   isRendering,
   isPreviewPlayback,
+  isCinemaMode,
   renderProgress,
   renderedPreviewUrl,
   playerZoom,
   isSafeGuidesVisible,
+  timelineClips,
+  ffmpegLoaded,
+  ffmpegLoading,
   onPlay,
+  onLoadFFmpeg,
   onTogglePlay,
+  onTogglePreviewPlayback,
+  onCancelRender,
   onZoomReset,
+  mediaMap,
+  onZoomChange,
   onToggleSafeGuides,
   onToggleCinemaMode,
 }: PreviewPlayerProps) {

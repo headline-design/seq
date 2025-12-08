@@ -47,7 +47,7 @@ export interface StoryboardPanel {
   mediaId?: string; // If added to library/timeline, link to it
   status: 'idle' | 'generating-image' | 'generating-video' | 'enhancing' | 'error';
   error?: string;
-  duration: 5 | 8; // Veo supports roughly this
+  duration: 5 | 8 | 4 | 3 | 2 | 6; // in seconds
 }
 
 export interface VideoConfig {

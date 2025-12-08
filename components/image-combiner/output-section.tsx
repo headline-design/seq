@@ -215,7 +215,7 @@ export function OutputSection({
       </div>
 
       {/* Mobile/Tablet buttons - below the image container */}
-      {generations.length > 0 && renderButtons("mt-3 md:mt-4 flex lg:hidden justify-center gap-2 flex-shrink-0")}
+      {generations.length > 0 && renderButtons("mt-3 md:mt-4 flex lg:hidden justify-center gap-2 shrink-0")}
     </div>
   )
 }

@@ -666,7 +666,7 @@ export function ImageCombiner() {
                 className="flex flex-col xl:flex-row gap-4 xl:gap-0 xl:min-h-[60vh] 2xl:min-h-[62vh]"
               >
                 <div
-                  className="flex flex-col xl:pr-4 xl:border-r xl:border-border flex-shrink-0 xl:overflow-y-auto xl:max-h-[85vh] 2xl:max-h-[80vh]"
+                  className="flex flex-col xl:pr-4 xl:border-r xl:border-border shrink-0 xl:overflow-y-auto xl:max-h-[85vh] 2xl:max-h-[80vh]"
                   style={{ width: isMobile ? "100%" : `${leftWidth}%` }}
                 >
                   <InputSection
@@ -709,7 +709,7 @@ export function ImageCombiner() {
                     onShowAuthModal={() => { }}
                     />
 
-                  <div className="hidden xl:block mt-3 flex-shrink-0">
+                  <div className="hidden xl:block mt-3 shrink-0">
                     <GenerationHistory
                       generations={persistedGenerations}
                       selectedId={selectedGenerationId ?? undefined}
@@ -734,7 +734,7 @@ export function ImageCombiner() {
                 </div>
 
                 <div
-                  className="flex flex-col xl:pl-4 h-[400px] sm:h-[500px] md:h-[600px] xl:h-auto flex-shrink-0"
+                  className="flex flex-col xl:pl-4 h-[400px] sm:h-[500px] md:h-[600px] xl:h-auto shrink-0"
                   style={{ width: isMobile ? "100%" : `${100 - leftWidth}%` }}
                 >
                   <OutputSection
@@ -758,7 +758,7 @@ export function ImageCombiner() {
                 </div>
               </div>
 
-              <div className="xl:hidden flex-shrink-0">
+              <div className="xl:hidden shrink-0">
                 <GenerationHistory
                   generations={persistedGenerations}
                   selectedId={selectedGenerationId ?? undefined}

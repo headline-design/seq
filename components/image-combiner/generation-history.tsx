@@ -77,7 +77,7 @@ export function GenerationHistory({
                 key={gen.id}
                 onClick={() => onSelect(gen.id)}
                 className={cn(
-                  "relative flex-shrink-0 w-18 h-18 md:w-24 md:h-24 overflow-hidden transition-all cursor-pointer group",
+                  "relative shrink-0 w-18 h-18 md:w-24 md:h-24 overflow-hidden transition-all cursor-pointer group",
                   selectedId === gen.id
                     ? "border-2 border-white opacity-100"
                     : "border border-gray-600 hover:border-gray-500 opacity-60 hover:opacity-100",
@@ -192,7 +192,7 @@ export function GenerationHistory({
               <button
                 onClick={onLoadMore}
                 disabled={isLoadingMore}
-                className="flex-shrink-0 w-18 h-18 md:w-24 md:h-24 border border-gray-600 hover:border-white bg-black/30 hover:bg-black/50 transition-all flex items-center justify-center text-xs text-gray-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                className="shrink-0 w-18 h-18 md:w-24 md:h-24 border border-gray-600 hover:border-white bg-black/30 hover:bg-black/50 transition-all flex items-center justify-center text-xs text-gray-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Load more generations"
               >
                 {isLoadingMore ? (

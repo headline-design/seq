@@ -310,7 +310,7 @@ export default function StoryboardPage() {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {storageMode === "temporal" && step !== "prompt" && !dismissedBanners.has("temporal") && (
           <div className="mb-6 flex items-center gap-3 px-4 py-3 bg-secondary/50 border border-border rounded-lg text-sm">
-            <AlertTriangle className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <AlertTriangle className="w-4 h-4 text-muted-foreground shrink-0" />
             <p className="text-muted-foreground flex-1">
               <span className="font-medium text-foreground">Temporary mode</span> — Work is stored in memory. Save
               before leaving or refreshing.
@@ -329,7 +329,7 @@ export default function StoryboardPage() {
           !dismissedBanners.has("session") &&
           !dismissedBanners.has("temporal") === false && (
             <div className="mb-6 flex items-center gap-3 px-4 py-3 bg-secondary/50 border border-border rounded-lg text-sm">
-              <Info className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <Info className="w-4 h-4 text-muted-foreground shrink-0" />
               <p className="text-muted-foreground flex-1">
                 <span className="font-medium text-foreground">Session restored</span> — Continue where you left off or
                 clear to start fresh.

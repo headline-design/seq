@@ -2,13 +2,16 @@
 
 import type React from "react"
 import { memo, useState, useCallback, useEffect } from "react"
-import type { TransitionType } from "../types"
+import type { TimelineClip, TransitionType } from "../types"
 import { CrossDissolveIcon, TransitionIcon, PanelLeftClose } from "./icons"
 
 interface TransitionsPanelProps {
   onClose: () => void
   onApplyTransition: (type: TransitionType, duration?: number) => void
-  selectedClipId: string | null
+  onUpdateClip?: (clipId: string, updates: Partial<TimelineClip>) => void
+  clips: TimelineClip[]
+  selectedClipIds: string[]
+  selectedClipId?: string | null
   currentTransition?: { type: TransitionType; duration: number } | null
 }
 
@@ -211,6 +214,9 @@ const DurationSlider = memo(function DurationSlider({
 export const TransitionsPanel = memo(function TransitionsPanel({
   onClose,
   onApplyTransition,
+  onUpdateClip,
+  clips,
+  selectedClipIds,
   selectedClipId,
   currentTransition,
 }: TransitionsPanelProps) {
