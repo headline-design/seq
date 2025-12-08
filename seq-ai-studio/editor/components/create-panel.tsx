@@ -351,9 +351,6 @@ export const CreatePanel = memo(function CreatePanel({
       {/* Header */}
       <div className="h-14 flex items-center px-4 justify-between shrink-0 border-b border-neutral-800">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500">
-            <Sparkles className="w-3.5 h-3.5 text-white" />
-          </div>
           <h2 className="text-sm font-semibold text-neutral-200">Create</h2>
         </div>
         <button

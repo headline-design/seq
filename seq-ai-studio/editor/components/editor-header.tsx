@@ -1,6 +1,6 @@
 "use client"
-import { memo } from "react"
-import { DownloadIcon, UndoIcon, RedoIcon, KeyboardIcon } from "./icons"
+import { memo, useState, useRef, useEffect } from "react"
+import { DownloadIcon, UndoIcon, RedoIcon, KeyboardIcon, SaveIcon, FolderOpenIcon } from "./icons"
 
 export interface EditorHeaderProps {
   onBack: () => void
@@ -8,6 +8,10 @@ export interface EditorHeaderProps {
   onRedo: () => void
   onExport: () => void
   onShowShortcuts: () => void
+  onSave: () => void
+  onLoad: () => void
+  onLoadDemo: () => void // Added onLoadDemo prop
+  isSaving?: boolean
   canUndo: boolean
   canRedo: boolean
 }
@@ -18,9 +22,27 @@ export const EditorHeader = memo(function EditorHeader({
   onRedo,
   onExport,
   onShowShortcuts,
+  onSave,
+  onLoad,
+  onLoadDemo, // Added onLoadDemo
+  isSaving,
   canUndo,
   canRedo,
 }: EditorHeaderProps) {
+  const [isFileMenuOpen, setIsFileMenuOpen] = useState(false)
+  const fileMenuRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (fileMenuRef.current && !fileMenuRef.current.contains(e.target as Node)) {
+        setIsFileMenuOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
   return (
     <header className="h-14 border-b border-neutral-800 bg-[#09090b] flex items-center justify-between px-6 z-40 shrink-0">
       <div className="flex items-center gap-2">
@@ -34,6 +56,69 @@ export const EditorHeader = memo(function EditorHeader({
         <span className="text-white font-semibold">Timeline</span>
       </div>
       <div className="flex items-center gap-4">
+        <div className="relative" ref={fileMenuRef}>
+          <button
+            onClick={() => setIsFileMenuOpen(!isFileMenuOpen)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-neutral-400 hover:text-white bg-neutral-900 border border-neutral-800 rounded transition-colors"
+          >
+            <FolderOpenIcon className="w-4 h-4" />
+            File
+            <svg
+              width="10"
+              height="10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className={`transition-transform ${isFileMenuOpen ? "rotate-180" : ""}`}
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+
+          {isFileMenuOpen && (
+            <div className="absolute top-full right-0 mt-1 w-48 bg-neutral-900 border border-neutral-800 rounded-md shadow-xl z-50 py-1">
+              <button
+                onClick={() => {
+                  onSave()
+                  setIsFileMenuOpen(false)
+                }}
+                disabled={isSaving}
+                className="w-full px-3 py-2 text-left text-sm text-neutral-300 hover:bg-neutral-800 hover:text-white flex items-center gap-2 disabled:opacity-50"
+              >
+                <SaveIcon className={`w-4 h-4 ${isSaving ? "animate-pulse" : ""}`} />
+                Save Project
+                <span className="ml-auto text-xs text-neutral-500">⌘S</span>
+              </button>
+              <button
+                onClick={() => {
+                  onLoad()
+                  setIsFileMenuOpen(false)
+                }}
+                className="w-full px-3 py-2 text-left text-sm text-neutral-300 hover:bg-neutral-800 hover:text-white flex items-center gap-2"
+              >
+                <FolderOpenIcon className="w-4 h-4" />
+                Open Project
+                <span className="ml-auto text-xs text-neutral-500">⌘O</span>
+              </button>
+              <div className="h-px bg-neutral-800 my-1" />
+              <button
+                onClick={() => {
+                  onLoadDemo()
+                  setIsFileMenuOpen(false)
+                }}
+                className="w-full px-3 py-2 text-left text-sm text-neutral-300 hover:bg-neutral-800 hover:text-white flex items-center gap-2"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                  <circle cx="12" cy="13" r="3" />
+                </svg>
+                Load Demo Project
+              </button>
+            </div>
+          )}
+        </div>
+
         <button onClick={onShowShortcuts} className="text-neutral-500 hover:text-white">
           <KeyboardIcon className="w-4 h-4" />
         </button>

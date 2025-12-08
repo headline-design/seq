@@ -1,68 +1,89 @@
-"use client";
+"use client"
 
-import { MediaItem, StoryboardPanel, TimelineClip } from './types';
-import dynamic from 'next/dynamic';
-import { DEMO_FINAL_SEQUENCE } from '@/lib/demo-data';
-import { useRouter } from 'next/navigation';
+import type { MediaItem, StoryboardPanel, TimelineClip } from "./types"
+import dynamic from "next/dynamic"
+import { DEMO_FINAL_SEQUENCE } from "@/lib/demo-data"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Suspense } from "react"
 
-const Editor = dynamic(() => import('./components/editor').then(mod => mod.Editor), { ssr: false });
+const Editor = dynamic(() => import("./components/editor").then((mod) => mod.Editor), { ssr: false })
 
-function App() {
-  // Initialize state from the demo sequence
+function createDemoData() {
   const initialMedia: MediaItem[] = DEMO_FINAL_SEQUENCE.panels.map((p, i) => ({
     id: `media-${i}`,
     url: p.videoUrl,
     prompt: p.prompt,
     duration: p.duration,
     aspectRatio: DEMO_FINAL_SEQUENCE.videoConfig.aspectRatio,
-    status: 'ready',
-    type: 'video',
-    resolution: { width: 1280, height: 720 }
-  }));
+    status: "ready" as const,
+    type: "video" as const,
+    resolution: { width: 1280, height: 720 },
+  }))
 
-  const initialClips: TimelineClip[] = [];
-  let startTime = 0;
+  const initialClips: TimelineClip[] = []
+  let startTime = 0
 
   initialMedia.forEach((m, i) => {
     initialClips.push({
       speed: 1,
       id: `clip-${i}`,
       mediaId: m.id,
-      trackId: 'v1',
+      trackId: "v1",
       start: startTime,
       duration: m.duration,
       offset: 0,
-      // Removed default transition to ensure manual control only
-      transition: undefined
-    });
-    startTime += m.duration;
-  });
+      transition: undefined,
+    })
+    startTime += m.duration
+  })
 
-  // Populate storyboard panel state
   const initialStoryboard: StoryboardPanel[] = DEMO_FINAL_SEQUENCE.panels.map((p, i) => ({
     id: `sb-${i}`,
     prompt: p.prompt,
     imageUrl: p.imageUrl,
     linkedImageUrl: p.linkedImageUrl,
     videoUrl: p.videoUrl,
-    mediaId: `media-${i}`, // Link to the media items we just created
-    status: 'idle',
-    type: p.linkedImageUrl ? 'transition' : 'scene',
-    duration: p.duration as 5 | 8 // Ensure type compatibility
-  }));
+    mediaId: `media-${i}`,
+    status: "idle" as const,
+    type: p.linkedImageUrl ? ("transition" as const) : ("scene" as const),
+    duration: p.duration as 5 | 8,
+  }))
 
-  const router = useRouter();
+  return { initialMedia, initialClips, initialStoryboard }
+}
+
+export { createDemoData }
+
+function EditorContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const loadDemo = searchParams.get("demo") === "true"
+
+  const demoData = loadDemo ? createDemoData() : null
 
   return (
     <Editor
-      initialStoryboard={initialStoryboard}
-      initialMedia={initialMedia}
-      initialClips={initialClips}
+      initialStoryboard={demoData?.initialStoryboard}
+      initialMedia={demoData?.initialMedia}
+      initialClips={demoData?.initialClips}
       onBack={() => {
-        router.push('/');
+        router.push("/")
       }}
     />
-  );
+  )
 }
 
-export default App;
+function App() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center h-screen bg-neutral-950 text-white">Loading editor...</div>
+      }
+    >
+      <EditorContent />
+    </Suspense>
+  )
+}
+
+export default App

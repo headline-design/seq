@@ -21,6 +21,7 @@ interface SettingsPanelProps {
   onClose: () => void
   onClearTimeline: () => void
   onClearLibrary: () => void
+  onClearAll: () => void
   defaultDuration: number
   onDurationChange: (val: number) => void
   projectSettings?: Partial<ProjectSettings>
@@ -158,6 +159,7 @@ export const SettingsPanel = memo(function SettingsPanel({
   onClose,
   onClearTimeline,
   onClearLibrary,
+  onClearAll,
   defaultDuration,
   onDurationChange,
   projectSettings,
@@ -219,6 +221,16 @@ export const SettingsPanel = memo(function SettingsPanel({
       onDurationChange(5)
     }
   }, [onSettingsChange, onDurationChange])
+
+  const handleClearAll = useCallback(() => {
+    if (
+      window.confirm(
+        "Are you sure you want to start a new project? This will clear ALL data including timeline, library, and storyboard. This cannot be undone.",
+      )
+    ) {
+      onClearAll()
+    }
+  }, [onClearAll])
 
   return (
     <div className="w-full flex flex-col bg-[#09090b] border-r border-neutral-800 h-full">
@@ -417,25 +429,34 @@ export const SettingsPanel = memo(function SettingsPanel({
         >
           <div className="space-y-3">
             <button
-              onClick={handleClearTimeline}
-              className="w-full py-2.5 px-4 rounded-lg border border-red-900/30 bg-red-900/10 text-red-400 hover:bg-red-900/20 text-xs font-medium transition-colors"
+              onClick={handleClearAll}
+              className="w-full py-2.5 px-4 rounded-lg border border-red-500/50 bg-red-500/20 text-red-300 hover:bg-red-500/30 text-xs font-semibold transition-colors"
             >
-              Clear Timeline
+              New Project (Clear All)
             </button>
 
-            <button
-              onClick={handleClearLibrary}
-              className="w-full py-2.5 px-4 rounded-lg border border-red-900/30 bg-red-900/10 text-red-400 hover:bg-red-900/20 text-xs font-medium transition-colors"
-            >
-              Clear Media Library
-            </button>
+            <div className="border-t border-neutral-800 pt-3 space-y-3">
+              <button
+                onClick={handleClearTimeline}
+                className="w-full py-2.5 px-4 rounded-lg border border-red-900/30 bg-red-900/10 text-red-400 hover:bg-red-900/20 text-xs font-medium transition-colors"
+              >
+                Clear Timeline
+              </button>
 
-            <button
-              onClick={handleResetSettings}
-              className="w-full py-2.5 px-4 rounded-lg border border-neutral-700 bg-neutral-800/50 text-neutral-400 hover:bg-neutral-800 text-xs font-medium transition-colors"
-            >
-              Reset All Settings
-            </button>
+              <button
+                onClick={handleClearLibrary}
+                className="w-full py-2.5 px-4 rounded-lg border border-red-900/30 bg-red-900/10 text-red-400 hover:bg-red-900/20 text-xs font-medium transition-colors"
+              >
+                Clear Media Library
+              </button>
+
+              <button
+                onClick={handleResetSettings}
+                className="w-full py-2.5 px-4 rounded-lg border border-neutral-700 bg-neutral-800/50 text-neutral-400 hover:bg-neutral-800 text-xs font-medium transition-colors"
+              >
+                Reset All Settings
+              </button>
+            </div>
           </div>
         </Section>
 

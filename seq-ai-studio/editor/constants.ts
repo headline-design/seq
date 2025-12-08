@@ -113,3 +113,28 @@ export const ASPECT_RATIOS = [
   { value: "4:3", label: "4:3 (Standard)", width: 1440, height: 1080 },
   { value: "21:9", label: "21:9 (Cinematic)", width: 2560, height: 1080 },
 ] as const
+
+// Initial tracks configuration
+export const INITIAL_TRACKS = [
+  { id: "v1", name: "Video 1", type: "video" as const, volume: 1 },
+  { id: "v2", name: "Video 2", type: "video" as const, volume: 1 },
+  { id: "a1", name: "Audio 1", type: "audio" as const, volume: 1 },
+  { id: "a2", name: "Audio 2", type: "audio" as const, volume: 1 },
+] as const
+
+// Autosave configuration
+export const AUTOSAVE_CONSTANTS = {
+  DEBOUNCE_MS: 5000, // 5 seconds
+  STORAGE_KEY: "seq_autosave",
+  MAX_SIZE_MB: 50,
+} as const
+
+// FFmpeg configuration
+export const FFMPEG_CONSTANTS = {
+  PRELOAD_DELAY_MS: 2000, // Delay before preloading FFmpeg
+  AUDIO_SAMPLE_RATE: 44100,
+  JPEG_QUALITY: 0.9,
+  PREVIEW_JPEG_QUALITY: 0.85,
+  PREVIEW_CRF: 28,
+  EXPORT_CRF: 23,
+} as const

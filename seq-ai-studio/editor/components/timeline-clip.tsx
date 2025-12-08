@@ -3,6 +3,7 @@
 import type React from "react"
 import { memo } from "react"
 import type { TimelineClip, MediaItem, Track } from "../types"
+import { ClipWaveform } from "./clip-waveform"
 
 interface TimelineClipItemProps {
   clip: TimelineClip
@@ -15,31 +16,6 @@ interface TimelineClipItemProps {
   onContextMenu: (e: React.MouseEvent) => void
   onKeyDown?: (e: React.KeyboardEvent) => void
   tabIndex?: number
-}
-
-const ClipWaveform = ({
-  duration,
-  offset,
-  isAudio,
-  isSelected,
-}: { duration: number; offset: number; isAudio: boolean; isSelected: boolean }) => {
-  const bars = Math.min(100, Math.max(10, Math.floor(duration * 8)))
-  return (
-    <div className="w-full h-full flex items-end gap-[1px] overflow-hidden opacity-80 pointer-events-none">
-      {Array.from({ length: bars }).map((_, i) => {
-        const x = i + offset * 8
-        const noise = Math.sin(x * 0.8) * Math.cos(x * 1.3)
-        const height = 20 + Math.abs(noise) * 70
-        return (
-          <div
-            key={i}
-            className={`flex-1 rounded-t-[1px] min-w-[2px] ${isSelected ? "bg-white/80" : isAudio ? "bg-emerald-400/60" : "bg-white/30"}`}
-            style={{ height: `${height}%` }}
-          />
-        )
-      })}
-    </div>
-  )
 }
 
 export const TimelineClipItem = memo(
@@ -164,10 +140,16 @@ export const TimelineClipItem = memo(
             </span>
           </div>
 
-          {/* Waveform */}
           <div className="absolute bottom-0 left-0 right-0 h-1/2 opacity-50 px-0.5">
             {media && (
-              <ClipWaveform duration={clip.duration} offset={clip.offset} isAudio={isAudio} isSelected={isSelected} />
+              <ClipWaveform
+                mediaUrl={media.url}
+                duration={clip.duration}
+                offset={clip.offset}
+                isAudio={isAudio}
+                isSelected={isSelected}
+                zoomLevel={zoomLevel}
+              />
             )}
           </div>
         </div>

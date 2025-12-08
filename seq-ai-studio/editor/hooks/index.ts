@@ -16,3 +16,6 @@ export { useVirtualizedClips, useScrollPosition } from "./use-virtualized-clips"
 export { useDebouncedCallback, useRafCallback } from "./use-debounced-callback"
 
 export { useTimelineKeyboard } from "./use-timeline-keyboard"
+
+export { useStoryboard } from "./use-storyboard"
+export { useMediaGeneration } from "./use-media-generation"

@@ -25,6 +25,9 @@ interface TimelineProps {
   style?: React.CSSProperties
   tool: "select" | "razor"
   isPlaying: boolean
+  isLooping: boolean
+  onPlayPause: () => void
+  onToggleLoop: () => void
   onSeek: (time: number) => void
   onSelectClips: (clipIds: string[]) => void
   onZoomChange: (zoom: number) => void
@@ -47,6 +50,7 @@ interface TimelineProps {
   isPreviewPlayback?: boolean
   onTogglePreviewPlayback?: () => void
   onExportAudio?: (clipId: string) => void
+  frameRate?: number
 }
 
 export const Timeline = memo(function Timeline({
@@ -61,6 +65,9 @@ export const Timeline = memo(function Timeline({
   style,
   tool,
   isPlaying,
+  isLooping,
+  onPlayPause,
+  onToggleLoop,
   onSeek,
   onSelectClips,
   onZoomChange,
@@ -83,6 +90,7 @@ export const Timeline = memo(function Timeline({
   isPreviewPlayback = false,
   onTogglePreviewPlayback,
   onExportAudio,
+  frameRate = 30,
 }: TimelineProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const headerContainerRef = useRef<HTMLDivElement>(null)
@@ -330,12 +338,10 @@ export const Timeline = memo(function Timeline({
           break
         case "ArrowLeft":
           e.preventDefault()
-          // Move clip left by 0.1 seconds (or 1 second with shift)
           onClipUpdate(clipId, { start: Math.max(0, clip.start - (e.shiftKey ? 1 : 0.1)) })
           break
         case "ArrowRight":
           e.preventDefault()
-          // Move clip right by 0.1 seconds (or 1 second with shift)
           onClipUpdate(clipId, { start: clip.start + (e.shiftKey ? 1 : 0.1) })
           break
         case "d":
@@ -344,7 +350,6 @@ export const Timeline = memo(function Timeline({
             onDuplicateClip([clipId])
           }
           break
-        // Added export audio logic
         case "e":
           if (e.metaKey || e.ctrlKey) {
             e.preventDefault()
@@ -366,6 +371,9 @@ export const Timeline = memo(function Timeline({
       {/* Toolbar */}
       <TimelineToolbar
         currentTime={currentTime}
+        duration={duration}
+        isPlaying={isPlaying}
+        isLooping={isLooping}
         tool={tool}
         zoomLevel={zoomLevel}
         selectedClipCount={selectedClipIds.length}
@@ -376,6 +384,10 @@ export const Timeline = memo(function Timeline({
         renderedPreviewUrl={renderedPreviewUrl}
         isPreviewStale={isPreviewStale}
         isPreviewPlayback={isPreviewPlayback}
+        frameRate={frameRate}
+        onPlayPause={onPlayPause}
+        onSeek={onSeek}
+        onToggleLoop={onToggleLoop}
         onToolChange={onToolChange}
         onSplitAtPlayhead={handleSplitAtPlayhead}
         onZoomChange={onZoomChange}
