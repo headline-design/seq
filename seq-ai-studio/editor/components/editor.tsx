@@ -268,6 +268,8 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
   const objectUrlsRef = useRef<string[]>([])
   const isMountedRef = useRef(true)
 
+  const saveFrameRef = useRef<(() => void) | null>(null)
+
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
@@ -1082,8 +1084,16 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
       onDuplicate: () => timeline.handleDuplicateClip(timeline.selectedClipIds),
       onDelete: () => timeline.handleDeleteClip(timeline.selectedClipIds),
       onRippleDelete: () => timeline.handleRippleDeleteClip(timeline.selectedClipIds),
+      onSaveFrame: () => {
+        // This functionality is now handled by the 'f' keydown event,
+        // but kept here for potential future use or alternative trigger.
+        // Call the high-quality frame capture function directly
+        if (saveFrameRef.current) {
+          saveFrameRef.current()
+        }
+      },
     },
-    [timeline.history.length, timeline.future.length, timeline.selectedClipIds],
+    [timeline.history.length, timeline.future.length, timeline.selectedClipIds, ffmpeg, playback, toastCtx],
   )
 
   const handleSaveProject = useCallback(async () => {
@@ -1247,11 +1257,61 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
         e.preventDefault()
         handleLoadProject()
       }
+      if (e.key === "f" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault()
+        // Try to capture from the active video element for highest quality
+        const videoElement = playback.isPreviewPlayback
+          ? playback.previewVideoRef?.current
+          : playback.videoRefA?.current && Number.parseFloat(playback.videoRefA.current.style.opacity || "1") > 0
+            ? playback.videoRefA?.current
+            : playback.videoRefB?.current
+
+        if (videoElement && videoElement.readyState >= 2) {
+          const width = videoElement.videoWidth || 1920
+          const height = videoElement.videoHeight || 1080
+
+          const canvas = document.createElement("canvas")
+          canvas.width = width
+          canvas.height = height
+
+          const ctx = canvas.getContext("2d", {
+            alpha: false,
+            willReadFrequently: false,
+          })
+
+          if (ctx) {
+            ctx.imageSmoothingEnabled = false
+            ctx.drawImage(videoElement, 0, 0, width, height)
+
+            const mins = Math.floor(playback.currentTime / 60)
+            const secs = Math.floor(playback.currentTime % 60)
+            const ms = Math.floor((playback.currentTime % 1) * 1000)
+            const timecode = `${mins.toString().padStart(2, "0")}-${secs.toString().padStart(2, "0")}-${ms.toString().padStart(3, "0")}`
+            const filename = `frame_${timecode}_${width}x${height}.png`
+
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement("a")
+                a.href = url
+                a.download = filename
+                document.body.appendChild(a)
+                a.click()
+                document.body.removeChild(a)
+                URL.revokeObjectURL(url)
+                toastCtx.success("Frame saved as PNG")
+              }
+            }, "image/png")
+          }
+        } else {
+          toastCtx.error("No video frame available to capture")
+        }
+      }
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [handleSaveProject, handleLoadProject])
+  }, [handleSaveProject, handleLoadProject, playback, toastCtx])
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#09090b] text-neutral-200 font-sans selection:bg-indigo-500/30">

@@ -156,6 +156,7 @@ export const ShortcutsModal = memo(function ShortcutsModal({ isOpen, onClose }: 
           { key: "Cmd/Ctrl + E", desc: "Export Video" },
           { key: "Cmd/Ctrl + R", desc: "Render Preview" },
           { key: "Cmd/Ctrl + S", desc: "Save Project" },
+          { key: "F", desc: "Save Current Frame" },
         ],
       },
     ],

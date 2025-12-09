@@ -1,9 +1,18 @@
 "use client"
 
 import type React from "react"
-import { memo } from "react"
-import { PlayIcon, Grid3x3Icon, MaximizeIcon } from "./icons"
-import { MediaItem, TimelineClip } from "../types"
+import { memo, useCallback, useState } from "react"
+import { PlayIcon, Grid3x3Icon, MaximizeIcon, ImageIcon, ChevronDownIcon } from "./icons"
+import type { MediaItem, TimelineClip } from "../types"
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu"
 
 export interface PreviewPlayerProps {
   currentTime: number
@@ -46,6 +55,7 @@ export interface PreviewPlayerProps {
 }
 
 export const PreviewPlayer = memo(function PreviewPlayer({
+  currentTime,
   videoRefA,
   videoRefB,
   whiteOverlayRef,
@@ -74,105 +84,241 @@ export const PreviewPlayer = memo(function PreviewPlayer({
   onToggleSafeGuides,
   onToggleCinemaMode,
 }: PreviewPlayerProps) {
+  const [isSavingFrame, setIsSavingFrame] = useState(false)
+
+  const handleSaveFrame = useCallback(
+    async (format: "png" | "jpeg" | "webp" = "png", quality = 0.95) => {
+      if (isSavingFrame) return
+      setIsSavingFrame(true)
+
+      try {
+        let videoElement: HTMLVideoElement | null = null
+
+        if (isPreviewPlayback && previewVideoRef?.current) {
+          videoElement = previewVideoRef.current
+        } else if (videoRefA?.current && Number.parseFloat(videoRefA.current.style.opacity || "1") > 0) {
+          videoElement = videoRefA.current
+        } else if (videoRefB?.current) {
+          videoElement = videoRefB.current
+        }
+
+        if (!videoElement || videoElement.readyState < 2) {
+          console.warn("No video element ready for frame capture")
+          return
+        }
+
+        const width = videoElement.videoWidth || 1920
+        const height = videoElement.videoHeight || 1080
+
+        let imageBitmap: ImageBitmap | null = null
+        try {
+          imageBitmap = await createImageBitmap(videoElement, {
+            premultiplyAlpha: "none",
+            colorSpaceConversion: "none",
+          })
+        } catch {}
+
+        const canvas = document.createElement("canvas")
+        canvas.width = width
+        canvas.height = height
+
+        const ctx = canvas.getContext("2d", {
+          alpha: false,
+          desynchronized: true,
+          willReadFrequently: false,
+        })
+
+        if (!ctx) {
+          console.error("Failed to get canvas context")
+          return
+        }
+
+        ctx.imageSmoothingEnabled = false
+
+        if (imageBitmap) {
+          ctx.drawImage(imageBitmap, 0, 0, width, height)
+          imageBitmap.close()
+        } else {
+          ctx.drawImage(videoElement, 0, 0, width, height)
+        }
+
+        const timecode = formatTimecodeForFilename(currentTime)
+        const extension = format === "jpeg" ? "jpg" : format
+        const filename = `frame_${timecode}_${width}x${height}.${extension}`
+
+        const mimeType = format === "jpeg" ? "image/jpeg" : format === "webp" ? "image/webp" : "image/png"
+        const blobQuality = format === "png" ? undefined : quality
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              console.error("Failed to create image blob")
+              return
+            }
+
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = filename
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+            URL.revokeObjectURL(url)
+          },
+          mimeType,
+          blobQuality,
+        )
+      } finally {
+        setIsSavingFrame(false)
+      }
+    },
+    [currentTime, isPreviewPlayback, previewVideoRef, videoRefA, videoRefB, isSavingFrame],
+  )
+
+  const handleQuickSaveFrame = useCallback(() => {
+    handleSaveFrame("png")
+  }, [handleSaveFrame])
+
   return (
-    <div className="flex-1 w-full bg-[#050505] relative flex items-center justify-center p-6 overflow-hidden min-h-[200px]">
-      {/* Safe guides overlay */}
-      {isSafeGuidesVisible && (
+    <TooltipProvider delayDuration={300}>
+      <div className="flex-1 w-full bg-[#050505] relative flex items-center justify-center p-6 overflow-hidden min-h-[200px]">
+        {isSafeGuidesVisible && (
+          <div
+            className="absolute z-40 inset-0 pointer-events-none flex items-center justify-center"
+            style={{ transform: `scale(${playerZoom})` }}
+          >
+            <div className="w-[90%] h-[90%] border border-white/20 border-dashed absolute aspect-video"></div>
+            <div className="w-[80%] h-[80%] border border-cyan-500/30 absolute aspect-video"></div>
+          </div>
+        )}
+
+        {!isExporting && !isRendering && (
+          <div className="absolute top-4 right-4 z-50 flex items-center gap-2 bg-black/60 backdrop-blur rounded p-1.5 border border-white/10">
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className={`p-1 text-neutral-400 hover:text-white transition-colors flex items-center gap-0.5 ${isSavingFrame ? "opacity-50" : ""}`}
+                      disabled={isSavingFrame}
+                    >
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      <ChevronDownIcon className="w-2.5 h-2.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Save Frame (F)
+                </TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end" className="min-w-[160px]">
+                <DropdownMenuLabel className="text-xs text-neutral-400">Export Format</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleSaveFrame("png")} className="text-xs">
+                  <span className="flex-1">PNG (Lossless)</span>
+                  <span className="text-neutral-500">Best Quality</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleSaveFrame("jpeg", 0.95)} className="text-xs">
+                  <span className="flex-1">JPEG (95%)</span>
+                  <span className="text-neutral-500">Smaller File</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleSaveFrame("webp", 0.95)} className="text-xs">
+                  <span className="flex-1">WebP (95%)</span>
+                  <span className="text-neutral-500">Modern Format</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleSaveFrame("jpeg", 1.0)} className="text-xs">
+                  <span className="flex-1">JPEG (100%)</span>
+                  <span className="text-neutral-500">Max JPEG</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="w-px h-3.5 bg-white/20" />
+            <button onClick={onZoomReset} className="text-[10px] text-neutral-400 hover:text-white px-2">
+              Fit
+            </button>
+            <button
+              onClick={onToggleSafeGuides}
+              className={`p-1 ${isSafeGuidesVisible ? "text-indigo-400" : "text-neutral-400"}`}
+            >
+              <Grid3x3Icon className="w-3.5 h-3.5" />
+            </button>
+            <button onClick={onToggleCinemaMode} className="p-1 text-neutral-400 hover:text-white">
+              <MaximizeIcon className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         <div
-          className="absolute z-40 inset-0 pointer-events-none flex items-center justify-center"
+          className="relative aspect-video w-full max-h-full shadow-2xl bg-black flex items-center justify-center overflow-hidden"
           style={{ transform: `scale(${playerZoom})` }}
         >
-          <div className="w-[90%] h-[90%] border border-white/20 border-dashed absolute aspect-video"></div>
-          <div className="w-[80%] h-[80%] border border-cyan-500/30 absolute aspect-video"></div>
-        </div>
-      )}
+          {isPreviewPlayback && renderedPreviewUrl && (
+            <video
+              ref={previewVideoRef as React.RefObject<HTMLVideoElement>}
+              src={renderedPreviewUrl}
+              className="absolute inset-0 w-full h-full object-contain bg-black z-10"
+              controls
+              crossOrigin="anonymous"
+            />
+          )}
 
-      {/* Player controls */}
-      {!isExporting && !isRendering && (
-        <div className="absolute top-4 right-4 z-50 flex items-center gap-2 bg-black/60 backdrop-blur rounded p-1.5 border border-white/10">
-          <button onClick={onZoomReset} className="text-[10px] text-neutral-400 hover:text-white px-2">
-            Fit
-          </button>
-          <button
-            onClick={onToggleSafeGuides}
-            className={`p-1 ${isSafeGuidesVisible ? "text-indigo-400" : "text-neutral-400"}`}
-          >
-            <Grid3x3Icon className="w-3.5 h-3.5" />
-          </button>
-          <button onClick={onToggleCinemaMode} className="p-1 text-neutral-400 hover:text-white">
-            <MaximizeIcon className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
-
-      {/* Video container */}
-      <div
-        className="relative aspect-video w-full max-h-full shadow-2xl bg-black flex items-center justify-center overflow-hidden"
-        style={{ transform: `scale(${playerZoom})` }}
-      >
-        {/* Rendered preview video */}
-        {isPreviewPlayback && renderedPreviewUrl && (
           <video
-            ref={previewVideoRef as React.RefObject<HTMLVideoElement>}
-            src={renderedPreviewUrl}
-            className="absolute inset-0 w-full h-full object-contain bg-black z-10"
-            controls
+            ref={videoRefA as React.RefObject<HTMLVideoElement>}
+            className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform ${isPreviewPlayback ? "hidden" : ""}`}
             crossOrigin="anonymous"
+            onClick={() => !isExporting && !isRendering && !isPreviewPlayback && onTogglePlay()}
           />
-        )}
+          <video
+            ref={videoRefB as React.RefObject<HTMLVideoElement>}
+            className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform opacity-0 ${isPreviewPlayback ? "hidden" : ""}`}
+            crossOrigin="anonymous"
+            onClick={() => !isExporting && !isRendering && !isPreviewPlayback && onTogglePlay()}
+          />
 
-        {/* Live playback videos - hidden during preview playback */}
-        <video
-          ref={videoRefA as React.RefObject<HTMLVideoElement>}
-          className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform ${isPreviewPlayback ? "hidden" : ""}`}
-          crossOrigin="anonymous"
-          onClick={() => !isExporting && !isRendering && !isPreviewPlayback && onTogglePlay()}
-        />
-        <video
-          ref={videoRefB as React.RefObject<HTMLVideoElement>}
-          className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform opacity-0 ${isPreviewPlayback ? "hidden" : ""}`}
-          crossOrigin="anonymous"
-          onClick={() => !isExporting && !isRendering && !isPreviewPlayback && onTogglePlay()}
-        />
+          <div
+            ref={whiteOverlayRef as React.RefObject<HTMLDivElement>}
+            className={`absolute inset-0 bg-white pointer-events-none z-20 ${isPreviewPlayback ? "hidden" : ""}`}
+            style={{ opacity: 0 }}
+          />
 
-        {/* White fade overlay */}
-        <div
-          ref={whiteOverlayRef as React.RefObject<HTMLDivElement>}
-          className={`absolute inset-0 bg-white pointer-events-none z-20 ${isPreviewPlayback ? "hidden" : ""}`}
-          style={{ opacity: 0 }}
-        />
-
-        {/* Play button overlay */}
-        {!isPlaying && !isExporting && !isRendering && !isPreviewPlayback && (
-          <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
-            <div
-              className="w-16 h-16 bg-white/10 backdrop-blur rounded-full flex items-center justify-center cursor-pointer pointer-events-auto hover:scale-105 transition-transform"
-              onClick={onPlay}
-            >
-              <PlayIcon className="w-6 h-6 text-white ml-1" />
+          {!isPlaying && !isExporting && !isRendering && !isPreviewPlayback && (
+            <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+              <div
+                className="w-16 h-16 bg-white/10 backdrop-blur rounded-full flex items-center justify-center cursor-pointer pointer-events-auto hover:scale-105 transition-transform"
+                onClick={onPlay}
+              >
+                <PlayIcon className="w-6 h-6 text-white ml-1" />
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Preview playback badge */}
-        {isPreviewPlayback && (
-          <div className="absolute top-4 left-4 z-40 flex items-center gap-2 bg-cyan-500/20 backdrop-blur rounded px-3 py-1.5 border border-cyan-500/30">
-            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
-            <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider">Rendered Preview</span>
-          </div>
-        )}
+          {isPreviewPlayback && (
+            <div className="absolute top-4 left-4 z-40 flex items-center gap-2 bg-cyan-500/20 backdrop-blur rounded px-3 py-1.5 border border-cyan-500/30">
+              <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+              <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider">Rendered Preview</span>
+            </div>
+          )}
 
-        {/* Rendering overlay */}
-        {isRendering && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none bg-black/70 backdrop-blur">
-            <div className="w-12 h-12 border-t-2 border-indigo-500 rounded-full animate-spin mb-3"></div>
-            <p className="text-sm">Rendering Preview...</p>
-            <p className="text-xs text-neutral-400">{Math.round(renderProgress)}%</p>
-          </div>
-        )}
+          {isRendering && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none bg-black/70 backdrop-blur">
+              <div className="w-12 h-12 border-t-2 border-indigo-500 rounded-full animate-spin mb-3"></div>
+              <p className="text-sm">Rendering Preview...</p>
+              <p className="text-xs text-neutral-400">{Math.round(renderProgress)}%</p>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   )
 })
+
+function formatTimecodeForFilename(seconds: number): string {
+  const mins = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  const ms = Math.floor((seconds % 1) * 1000)
+  return `${mins.toString().padStart(2, "0")}-${secs.toString().padStart(2, "0")}-${ms.toString().padStart(3, "0")}`
+}
 
 export default PreviewPlayer
