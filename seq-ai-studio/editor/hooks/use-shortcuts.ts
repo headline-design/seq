@@ -10,7 +10,6 @@ interface ShortcutHandlers {
   onDuplicate?: () => void
   onDelete?: () => void
   onRippleDelete?: () => void
-  onSaveFrame?: () => void
   onEscape?: () => void
 }
 

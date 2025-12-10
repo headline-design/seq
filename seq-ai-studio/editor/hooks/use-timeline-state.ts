@@ -60,7 +60,8 @@ export interface UseTimelineStateResult {
   // Handlers
   handleClipUpdate: (id: string, chg: Partial<TimelineClip>) => void
   handleTrackUpdate: (id: string, chg: Partial<Track>) => void
-  handleAddTrack: (type: "video" | "audio") => void
+  handleAddTrack: (type: "video" | "audio" | "text") => void
+  handleReorderTracks: (trackIds: string[]) => void
   handleSelectClips: (ids: string[]) => void
   handleZoomChange: (zoom: number) => void
   handleAddToTimeline: (item: MediaItem) => void
@@ -70,6 +71,7 @@ export interface UseTimelineStateResult {
   handleDeleteClip: (clipIds: string[]) => void
   handleRippleDeleteClip: (clipIds: string[]) => void
   handleDuplicateClip: (clipIds: string[]) => void
+  handleAddTextClip: (trackId: string, start: number) => void
   onToolChange: (newTool: "select" | "razor") => void
 }
 
@@ -151,20 +153,28 @@ export function useTimelineState({
     setTracks((prev) => prev.map((t) => (t.id === id ? { ...t, ...chg } : t)))
   }, [])
 
-  const handleAddTrack = useCallback((type: "video" | "audio") => {
+  const handleAddTrack = useCallback((type: "video" | "audio" | "text") => {
     setTracks((prev) => {
       const count = prev.filter((t) => t.type === type).length + 1
-      const prefix = type === "video" ? "v" : "a"
+      const prefix = type === "video" ? "v" : type === "audio" ? "a" : "t"
       const newId = `${prefix}${Date.now()}`
+      const typeName = type === "video" ? "Video" : type === "audio" ? "Audio" : "Text"
       return [
         ...prev,
         {
           id: newId,
-          name: `${type === "video" ? "Video" : "Audio"} ${count}`,
+          name: `${typeName} ${count}`,
           type,
           volume: 1,
         },
       ]
+    })
+  }, [])
+
+  const handleReorderTracks = useCallback((trackIds: string[]) => {
+    setTracks((prev) => {
+      const trackMap = new Map(prev.map((t) => [t.id, t]))
+      return trackIds.map((id) => trackMap.get(id)!).filter(Boolean)
     })
   }, [])
 
@@ -343,6 +353,38 @@ export function useTimelineState({
     [pushToHistory, timelineClips, markPreviewStale],
   )
 
+  const handleAddTextClip = useCallback(
+    (trackId: string, start: number) => {
+      pushToHistory()
+      const newClip: TimelineClip = {
+        speed: 1,
+        id: `text-${Date.now()}`,
+        mediaId: "", // Text clips don't have media
+        trackId,
+        start,
+        duration: 3, // Default 3 second duration
+        offset: 0,
+        volume: 1,
+        textOverlay: {
+          text: "New Text",
+          fontSize: 48,
+          fontFamily: "Inter, sans-serif",
+          fontWeight: "bold",
+          color: "#ffffff",
+          backgroundColor: "#000000",
+          backgroundOpacity: 50,
+          textAlign: "center",
+          position: { x: 50, y: 50 },
+          animation: "fade-in",
+        },
+      }
+      setTimelineClips((prev) => [...prev, newClip])
+      setSelectedClipIds([newClip.id])
+      markPreviewStale()
+    },
+    [pushToHistory, markPreviewStale],
+  )
+
   const onToolChange = useCallback((newTool: "select" | "razor") => {
     setTool(newTool)
   }, [])
@@ -372,6 +414,7 @@ export function useTimelineState({
     handleClipUpdate,
     handleTrackUpdate,
     handleAddTrack,
+    handleReorderTracks,
     handleSelectClips,
     handleZoomChange,
     handleAddToTimeline,
@@ -381,6 +424,7 @@ export function useTimelineState({
     handleDeleteClip,
     handleRippleDeleteClip,
     handleDuplicateClip,
+    handleAddTextClip,
     onToolChange,
   }
 }

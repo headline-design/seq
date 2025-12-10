@@ -32,19 +32,22 @@ export const TimelineClipItem = memo(
     tabIndex = 0,
   }: TimelineClipItemProps) => {
     const isAudio = track.type === "audio"
+    const isText = track.type === "text"
 
-    const baseColor = isAudio ? "bg-emerald-900/40" : "bg-[#18181b]"
-    const hoverColor = isAudio ? "hover:bg-emerald-900/60" : "hover:bg-[#202023]"
+    const baseColor = isText ? "bg-purple-900/40" : isAudio ? "bg-emerald-900/40" : "bg-[#18181b]"
+    const hoverColor = isText ? "hover:bg-purple-900/60" : isAudio ? "hover:bg-emerald-900/60" : "hover:bg-[#202023]"
     const cursorClass = tool === "razor" ? "cursor-crosshair" : "cursor-pointer"
 
     const selectedClass = isSelected
-      ? isAudio
-        ? "bg-emerald-900/60 border-emerald-400 z-20 ring-1 ring-emerald-400 shadow-md"
-        : "bg-[#1e1e24] border-[#6366f1] z-20 ring-1 ring-[#6366f1] shadow-md"
+      ? isText
+        ? "bg-purple-900/60 border-purple-400 z-20 ring-1 ring-purple-400 shadow-md"
+        : isAudio
+          ? "bg-emerald-900/60 border-emerald-400 z-20 ring-1 ring-emerald-400 shadow-md"
+          : "bg-[#1e1e24] border-[#6366f1] z-20 ring-1 ring-[#6366f1] shadow-md"
       : `${baseColor} ${hoverColor} border-transparent hover:border-neutral-600 z-10`
 
     const borderClass = "border"
-    const verticalPos = isAudio ? "top-1 bottom-1" : "top-0 bottom-0"
+    const verticalPos = isText ? "top-1 bottom-1" : isAudio ? "top-1 bottom-1" : "top-0 bottom-0"
 
     const formatTimeForSR = (seconds: number) => {
       const mins = Math.floor(seconds / 60)
@@ -52,7 +55,9 @@ export const TimelineClipItem = memo(
       return `${mins} minutes ${secs} seconds`
     }
 
-    const clipLabel = `${isAudio ? "Audio" : "Video"} clip: ${media?.prompt || "Untitled"}. Duration: ${formatTimeForSR(clip.duration)}. Starts at ${formatTimeForSR(clip.start)}.${isSelected ? " Selected." : ""}`
+    const clipLabel = isText
+      ? `Text clip: "${clip.textOverlay?.text || "Untitled"}". Duration: ${formatTimeForSR(clip.duration)}. Starts at ${formatTimeForSR(clip.start)}.${isSelected ? " Selected." : ""}`
+      : `${isAudio ? "Audio" : "Video"} clip: ${media?.prompt || "Untitled"}. Duration: ${formatTimeForSR(clip.duration)}. Starts at ${formatTimeForSR(clip.start)}.${isSelected ? " Selected." : ""}`
 
     return (
       <div
@@ -61,6 +66,7 @@ export const TimelineClipItem = memo(
         aria-selected={isSelected}
         tabIndex={track.isLocked ? -1 : tabIndex}
         onKeyDown={onKeyDown}
+        data-clip="true"
         className={`clip-item absolute ${verticalPos} rounded-md overflow-visible ${cursorClass} flex flex-col ${borderClass} transition-colors select-none group/item ${selectedClass} focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-neutral-900 focus-visible:ring-indigo-500`}
         style={{
           left: `${clip.start * zoomLevel}px`,
@@ -111,8 +117,17 @@ export const TimelineClipItem = memo(
 
         {/* Content Render */}
         <div className="flex-1 overflow-hidden relative px-2 py-1 flex flex-col justify-center" aria-hidden="true">
+          {isText && clip.textOverlay && (
+            <div className="relative z-10 flex items-center gap-2">
+              <span className="text-[10px] font-medium truncate drop-shadow-md text-purple-100">
+                {clip.textOverlay.text}
+              </span>
+            </div>
+          )}
+
           {/* Video Thumbnails or Image Preview */}
-          {!isAudio &&
+          {!isText &&
+            !isAudio &&
             !clip.isAudioDetached &&
             media?.status === "ready" &&
             (media.type === "video" ? (
@@ -131,27 +146,32 @@ export const TimelineClipItem = memo(
               </div>
             ) : null)}
 
-          {/* Label */}
-          <div className="relative z-10 flex items-center gap-2">
-            <span
-              className={`text-[10px] font-medium truncate drop-shadow-md ${isAudio ? "text-emerald-100" : "text-white"}`}
-            >
-              {media?.prompt || "Media"}
-            </span>
-          </div>
+          {/* Label for non-text clips */}
+          {!isText && (
+            <div className="relative z-10 flex items-center gap-2">
+              <span
+                className={`text-[10px] font-medium truncate drop-shadow-md ${isAudio ? "text-emerald-100" : "text-white"}`}
+              >
+                {media?.prompt || "Media"}
+              </span>
+            </div>
+          )}
 
-          <div className="absolute bottom-0 left-0 right-0 h-1/2 opacity-50 px-0.5">
-            {media && (
-              <ClipWaveform
-                mediaUrl={media.url}
-                duration={clip.duration}
-                offset={clip.offset}
-                isAudio={isAudio}
-                isSelected={isSelected}
-                zoomLevel={zoomLevel}
-              />
-            )}
-          </div>
+          {/* Waveform for audio/video clips */}
+          {!isText && (
+            <div className="absolute bottom-0 left-0 right-0 h-1/2 opacity-50 px-0.5">
+              {media && (
+                <ClipWaveform
+                  mediaUrl={media.url}
+                  duration={clip.duration}
+                  offset={clip.offset}
+                  isAudio={isAudio}
+                  isSelected={isSelected}
+                  zoomLevel={zoomLevel}
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
     )

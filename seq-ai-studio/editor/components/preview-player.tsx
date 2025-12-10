@@ -3,7 +3,7 @@
 import type React from "react"
 import { memo, useCallback, useState } from "react"
 import { PlayIcon, Grid3x3Icon, MaximizeIcon, ImageIcon, ChevronDownIcon } from "./icons"
-import type { MediaItem, TimelineClip } from "../types"
+import type { MediaItem, TimelineClip, ClipEffects } from "../types"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
 import {
   DropdownMenu,
@@ -14,16 +14,37 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
 
+function effectsToCSSFilter(effects?: ClipEffects): string {
+  if (!effects) return "none"
+
+  const filters: string[] = []
+
+  if (effects.brightness !== 0) {
+    filters.push(`brightness(${1 + effects.brightness / 100})`)
+  }
+  if (effects.contrast !== 0) {
+    filters.push(`contrast(${1 + effects.contrast / 100})`)
+  }
+  if (effects.saturation !== 0) {
+    filters.push(`saturate(${1 + effects.saturation / 100})`)
+  }
+  if (effects.hue !== 0) {
+    filters.push(`hue-rotate(${effects.hue}deg)`)
+  }
+  if (effects.blur > 0) {
+    filters.push(`blur(${effects.blur}px)`)
+  }
+
+  return filters.length > 0 ? filters.join(" ") : "none"
+}
+
 export interface PreviewPlayerProps {
   currentTime: number
-  // Video refs
   videoRefA: React.RefObject<HTMLVideoElement | null>
   videoRefB: React.RefObject<HTMLVideoElement | null>
   whiteOverlayRef: React.RefObject<HTMLDivElement | null>
   previewVideoRef: React.RefObject<HTMLVideoElement | null>
   duration: number
-
-  // State
   isPlaying: boolean
   isExporting: boolean
   isRendering: boolean
@@ -36,11 +57,9 @@ export interface PreviewPlayerProps {
   mediaMap: Record<string, MediaItem>
   playerZoom: number
   isSafeGuidesVisible: boolean
-
   ffmpegLoaded: boolean
   ffmpegLoading: boolean
-
-  // Callbacks
+  activeClip?: TimelineClip | null
   onPlay: () => void
   onSeek: (time: number) => void
   onTogglePlay: () => void
@@ -73,6 +92,7 @@ export const PreviewPlayer = memo(function PreviewPlayer({
   timelineClips,
   ffmpegLoaded,
   ffmpegLoading,
+  activeClip,
   onPlay,
   onLoadFFmpeg,
   onTogglePlay,
@@ -85,6 +105,9 @@ export const PreviewPlayer = memo(function PreviewPlayer({
   onToggleCinemaMode,
 }: PreviewPlayerProps) {
   const [isSavingFrame, setIsSavingFrame] = useState(false)
+
+  const cssFilter = effectsToCSSFilter(activeClip?.effects)
+  const clipOpacity = activeClip?.effects?.opacity ?? 100
 
   const handleSaveFrame = useCallback(
     async (format: "png" | "jpeg" | "webp" = "png", quality = 0.95) => {
@@ -135,6 +158,13 @@ export const PreviewPlayer = memo(function PreviewPlayer({
 
         ctx.imageSmoothingEnabled = false
 
+        if (cssFilter !== "none") {
+          ctx.filter = cssFilter
+        }
+        if (clipOpacity < 100) {
+          ctx.globalAlpha = clipOpacity / 100
+        }
+
         if (imageBitmap) {
           ctx.drawImage(imageBitmap, 0, 0, width, height)
           imageBitmap.close()
@@ -172,7 +202,7 @@ export const PreviewPlayer = memo(function PreviewPlayer({
         setIsSavingFrame(false)
       }
     },
-    [currentTime, isPreviewPlayback, previewVideoRef, videoRefA, videoRefB, isSavingFrame],
+    [currentTime, isPreviewPlayback, previewVideoRef, videoRefA, videoRefB, isSavingFrame, cssFilter, clipOpacity],
   )
 
   const handleQuickSaveFrame = useCallback(() => {
@@ -269,12 +299,19 @@ export const PreviewPlayer = memo(function PreviewPlayer({
             className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform ${isPreviewPlayback ? "hidden" : ""}`}
             crossOrigin="anonymous"
             onClick={() => !isExporting && !isRendering && !isPreviewPlayback && onTogglePlay()}
+            style={{
+              filter: cssFilter,
+              opacity: clipOpacity / 100,
+            }}
           />
           <video
             ref={videoRefB as React.RefObject<HTMLVideoElement>}
             className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform opacity-0 ${isPreviewPlayback ? "hidden" : ""}`}
             crossOrigin="anonymous"
             onClick={() => !isExporting && !isRendering && !isPreviewPlayback && onTogglePlay()}
+            style={{
+              filter: cssFilter,
+            }}
           />
 
           <div

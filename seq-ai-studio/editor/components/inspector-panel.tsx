@@ -5,7 +5,8 @@ import type React from "react"
 import { memo, useState, useCallback } from "react"
 import type { TimelineClip, MediaItem, Track } from "../types"
 import { FilmIcon, MusicIcon, InfoIcon, PanelLeftClose, VolumeIcon, PlayIcon, PauseIcon } from "./icons"
-import { Scissors, RotateCcw, Copy, Trash2, Zap } from "lucide-react"
+import { Scissors, RotateCcw, Copy, Trash2, Zap, Palette } from "lucide-react"
+import { EffectsPanel } from "./effects-panel"
 
 interface InspectorPanelProps {
   onClose: () => void
@@ -136,6 +137,7 @@ export const InspectorPanel = memo<InspectorPanelProps>(
     const media = clip ? mediaMap[clip.mediaId] : null
     const track = clip ? tracks.find((t) => t.id === clip.trackId) : null
     const [isPreviewPlaying, setIsPreviewPlaying] = useState(false)
+    const [activeTab, setActiveTab] = useState<"properties" | "effects">("properties")
 
     const speedPresets = [0.25, 0.5, 1, 1.5, 2, 4]
 
@@ -147,6 +149,13 @@ export const InspectorPanel = memo<InspectorPanelProps>(
       },
       [clip, onUpdateClip],
     )
+
+    const hasEffects =
+      clip?.effects &&
+      Object.values(clip.effects).some((v, i) => {
+        const defaults = [0, 0, 0, 0, 0, 100] // brightness, contrast, saturation, hue, blur, opacity
+        return v !== defaults[i]
+      })
 
     return (
       <div className="w-full flex flex-col bg-[#09090b] border-r border-neutral-800 h-full">
@@ -161,12 +170,41 @@ export const InspectorPanel = memo<InspectorPanelProps>(
           </div>
         </div>
 
+        {clip && media && media.type === "video" && (
+          <div className="flex border-b border-neutral-800">
+            <button
+              onClick={() => setActiveTab("properties")}
+              className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                activeTab === "properties"
+                  ? "text-white border-b-2 border-indigo-500"
+                  : "text-neutral-500 hover:text-neutral-300"
+              }`}
+            >
+              Properties
+            </button>
+            <button
+              onClick={() => setActiveTab("effects")}
+              className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 ${
+                activeTab === "effects"
+                  ? "text-white border-b-2 border-indigo-500"
+                  : "text-neutral-500 hover:text-neutral-300"
+              }`}
+            >
+              <Palette className="w-3 h-3" />
+              Effects
+              {hasEffects && <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>}
+            </button>
+          </div>
+        )}
+
         <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1">
           {!clip || !media ? (
             <div className="flex flex-col items-center justify-center gap-3 py-20 opacity-50">
               <InfoIcon className="w-8 h-8 text-neutral-600" />
               <p className="text-xs text-neutral-500">Select a clip to view properties</p>
             </div>
+          ) : activeTab === "effects" && media.type === "video" ? (
+            <EffectsPanel clip={clip} onUpdateClip={onUpdateClip} />
           ) : (
             <>
               {/* Media Identity with Preview */}
@@ -236,6 +274,7 @@ export const InspectorPanel = memo<InspectorPanelProps>(
                         volume: 1,
                         speed: 1,
                         offset: 0,
+                        effects: undefined,
                       })
                     }
                   />

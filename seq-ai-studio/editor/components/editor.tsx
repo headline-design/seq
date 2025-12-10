@@ -1525,6 +1525,12 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                 isExporting={ffmpeg.isExporting}
                 onPlay={() => playback.setIsPlaying(true)}
                 onZoomReset={() => setPlayerZoom(1)}
+                activeClip={timeline.timelineClips.find(
+                  (c) =>
+                    c.trackId.startsWith("video") &&
+                    playback.currentTime >= c.start &&
+                    playback.currentTime < c.start + c.duration,
+                )}
               />
             </PanelErrorBoundary>
 
@@ -1574,6 +1580,12 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                     onCancelRender={handleCancelRender}
                     isPreviewPlayback={playback.isPreviewPlayback}
                     onTogglePreviewPlayback={playback.handleTogglePreviewPlayback}
+                    historyCount={timeline.history.length}
+                    futureCount={timeline.future.length}
+                    onUndo={timeline.undo}
+                    onRedo={timeline.redo}
+                    onShowShortcuts={() => setIsShortcutsOpen(true)}
+                    // </CHANGE>
                   />
                 </div>
               </PanelErrorBoundary>

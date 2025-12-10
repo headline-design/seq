@@ -19,6 +19,8 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   RepeatIcon,
+  UndoIcon,
+  RedoIcon,
 } from "./icons"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
@@ -39,6 +41,12 @@ interface TimelineToolbarProps {
   isPreviewStale: boolean
   isPreviewPlayback: boolean
   frameRate?: number
+  historyCount?: number
+  futureCount?: number
+  onUndo?: () => void
+  onRedo?: () => void
+  onShowShortcuts?: () => void
+  // </CHANGE>
   onPlayPause: () => void
   onSeek: (time: number) => void
   onToggleLoop: () => void
@@ -77,6 +85,12 @@ export const TimelineToolbar = memo(function TimelineToolbar({
   isPreviewStale,
   isPreviewPlayback,
   frameRate = 30,
+  historyCount = 0,
+  futureCount = 0,
+  onUndo,
+  onRedo,
+  onShowShortcuts,
+  // </CHANGE>
   onPlayPause,
   onSeek,
   onToggleLoop,
@@ -105,6 +119,49 @@ export const TimelineToolbar = memo(function TimelineToolbar({
     <TooltipProvider delayDuration={300}>
       <div className="h-10 border-b border-neutral-800 flex items-center justify-between px-4 bg-[#09090b] shrink-0 z-30">
         <div className="flex items-center gap-3">
+          {onUndo && onRedo && (
+            <>
+              <div className="flex items-center gap-0.5 bg-neutral-800/50 rounded-md p-0.5 border border-neutral-700/50">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`h-6 w-6 hover:bg-neutral-700 ${historyCount > 0 ? "text-neutral-300 hover:text-white" : "text-neutral-600 cursor-not-allowed"}`}
+                      onClick={onUndo}
+                      disabled={historyCount === 0}
+                    >
+                      <UndoIcon className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    Undo (Ctrl+Z) {historyCount > 0 && `• ${historyCount}`}
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`h-6 w-6 hover:bg-neutral-700 ${futureCount > 0 ? "text-neutral-300 hover:text-white" : "text-neutral-600 cursor-not-allowed"}`}
+                      onClick={onRedo}
+                      disabled={futureCount === 0}
+                    >
+                      <RedoIcon className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    Redo (Ctrl+Shift+Z) {futureCount > 0 && `• ${futureCount}`}
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+
+              <div className="h-4 w-px bg-neutral-800" />
+            </>
+          )}
+          {/* </CHANGE> */}
+
           <div className="flex items-center gap-0.5 bg-neutral-800/50 rounded-md p-0.5 border border-neutral-700/50">
             {/* Jump to Start */}
             <Tooltip>
@@ -136,7 +193,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top" className="text-xs">
-                Previous Frame (←)
+                Previous Frame (,)
               </TooltipContent>
             </Tooltip>
 
@@ -170,7 +227,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top" className="text-xs">
-                Next Frame (→)
+                Next Frame (.)
               </TooltipContent>
             </Tooltip>
 
@@ -206,7 +263,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top" className="text-xs">
-                {isLooping ? "Disable Loop" : "Enable Loop"}
+                {isLooping ? "Disable Loop (L)" : "Enable Loop (L)"}
               </TooltipContent>
             </Tooltip>
           </div>
@@ -229,7 +286,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                   : "border-transparent text-neutral-500 hover:text-neutral-300"
               }`}
               onClick={() => onToolChange(tool === "select" ? "razor" : "select")}
-              title="Toggle Razor Tool (Ctrl+C)"
+              title="Toggle Razor Tool (C)"
             >
               {tool === "razor" ? (
                 <ScissorsIcon className="w-3.5 h-3.5" />
@@ -244,7 +301,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
             <div
               className="flex items-center gap-2 px-2 py-0.5 rounded border border-transparent hover:bg-neutral-800 text-neutral-500 hover:text-neutral-300 cursor-pointer transition-colors"
               onClick={onSplitAtPlayhead}
-              title="Split at Playhead"
+              title="Split at Playhead (S)"
             >
               <SplitIcon className="w-3.5 h-3.5" />
               <span className="text-[10px] uppercase font-bold tracking-wider">Split</span>
@@ -359,7 +416,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                 className={`p-1 rounded transition-colors ${
                   snapConfig.enabled ? "text-indigo-400 bg-indigo-500/10" : "text-neutral-500 hover:text-neutral-300"
                 }`}
-                title="Toggle Snapping (S)"
+                title="Toggle Snapping (N)"
               >
                 <MagnetIcon className="w-3.5 h-3.5" />
               </button>
@@ -419,8 +476,26 @@ export const TimelineToolbar = memo(function TimelineToolbar({
           )}
         </div>
 
-        {/* Zoom Controls */}
-        <div className="flex items-center gap-4">
+        {/* Right side - Zoom Controls and Shortcuts */}
+        <div className="flex items-center gap-3">
+          {onShowShortcuts && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={onShowShortcuts}
+                  className="flex items-center gap-1.5 px-2 py-1 rounded bg-neutral-800/50 border border-neutral-700/50 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-700/50 transition-colors"
+                >
+                  <kbd className="text-[10px] font-mono bg-neutral-700 px-1 rounded">?</kbd>
+                  <span className="text-[10px] font-medium">Shortcuts</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">
+                View Keyboard Shortcuts (?)
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {/* </CHANGE> */}
+
           <div className="flex items-center gap-2 bg-[#18181b] rounded-md p-1 border border-neutral-800">
             <button
               onClick={() => onZoomChange(getPrevZoom(zoomLevel))}

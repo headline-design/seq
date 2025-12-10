@@ -1,34 +1,112 @@
 "use client"
 
-import { memo } from "react"
+import type React from "react"
+
+import { memo, useState, useCallback } from "react"
 import type { Track } from "../types"
-import { MusicIcon, VolumeIcon, LockIcon, UnlockIcon, MuteIcon, PlusIcon } from "./icons"
+import { MusicIcon, VolumeIcon, LockIcon, UnlockIcon, MuteIcon, PlusIcon, GripVerticalIcon, TypeIcon } from "./icons"
 
 interface TimelineTrackHeadersProps {
   tracks: Track[]
   onTrackUpdate: (trackId: string, changes: Partial<Track>) => void
-  onAddTrack?: (type: "video" | "audio") => void
+  onAddTrack?: (type: "video" | "audio" | "text") => void
+  onReorderTracks?: (trackIds: string[]) => void
 }
 
 export const TimelineTrackHeaders = memo(function TimelineTrackHeaders({
   tracks,
   onTrackUpdate,
   onAddTrack,
+  onReorderTracks,
 }: TimelineTrackHeadersProps) {
+  const [draggedTrackId, setDraggedTrackId] = useState<string | null>(null)
+  const [dragOverTrackId, setDragOverTrackId] = useState<string | null>(null)
+
+  const handleDragStart = useCallback((e: React.DragEvent, trackId: string) => {
+    setDraggedTrackId(trackId)
+    e.dataTransfer.effectAllowed = "move"
+    e.dataTransfer.setData("text/plain", trackId)
+  }, [])
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent, trackId: string) => {
+      e.preventDefault()
+      e.dataTransfer.dropEffect = "move"
+      if (trackId !== draggedTrackId) {
+        setDragOverTrackId(trackId)
+      }
+    },
+    [draggedTrackId],
+  )
+
+  const handleDragLeave = useCallback(() => {
+    setDragOverTrackId(null)
+  }, [])
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent, targetTrackId: string) => {
+      e.preventDefault()
+      if (!draggedTrackId || draggedTrackId === targetTrackId || !onReorderTracks) {
+        setDraggedTrackId(null)
+        setDragOverTrackId(null)
+        return
+      }
+
+      const currentOrder = tracks.map((t) => t.id)
+      const draggedIndex = currentOrder.indexOf(draggedTrackId)
+      const targetIndex = currentOrder.indexOf(targetTrackId)
+
+      if (draggedIndex === -1 || targetIndex === -1) return
+
+      const newOrder = [...currentOrder]
+      newOrder.splice(draggedIndex, 1)
+      newOrder.splice(targetIndex, 0, draggedTrackId)
+
+      onReorderTracks(newOrder)
+      setDraggedTrackId(null)
+      setDragOverTrackId(null)
+    },
+    [draggedTrackId, tracks, onReorderTracks],
+  )
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedTrackId(null)
+    setDragOverTrackId(null)
+  }, [])
+
   return (
     <>
       {tracks.map((track) => {
         const isAudio = track.type === "audio"
-        const trackHeight = isAudio ? "h-16" : "h-24"
+        const isText = track.type === "text"
+        const trackHeight = isAudio ? "h-16" : isText ? "h-12" : "h-24"
+        const isDragging = draggedTrackId === track.id
+        const isDragOver = dragOverTrackId === track.id
 
         return (
           <div
             key={track.id}
-            className={`${trackHeight} border-b border-neutral-800/50 flex flex-col px-3 py-3 gap-2 bg-[#09090b] relative group/header shrink-0`}
+            draggable
+            onDragStart={(e) => handleDragStart(e, track.id)}
+            onDragOver={(e) => handleDragOver(e, track.id)}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, track.id)}
+            onDragEnd={handleDragEnd}
+            className={`${trackHeight} border-b border-neutral-800/50 flex flex-col px-3 py-2 gap-1 bg-[#09090b] relative group/header shrink-0 transition-all
+              ${isDragging ? "opacity-50" : ""}
+              ${isDragOver ? "border-t-2 border-t-indigo-500" : ""}
+            `}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                {isAudio ? <MusicIcon className="w-3 h-3 text-emerald-500" /> : null}
+                <div className="cursor-grab active:cursor-grabbing text-neutral-600 hover:text-neutral-400 opacity-0 group-hover/header:opacity-100 transition-opacity">
+                  <GripVerticalIcon className="w-3 h-3" />
+                </div>
+                {isAudio ? (
+                  <MusicIcon className="w-3 h-3 text-emerald-500" />
+                ) : isText ? (
+                  <TypeIcon className="w-3 h-3 text-purple-500" />
+                ) : null}
                 <span
                   className="text-[11px] text-neutral-400 font-semibold uppercase tracking-wider truncate"
                   title={track.name}
@@ -73,6 +151,8 @@ export const TimelineTrackHeaders = memo(function TimelineTrackHeaders({
                     />
                   </div>
                 </div>
+              ) : isText ? (
+                <div className={`text-[10px] text-purple-400/60 ${track.isMuted ? "opacity-30" : ""}`}>Text Layer</div>
               ) : (
                 <div className={`flex items-end gap-0.5 h-3 ${track.isMuted ? "opacity-10" : "opacity-20"}`}>
                   {[...Array(10)].map((_, i) => (
@@ -104,6 +184,12 @@ export const TimelineTrackHeaders = memo(function TimelineTrackHeaders({
             className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-neutral-800 hover:bg-neutral-800 text-[10px] text-neutral-500 hover:text-neutral-300 transition-colors"
           >
             <PlusIcon className="w-3 h-3" /> Audio Track
+          </button>
+          <button
+            onClick={() => onAddTrack("text")}
+            className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-neutral-800 hover:bg-neutral-800 text-[10px] text-neutral-500 hover:text-neutral-300 transition-colors"
+          >
+            <PlusIcon className="w-3 h-3" /> Text Track
           </button>
         </div>
       )}

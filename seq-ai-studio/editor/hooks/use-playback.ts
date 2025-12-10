@@ -12,6 +12,7 @@ export interface UsePlaybackOptions {
   timelineDuration: number
   isExporting: boolean
   isRendering: boolean
+  isLooping?: boolean
 }
 
 export interface UsePlaybackResult {
@@ -52,10 +53,13 @@ export function usePlayback({
   timelineDuration,
   isExporting,
   isRendering,
+  isLooping = false,
 }: UsePlaybackOptions): UsePlaybackResult {
   const [currentTime, setCurrentTime] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isPreviewPlayback, setIsPreviewPlayback] = useState(false)
+
+  const currentTimeRef = useRef(0)
 
   // Refs for video/audio elements
   const videoRefA = useRef<HTMLVideoElement | null>(null)
@@ -73,6 +77,10 @@ export function usePlayback({
   // Animation refs
   const requestRef = useRef<number | null>(null)
   const lastTimeRef = useRef<number | null>(null)
+  const lastStateUpdateRef = useRef<number>(0)
+  const STATE_UPDATE_INTERVAL = 1000 / 30 // Update React state at 30fps max
+
+  // ... existing code for setupAudioGraph ...
 
   const setupAudioGraph = useCallback(() => {
     if (typeof window === "undefined") return
@@ -127,6 +135,8 @@ export function usePlayback({
       window.removeEventListener("keydown", initAudio)
     }
   }, [setupAudioGraph])
+
+  // ... existing syncMediaToTime code ...
 
   const syncMediaToTime = useCallback(
     (time: number, isExportingNow = false) => {
@@ -275,6 +285,8 @@ export function usePlayback({
     [timelineClips, mediaMap, tracks, isPlaying],
   )
 
+  // ... existing drawFrameToCanvas and waitForVideoReady ...
+
   const drawFrameToCanvas = useCallback(
     (ctx: CanvasRenderingContext2D, width: number, height: number, time: number) => {
       ctx.fillStyle = "#000000"
@@ -394,6 +406,7 @@ export function usePlayback({
   }, [])
 
   const handleSeek = useCallback((time: number) => {
+    currentTimeRef.current = time
     setCurrentTime(time)
   }, [])
 
@@ -421,39 +434,59 @@ export function usePlayback({
     }
   }, [isPreviewPlayback])
 
-  // Animation loop
   const animate = useCallback(
     (time: number) => {
       if (isExporting || isRendering) return
       if (lastTimeRef.current !== null) {
         const deltaTime = (time - lastTimeRef.current) / 1000
-        setCurrentTime((prev) => {
-          const nextTime = prev + deltaTime
-          if (nextTime >= timelineDuration) {
+        const nextTime = currentTimeRef.current + deltaTime
+
+        if (nextTime >= timelineDuration) {
+          if (isLooping) {
+            // Loop back to start
+            currentTimeRef.current = 0
+            setCurrentTime(0)
+          } else {
             setIsPlaying(false)
-            return 0
+            currentTimeRef.current = 0
+            setCurrentTime(0)
+            lastTimeRef.current = time
+            return
           }
-          return nextTime
-        })
+        } else {
+          currentTimeRef.current = nextTime
+        }
+
+        // Sync media every frame for smooth playback
+        syncMediaToTime(currentTimeRef.current, false)
+
+        // Throttle React state updates for UI (playhead position)
+        const now = performance.now()
+        if (now - lastStateUpdateRef.current >= STATE_UPDATE_INTERVAL) {
+          setCurrentTime(currentTimeRef.current)
+          lastStateUpdateRef.current = now
+        }
       }
       lastTimeRef.current = time
       if (isPlaying) {
         requestRef.current = requestAnimationFrame(animate)
       }
     },
-    [isPlaying, timelineDuration, isExporting, isRendering],
+    [isPlaying, timelineDuration, isExporting, isRendering, isLooping, syncMediaToTime],
   )
 
-  // Sync media when currentTime changes
+  // Sync media when currentTime changes (for scrubbing/seeking)
   useEffect(() => {
-    if (!isExporting && !isRendering) {
+    if (!isExporting && !isRendering && !isPlaying) {
       syncMediaToTime(currentTime, false)
     }
-  }, [currentTime, syncMediaToTime, isExporting, isRendering])
+  }, [currentTime, syncMediaToTime, isExporting, isRendering, isPlaying])
 
   // Start/stop animation loop
   useEffect(() => {
     if (isPlaying && !isExporting && !isRendering) {
+      currentTimeRef.current = currentTime
+      lastStateUpdateRef.current = performance.now()
       requestRef.current = requestAnimationFrame(animate)
     } else {
       lastTimeRef.current = null
@@ -462,7 +495,7 @@ export function usePlayback({
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current)
     }
-  }, [isPlaying, animate, isExporting, isRendering])
+  }, [isPlaying, animate, isExporting, isRendering, currentTime])
 
   return {
     currentTime,
