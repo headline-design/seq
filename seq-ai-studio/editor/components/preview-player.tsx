@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-import { memo, useCallback, useState } from "react"
-import { PlayIcon, Grid3x3Icon, MaximizeIcon, ImageIcon, ChevronDownIcon } from "./icons"
+import { memo, useCallback, useState, useRef, useEffect } from "react"
+import { PlayIcon, Grid3x3Icon, MaximizeIcon, ImageIcon, ChevronDownIcon, VideoIcon } from "./icons"
 import type { MediaItem, TimelineClip, ClipEffects } from "../types"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
 import {
@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
+import { TextOverlayPreview } from "./text-overlay-preview"
 
 function effectsToCSSFilter(effects?: ClipEffects): string {
   if (!effects) return "none"
@@ -60,6 +61,7 @@ export interface PreviewPlayerProps {
   ffmpegLoaded: boolean
   ffmpegLoading: boolean
   activeClip?: TimelineClip | null
+  textClips?: TimelineClip[]
   onPlay: () => void
   onSeek: (time: number) => void
   onTogglePlay: () => void
@@ -67,7 +69,6 @@ export interface PreviewPlayerProps {
   onZoomReset: () => void
   onZoomChange: (zoom: number) => void
   onToggleSafeGuides: () => void
-  onCancelRender: () => void
   onToggleCinemaMode: () => void
   onLoadFFmpeg: () => void
   onRenderPreview: () => void
@@ -93,6 +94,7 @@ export const PreviewPlayer = memo(function PreviewPlayer({
   ffmpegLoaded,
   ffmpegLoading,
   activeClip,
+  textClips = [],
   onPlay,
   onLoadFFmpeg,
   onTogglePlay,
@@ -105,6 +107,20 @@ export const PreviewPlayer = memo(function PreviewPlayer({
   onToggleCinemaMode,
 }: PreviewPlayerProps) {
   const [isSavingFrame, setIsSavingFrame] = useState(false)
+  const previewContainerRef = useRef<HTMLDivElement>(null)
+  const [containerSize, setContainerSize] = useState({ width: 1920, height: 1080 })
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (previewContainerRef.current) {
+        const rect = previewContainerRef.current.getBoundingClientRect()
+        setContainerSize({ width: rect.width, height: rect.height })
+      }
+    }
+    updateSize()
+    window.addEventListener("resize", updateSize)
+    return () => window.removeEventListener("resize", updateSize)
+  }, [])
 
   const cssFilter = effectsToCSSFilter(activeClip?.effects)
   const clipOpacity = activeClip?.effects?.opacity ?? 100
@@ -209,6 +225,8 @@ export const PreviewPlayer = memo(function PreviewPlayer({
     handleSaveFrame("png")
   }, [handleSaveFrame])
 
+  const hasClips = timelineClips.length > 0
+
   return (
     <TooltipProvider delayDuration={300}>
       <div className="flex-1 w-full bg-[#050505] relative flex items-center justify-center p-6 overflow-hidden min-h-[200px]">
@@ -281,54 +299,76 @@ export const PreviewPlayer = memo(function PreviewPlayer({
         )}
 
         <div
+          ref={previewContainerRef}
           className="relative aspect-video w-full max-h-full shadow-2xl bg-black flex items-center justify-center overflow-hidden"
           style={{ transform: `scale(${playerZoom})` }}
         >
-          {isPreviewPlayback && renderedPreviewUrl && (
-            <video
-              ref={previewVideoRef as React.RefObject<HTMLVideoElement>}
-              src={renderedPreviewUrl}
-              className="absolute inset-0 w-full h-full object-contain bg-black z-10"
-              controls
-              crossOrigin="anonymous"
-            />
+          {!hasClips && !isExporting && !isRendering && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-30 text-neutral-500">
+              <VideoIcon className="w-16 h-16 mb-4 opacity-30" />
+              <p className="text-sm font-medium text-neutral-400">No clips in timeline</p>
+              <p className="text-xs text-neutral-600 mt-1">Add media or generate content to preview</p>
+            </div>
           )}
 
-          <video
-            ref={videoRefA as React.RefObject<HTMLVideoElement>}
-            className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform ${isPreviewPlayback ? "hidden" : ""}`}
-            crossOrigin="anonymous"
-            onClick={() => !isExporting && !isRendering && !isPreviewPlayback && onTogglePlay()}
-            style={{
-              filter: cssFilter,
-              opacity: clipOpacity / 100,
-            }}
-          />
-          <video
-            ref={videoRefB as React.RefObject<HTMLVideoElement>}
-            className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform opacity-0 ${isPreviewPlayback ? "hidden" : ""}`}
-            crossOrigin="anonymous"
-            onClick={() => !isExporting && !isRendering && !isPreviewPlayback && onTogglePlay()}
-            style={{
-              filter: cssFilter,
-            }}
-          />
+          {hasClips && (
+            <>
+              {isPreviewPlayback && renderedPreviewUrl && (
+                <video
+                  ref={previewVideoRef as React.RefObject<HTMLVideoElement>}
+                  src={renderedPreviewUrl}
+                  className="absolute inset-0 w-full h-full object-contain bg-black z-10"
+                  controls
+                  crossOrigin="anonymous"
+                />
+              )}
 
-          <div
-            ref={whiteOverlayRef as React.RefObject<HTMLDivElement>}
-            className={`absolute inset-0 bg-white pointer-events-none z-20 ${isPreviewPlayback ? "hidden" : ""}`}
-            style={{ opacity: 0 }}
-          />
+              <video
+                ref={videoRefA as React.RefObject<HTMLVideoElement>}
+                className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform ${isPreviewPlayback ? "hidden" : ""}`}
+                crossOrigin="anonymous"
+                onClick={() => !isExporting && !isRendering && !isPreviewPlayback && onTogglePlay()}
+                style={{
+                  filter: cssFilter,
+                  opacity: clipOpacity / 100,
+                }}
+              />
+              <video
+                ref={videoRefB as React.RefObject<HTMLVideoElement>}
+                className={`absolute inset-0 w-full h-full object-contain bg-black transition-transform opacity-0 ${isPreviewPlayback ? "hidden" : ""}`}
+                crossOrigin="anonymous"
+                onClick={() => !isExporting && !isRendering && !isPreviewPlayback && onTogglePlay()}
+                style={{
+                  filter: cssFilter,
+                }}
+              />
 
-          {!isPlaying && !isExporting && !isRendering && !isPreviewPlayback && (
-            <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
               <div
-                className="w-16 h-16 bg-white/10 backdrop-blur rounded-full flex items-center justify-center cursor-pointer pointer-events-auto hover:scale-105 transition-transform"
-                onClick={onPlay}
-              >
-                <PlayIcon className="w-6 h-6 text-white ml-1" />
-              </div>
-            </div>
+                ref={whiteOverlayRef as React.RefObject<HTMLDivElement>}
+                className={`absolute inset-0 bg-white pointer-events-none z-20 ${isPreviewPlayback ? "hidden" : ""}`}
+                style={{ opacity: 0 }}
+              />
+
+              {!isPreviewPlayback && textClips.length > 0 && (
+                <TextOverlayPreview
+                  clips={textClips}
+                  currentTime={currentTime}
+                  containerWidth={containerSize.width}
+                  containerHeight={containerSize.height}
+                />
+              )}
+
+              {!isPlaying && !isExporting && !isRendering && !isPreviewPlayback && (
+                <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+                  <div
+                    className="w-16 h-16 bg-white/10 backdrop-blur rounded-full flex items-center justify-center cursor-pointer pointer-events-auto hover:scale-105 transition-transform"
+                    onClick={onPlay}
+                  >
+                    <PlayIcon className="w-6 h-6 text-white ml-1" />
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {isPreviewPlayback && (

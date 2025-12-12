@@ -1,5 +1,7 @@
 "use client"
 
+import { TooltipTrigger } from "@/components/ui/tooltip"
+
 import { memo } from "react"
 import type { SnapConfig } from "../hooks/use-timeline-snap"
 import { getNextZoom, getPrevZoom } from "../utils/timeline-scale"
@@ -18,12 +20,14 @@ import {
   SkipForwardIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  RepeatIcon,
+  LoopIcon,
   UndoIcon,
   RedoIcon,
+  FlagIcon,
+  MaximizeIcon,
 } from "./icons"
 import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
+import { Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
 
 interface TimelineToolbarProps {
   currentTime: number
@@ -35,18 +39,17 @@ interface TimelineToolbarProps {
   selectedClipCount: number
   snapConfig: SnapConfig
   showSnapMenu: boolean
-  isRendering: boolean
-  renderProgress: number
-  renderedPreviewUrl: string | null
-  isPreviewStale: boolean
-  isPreviewPlayback: boolean
+  isRendering?: boolean
+  renderProgress?: number
+  renderedPreviewUrl?: string | null
+  isPreviewStale?: boolean
+  isPreviewPlayback?: boolean
   frameRate?: number
   historyCount?: number
   futureCount?: number
   onUndo?: () => void
   onRedo?: () => void
   onShowShortcuts?: () => void
-  // </CHANGE>
   onPlayPause: () => void
   onSeek: (time: number) => void
   onToggleLoop: () => void
@@ -60,13 +63,8 @@ interface TimelineToolbarProps {
   onRenderPreview?: () => void
   onCancelRender?: () => void
   onTogglePreviewPlayback?: () => void
-}
-
-const formatTimecode = (seconds: number, frameRate = 30) => {
-  const mins = Math.floor(seconds / 60)
-  const secs = Math.floor(seconds % 60)
-  const frames = Math.floor((seconds % 1) * frameRate)
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}:${frames.toString().padStart(2, "0")}`
+  onAddMarker?: () => void
+  onZoomToFit?: () => void
 }
 
 export const TimelineToolbar = memo(function TimelineToolbar({
@@ -79,18 +77,17 @@ export const TimelineToolbar = memo(function TimelineToolbar({
   selectedClipCount,
   snapConfig,
   showSnapMenu,
-  isRendering,
-  renderProgress,
-  renderedPreviewUrl,
-  isPreviewStale,
-  isPreviewPlayback,
+  isRendering = false,
+  renderProgress = 0,
+  renderedPreviewUrl = null,
+  isPreviewStale = false,
+  isPreviewPlayback = false,
   frameRate = 30,
   historyCount = 0,
   futureCount = 0,
   onUndo,
   onRedo,
   onShowShortcuts,
-  // </CHANGE>
   onPlayPause,
   onSeek,
   onToggleLoop,
@@ -104,6 +101,8 @@ export const TimelineToolbar = memo(function TimelineToolbar({
   onRenderPreview,
   onCancelRender,
   onTogglePreviewPlayback,
+  onAddMarker,
+  onZoomToFit,
 }: TimelineToolbarProps) {
   const frameDuration = 1 / frameRate
 
@@ -117,8 +116,8 @@ export const TimelineToolbar = memo(function TimelineToolbar({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="h-10 border-b border-neutral-800 flex items-center justify-between px-4 bg-[#09090b] shrink-0 z-30">
-        <div className="flex items-center gap-3">
+      <div className="h-10 border-b border-neutral-800 flex items-center justify-between px-4 bg-[#09090b] shrink-0 z-30 overflow-x-auto min-w-0 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex items-center gap-3 shrink-0">
           {onUndo && onRedo && (
             <>
               <div className="flex items-center gap-0.5 bg-neutral-800/50 rounded-md p-0.5 border border-neutral-700/50">
@@ -160,7 +159,6 @@ export const TimelineToolbar = memo(function TimelineToolbar({
               <div className="h-4 w-px bg-neutral-800" />
             </>
           )}
-          {/* </CHANGE> */}
 
           <div className="flex items-center gap-0.5 bg-neutral-800/50 rounded-md p-0.5 border border-neutral-700/50">
             {/* Jump to Start */}
@@ -259,7 +257,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                   className={`h-6 w-6 hover:bg-neutral-700 ${isLooping ? "text-indigo-400" : "text-neutral-400 hover:text-white"}`}
                   onClick={onToggleLoop}
                 >
-                  <RepeatIcon className="h-3 w-3" />
+                  <LoopIcon className="h-3 w-3" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top" className="text-xs">
@@ -477,7 +475,23 @@ export const TimelineToolbar = memo(function TimelineToolbar({
         </div>
 
         {/* Right side - Zoom Controls and Shortcuts */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
+          {onAddMarker && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={onAddMarker}
+                  className="p-1.5 rounded hover:bg-neutral-800 text-neutral-400 hover:text-yellow-400 transition-colors"
+                >
+                  <FlagIcon className="w-4 h-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">
+                Add Marker (M)
+              </TooltipContent>
+            </Tooltip>
+          )}
+
           {onShowShortcuts && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -494,7 +508,6 @@ export const TimelineToolbar = memo(function TimelineToolbar({
               </TooltipContent>
             </Tooltip>
           )}
-          {/* </CHANGE> */}
 
           <div className="flex items-center gap-2 bg-[#18181b] rounded-md p-1 border border-neutral-800">
             <button
@@ -503,6 +516,21 @@ export const TimelineToolbar = memo(function TimelineToolbar({
             >
               <ZoomOutIcon className="w-3.5 h-3.5" />
             </button>
+            {onZoomToFit && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={onZoomToFit}
+                    className="p-1 hover:text-white text-neutral-500 hover:bg-neutral-800 rounded"
+                  >
+                    <MaximizeIcon className="w-3.5 h-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  Zoom to Fit (Shift+Z)
+                </TooltipContent>
+              </Tooltip>
+            )}
             <div className="w-20 px-2 flex items-center justify-center border-x border-neutral-800">
               <span className="text-[10px] font-mono text-neutral-400">{Math.round(zoomLevel)}px/s</span>
             </div>
@@ -518,3 +546,10 @@ export const TimelineToolbar = memo(function TimelineToolbar({
     </TooltipProvider>
   )
 })
+
+const formatTimecode = (seconds: number, frameRate = 30) => {
+  const mins = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  const frames = Math.floor((seconds % 1) * frameRate)
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}:${frames.toString().padStart(2, "0")}`
+}

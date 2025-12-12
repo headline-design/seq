@@ -2,17 +2,16 @@
 
 import type React from "react"
 import { useState, useRef, useCallback } from "react"
-
-// The FFmpeg imports are done lazily inside loadFFmpeg to prevent the module from
-// failing to load in environments where ES modules can't be fetched immediately
+import type { FFmpeg as FFmpegType } from "@ffmpeg/ffmpeg"
 
 export type ExportPhase = "idle" | "init" | "audio" | "video" | "encoding" | "complete"
 
 export interface UseFFmpegResult {
-  ffmpegRef: React.MutableRefObject<any | null>
+  ffmpegRef: React.MutableRefObject<FFmpegType | null>
   ffmpegLoaded: boolean
   ffmpegLoading: boolean
-  loadFFmpeg: () => Promise<void>
+  ffmpegError: string | null
+  loadFFmpeg: () => Promise<boolean>
 
   // Export state
   isExporting: boolean
@@ -39,9 +38,10 @@ export interface UseFFmpegResult {
 }
 
 export function useFFmpeg(): UseFFmpegResult {
-  const ffmpegRef = useRef<any | null>(null)
+  const ffmpegRef = useRef<FFmpegType | null>(null)
   const [ffmpegLoaded, setFfmpegLoaded] = useState(false)
   const [ffmpegLoading, setFfmpegLoading] = useState(false)
+  const [ffmpegError, setFfmpegError] = useState<string | null>(null)
 
   // Export state
   const [isExporting, setIsExporting] = useState(false)
@@ -58,11 +58,19 @@ export function useFFmpeg(): UseFFmpegResult {
   const [isPreviewStale, setIsPreviewStale] = useState(false)
   const renderCancelledRef = useRef(false)
 
-  const loadFFmpeg = useCallback(async () => {
-    if (ffmpegLoaded) return
-    if (ffmpegLoading) return
+  const loadFFmpeg = useCallback(async (): Promise<boolean> => {
+    if (ffmpegLoaded) return true
+    if (ffmpegLoading) return false
 
     setFfmpegLoading(true)
+    setFfmpegError(null)
+
+    // Multiple CDN sources to try
+    const cdnSources = [
+      "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm",
+      "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm",
+      "https://cdnjs.cloudflare.com/ajax/libs/ffmpeg.wasm-core/0.12.6",
+    ]
 
     try {
       const [{ FFmpeg }, { toBlobURL }] = await Promise.all([import("@ffmpeg/ffmpeg"), import("@ffmpeg/util")])
@@ -76,15 +84,48 @@ export function useFFmpeg(): UseFFmpegResult {
         console.log("[FFmpeg]", message)
       })
 
-      const baseURL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd"
-      await ffmpeg.load({
-        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
-      })
+      // Try each CDN source until one works
+      let loadSuccess = false
+      let lastError: Error | null = null
+
+      for (const baseURL of cdnSources) {
+        try {
+          console.log(`[FFmpeg] Trying CDN: ${baseURL}`)
+          await ffmpeg.load({
+            coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+          })
+          loadSuccess = true
+          console.log(`[FFmpeg] Successfully loaded from: ${baseURL}`)
+          break
+        } catch (cdnError) {
+          console.warn(`[FFmpeg] Failed to load from ${baseURL}:`, cdnError)
+          lastError = cdnError as Error
+        }
+      }
+
+      if (!loadSuccess) {
+        throw lastError || new Error("All CDN sources failed")
+      }
+
       setFfmpegLoaded(true)
+      return true
     } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : "Unknown error"
       console.error("FFmpeg load failed:", e)
-      throw e
+
+      if (errorMessage.includes("SharedArrayBuffer")) {
+        setFfmpegError(
+          "Export requires secure context headers (COOP/COEP). This feature may not work in all environments.",
+        )
+      } else if (errorMessage.includes("Worker") || errorMessage.includes("CORS")) {
+        setFfmpegError(
+          "Unable to load video encoder due to browser security restrictions. Try using a different browser or deploying to production.",
+        )
+      } else {
+        setFfmpegError(`Failed to initialize video encoder: ${errorMessage}`)
+      }
+      return false
     } finally {
       setFfmpegLoading(false)
     }
@@ -94,6 +135,7 @@ export function useFFmpeg(): UseFFmpegResult {
     ffmpegRef,
     ffmpegLoaded,
     ffmpegLoading,
+    ffmpegError,
     loadFFmpeg,
     isExporting,
     setIsExporting,

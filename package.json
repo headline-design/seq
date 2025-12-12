@@ -12,6 +12,7 @@
   "dependencies": {
     "-": "^0.0.1",
     "@ai-sdk/gateway": "latest",
+    "@cfworker/json-schema": "latest",
     "@fal-ai/client": "latest",
     "@fal-ai/server-proxy": "latest",
     "@ffmpeg/ffmpeg": "latest",
@@ -35,6 +36,8 @@
     "@radix-ui/react-toast": "latest",
     "@radix-ui/react-tooltip": "latest",
     "@remix-run/dev": "latest",
+    "@remix-run/react": "latest",
+    "@remix-run/serve": "latest",
     "@vercel/blob": "latest",
     "ai": "latest",
     "autoprefixer": "^10.4.20",
@@ -55,6 +58,8 @@
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "latest",
+    "vite": "latest",
+    "wrangler": "latest",
     "zod": "latest"
   },
   "devDependencies": {

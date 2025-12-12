@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useRef, useCallback, useEffect } from "react"
-import type { TimelineClip, Track, MediaItem } from "../types"
+import type { TimelineClip, Track, MediaItem, ClipEffects, TextOverlayStyle } from "../types"
 
 export interface UsePlaybackOptions {
   timelineClips: TimelineClip[]
@@ -80,8 +80,6 @@ export function usePlayback({
   const lastStateUpdateRef = useRef<number>(0)
   const STATE_UPDATE_INTERVAL = 1000 / 30 // Update React state at 30fps max
 
-  // ... existing code for setupAudioGraph ...
-
   const setupAudioGraph = useCallback(() => {
     if (typeof window === "undefined") return
 
@@ -120,7 +118,6 @@ export function usePlayback({
     })
   }, [])
 
-  // Initialize audio on first interaction
   useEffect(() => {
     const initAudio = () => {
       if (!audioContextRef.current) setupAudioGraph()
@@ -135,8 +132,6 @@ export function usePlayback({
       window.removeEventListener("keydown", initAudio)
     }
   }, [setupAudioGraph])
-
-  // ... existing syncMediaToTime code ...
 
   const syncMediaToTime = useCallback(
     (time: number, isExportingNow = false) => {
@@ -250,7 +245,6 @@ export function usePlayback({
         if (videoRefB.current) videoRefB.current.style.opacity = "0"
       }
 
-      // Handle audio tracks
       tracks
         .filter((t) => t.type === "audio")
         .forEach((track) => {
@@ -285,14 +279,106 @@ export function usePlayback({
     [timelineClips, mediaMap, tracks, isPlaying],
   )
 
-  // ... existing drawFrameToCanvas and waitForVideoReady ...
-
   const drawFrameToCanvas = useCallback(
     (ctx: CanvasRenderingContext2D, width: number, height: number, time: number) => {
       ctx.fillStyle = "#000000"
       ctx.fillRect(0, 0, width, height)
 
-      const drawScaled = (video: HTMLVideoElement | null) => {
+      const buildFilterString = (effects: ClipEffects | undefined): string => {
+        if (!effects) return "none"
+        const filters: string[] = []
+        if (effects.brightness !== 0) {
+          filters.push(`brightness(${1 + effects.brightness / 100})`)
+        }
+        if (effects.contrast !== 0) {
+          filters.push(`contrast(${1 + effects.contrast / 100})`)
+        }
+        if (effects.saturation !== 0) {
+          filters.push(`saturate(${1 + effects.saturation / 100})`)
+        }
+        if (effects.hue !== 0) {
+          filters.push(`hue-rotate(${effects.hue}deg)`)
+        }
+        if (effects.blur > 0) {
+          filters.push(`blur(${effects.blur}px)`)
+        }
+        return filters.length > 0 ? filters.join(" ") : "none"
+      }
+
+      const drawTextOverlay = (overlay: TextOverlayStyle, clipStart: number, clipDuration: number) => {
+        const progress = (time - clipStart) / clipDuration
+        let opacity = 1
+        let offsetY = 0
+        let displayText = overlay.text
+
+        const fadeInDuration = 0.3
+        const fadeOutStart = 1 - 0.3 / clipDuration
+
+        switch (overlay.animation) {
+          case "fade-in":
+            opacity = Math.min(1, progress / fadeInDuration)
+            break
+          case "fade-out":
+            opacity = progress > fadeOutStart ? 1 - (progress - fadeOutStart) / (1 - fadeOutStart) : 1
+            break
+          case "slide-up":
+            const slideProgress = Math.min(1, progress / fadeInDuration)
+            opacity = slideProgress
+            offsetY = (1 - slideProgress) * 20
+            break
+          case "slide-down":
+            const slideDownProgress = Math.min(1, progress / fadeInDuration)
+            opacity = slideDownProgress
+            offsetY = (slideDownProgress - 1) * 20
+            break
+          case "typewriter":
+            const charsToShow = Math.floor(progress * overlay.text.length * 1.2)
+            displayText = overlay.text.slice(0, Math.min(charsToShow, overlay.text.length))
+            break
+        }
+
+        const posX = (overlay.position.x / 100) * width
+        const posY = (overlay.position.y / 100) * height + offsetY
+
+        ctx.save()
+        ctx.globalAlpha = opacity * ((overlay as any).opacity ?? 1)
+
+        if (overlay.backgroundOpacity > 0) {
+          ctx.font = `${overlay.fontWeight} ${overlay.fontSize}px ${overlay.fontFamily}`
+          ctx.textAlign = overlay.textAlign as CanvasTextAlign
+          ctx.textBaseline = "middle"
+
+          const metrics = ctx.measureText(displayText)
+          const textWidth = metrics.width
+          const textHeight = overlay.fontSize * 1.2
+          const padding = overlay.fontSize * 0.25
+
+          let bgX = posX - padding
+          if (overlay.textAlign === "center") bgX -= textWidth / 2
+          else if (overlay.textAlign === "right") bgX -= textWidth
+
+          ctx.globalAlpha = opacity * (overlay.backgroundOpacity / 100)
+          ctx.fillStyle = overlay.backgroundColor
+          ctx.fillRect(bgX, posY - textHeight / 2 - padding, textWidth + padding * 2, textHeight + padding * 2)
+        }
+
+        ctx.globalAlpha = opacity
+        ctx.font = `${overlay.fontWeight} ${overlay.fontSize}px ${overlay.fontFamily}`
+        ctx.fillStyle = overlay.color
+        ctx.textAlign = overlay.textAlign as CanvasTextAlign
+        ctx.textBaseline = "middle"
+        ctx.fillText(displayText, posX, posY)
+
+        ctx.restore()
+      }
+
+      const activeClip = tracks
+        .filter((t) => t.type === "video")
+        .reverse()
+        .map((t) => timelineClips.find((c) => c.trackId === t.id && time >= c.start && time < c.start + c.duration))
+        .find((c) => c !== undefined)
+
+      const drawScaled = (video: HTMLVideoElement | null, effects?: ClipEffects) => {
         if (!video) return
         const vW = video.videoWidth
         const vH = video.videoHeight
@@ -302,7 +388,17 @@ export function usePlayback({
         const dh = vH * scale
         const dx = (width - dw) / 2
         const dy = (height - dh) / 2
+
+        ctx.save()
+        const filterStr = buildFilterString(effects)
+        if (filterStr !== "none") {
+          ctx.filter = filterStr
+        }
+        if (effects?.opacity !== undefined && effects.opacity < 100) {
+          ctx.globalAlpha = ctx.globalAlpha * (effects.opacity / 100)
+        }
         ctx.drawImage(video, dx, dy, dw, dh)
+        ctx.restore()
       }
 
       const opacityA = Number.parseFloat(videoRefA.current?.style.opacity || "0")
@@ -311,7 +407,7 @@ export function usePlayback({
 
       if (opacityA > 0 && videoRefA.current) {
         ctx.globalAlpha = opacityA
-        drawScaled(videoRefA.current)
+        drawScaled(videoRefA.current, activeClip?.effects)
       }
 
       if (opacityB > 0 && videoRefB.current) {
@@ -330,24 +426,23 @@ export function usePlayback({
           const w = width - x - (rightPct / 100) * width
           ctx.rect(x, 0, w, height)
           ctx.clip()
-          drawScaled(videoRefB.current)
+          drawScaled(videoRefB.current, activeClip?.effects)
           ctx.restore()
         } else {
-          drawScaled(videoRefB.current)
+          drawScaled(videoRefB.current, activeClip?.effects)
         }
       }
 
-      // Handle white fade transition
-      const activeClip = timelineClips.find(
+      const transitionClip = timelineClips.find(
         (c) =>
           c.trackId.startsWith("v") &&
           time >= c.start &&
           time < c.start + c.duration &&
           c.transition?.type === "fade-white",
       )
-      if (activeClip) {
-        const transDuration = activeClip.transition!.duration
-        const progress = (time - activeClip.start) / transDuration
+      if (transitionClip) {
+        const transDuration = transitionClip.transition!.duration
+        const progress = (time - transitionClip.start) / transDuration
         if (progress >= 0 && progress <= 1) {
           const whiteOpacity = 1 - Math.abs((progress - 0.5) * 2)
           if (whiteOpacity > 0) {
@@ -358,8 +453,18 @@ export function usePlayback({
         }
       }
       ctx.globalAlpha = 1
+
+      const activeTextClips = timelineClips.filter((clip) => {
+        if (!clip.textOverlay) return false
+        const clipEnd = clip.start + clip.duration
+        return time >= clip.start && time < clipEnd
+      })
+
+      for (const textClip of activeTextClips) {
+        drawTextOverlay(textClip.textOverlay!, textClip.start, textClip.duration)
+      }
     },
-    [timelineClips],
+    [timelineClips, tracks],
   )
 
   const waitForVideoReady = useCallback(async (video: HTMLVideoElement) => {
@@ -443,7 +548,6 @@ export function usePlayback({
 
         if (nextTime >= timelineDuration) {
           if (isLooping) {
-            // Loop back to start
             currentTimeRef.current = 0
             setCurrentTime(0)
           } else {
@@ -457,10 +561,8 @@ export function usePlayback({
           currentTimeRef.current = nextTime
         }
 
-        // Sync media every frame for smooth playback
         syncMediaToTime(currentTimeRef.current, false)
 
-        // Throttle React state updates for UI (playhead position)
         const now = performance.now()
         if (now - lastStateUpdateRef.current >= STATE_UPDATE_INTERVAL) {
           setCurrentTime(currentTimeRef.current)
@@ -475,14 +577,12 @@ export function usePlayback({
     [isPlaying, timelineDuration, isExporting, isRendering, isLooping, syncMediaToTime],
   )
 
-  // Sync media when currentTime changes (for scrubbing/seeking)
   useEffect(() => {
     if (!isExporting && !isRendering && !isPlaying) {
       syncMediaToTime(currentTime, false)
     }
   }, [currentTime, syncMediaToTime, isExporting, isRendering, isPlaying])
 
-  // Start/stop animation loop
   useEffect(() => {
     if (isPlaying && !isExporting && !isRendering) {
       currentTimeRef.current = currentTime

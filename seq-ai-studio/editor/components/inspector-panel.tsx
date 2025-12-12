@@ -4,9 +4,22 @@ import type React from "react"
 
 import { memo, useState, useCallback } from "react"
 import type { TimelineClip, MediaItem, Track } from "../types"
-import { FilmIcon, MusicIcon, InfoIcon, PanelLeftClose, VolumeIcon, PlayIcon, PauseIcon } from "./icons"
+import {
+  FilmIcon,
+  MusicIcon,
+  InfoIcon,
+  PanelLeftClose,
+  VolumeIcon,
+  PlayIcon,
+  PauseIcon,
+  TypeIcon,
+  LockIcon,
+  UnlockIcon,
+} from "./icons"
 import { Scissors, RotateCcw, Copy, Trash2, Zap, Palette } from "lucide-react"
 import { EffectsPanel } from "./effects-panel"
+import { TextEditorPanel } from "./text-editor-panel"
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
 
 interface InspectorPanelProps {
   onClose: () => void
@@ -63,14 +76,16 @@ const QuickAction = memo(function QuickAction({
   onClick,
   variant = "default",
   disabled = false,
+  shortcut,
 }: {
   icon: React.ReactNode
   label: string
   onClick: () => void
   variant?: "default" | "danger"
   disabled?: boolean
+  shortcut?: string
 }) {
-  return (
+  const button = (
     <button
       type="button"
       onClick={onClick}
@@ -87,6 +102,21 @@ const QuickAction = memo(function QuickAction({
       <span className="text-[10px] font-medium">{label}</span>
     </button>
   )
+
+  if (shortcut) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>{button}</TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">
+            {label} <span className="text-neutral-500">({shortcut})</span>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
+
+  return button
 })
 
 const NumericInput = memo(function NumericInput({
@@ -139,6 +169,8 @@ export const InspectorPanel = memo<InspectorPanelProps>(
     const [isPreviewPlaying, setIsPreviewPlaying] = useState(false)
     const [activeTab, setActiveTab] = useState<"properties" | "effects">("properties")
 
+    const isTextClip = track?.type === "text" && clip?.textOverlay
+
     const speedPresets = [0.25, 0.5, 1, 1.5, 2, 4]
 
     const handleSpeedChange = useCallback(
@@ -153,7 +185,7 @@ export const InspectorPanel = memo<InspectorPanelProps>(
     const hasEffects =
       clip?.effects &&
       Object.values(clip.effects).some((v, i) => {
-        const defaults = [0, 0, 0, 0, 0, 100] // brightness, contrast, saturation, hue, blur, opacity
+        const defaults = [0, 0, 0, 0, 0, 100]
         return v !== defaults[i]
       })
 
@@ -170,7 +202,7 @@ export const InspectorPanel = memo<InspectorPanelProps>(
           </div>
         </div>
 
-        {clip && media && media.type === "video" && (
+        {clip && media && media.type === "video" && !isTextClip && (
           <div className="flex border-b border-neutral-800">
             <button
               onClick={() => setActiveTab("properties")}
@@ -198,10 +230,91 @@ export const InspectorPanel = memo<InspectorPanelProps>(
         )}
 
         <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1">
-          {!clip || !media ? (
+          {!clip ? (
             <div className="flex flex-col items-center justify-center gap-3 py-20 opacity-50">
               <InfoIcon className="w-8 h-8 text-neutral-600" />
               <p className="text-xs text-neutral-500">Select a clip to view properties</p>
+            </div>
+          ) : isTextClip ? (
+            <>
+              {/* Text Clip Header */}
+              <div className="flex items-center gap-3 pb-3 border-b border-neutral-800">
+                <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                  <TypeIcon className="w-5 h-5 text-purple-400" />
+                </div>
+                <div className="flex flex-col">
+                  <h3 className="text-sm font-semibold text-neutral-200">Text Overlay</h3>
+                  <span className="text-[10px] text-neutral-500 font-mono">{clip.id}</span>
+                </div>
+              </div>
+
+              {/* Text Editor Panel */}
+              <TextEditorPanel clip={clip} onUpdateClip={onUpdateClip} />
+
+              {/* Quick Actions for Text */}
+              <div className="h-px bg-neutral-800 my-2" />
+              <Section title="Quick Actions">
+                <div className="grid grid-cols-3 gap-2">
+                  <QuickAction
+                    icon={<Copy className="w-4 h-4" />}
+                    label="Duplicate"
+                    onClick={() => onDuplicateClip?.(clip.id)}
+                    disabled={!onDuplicateClip}
+                    shortcut="Ctrl+D"
+                  />
+                  <QuickAction
+                    icon={<RotateCcw className="w-4 h-4" />}
+                    label="Reset"
+                    onClick={() =>
+                      onUpdateClip(clip.id, {
+                        textOverlay: {
+                          ...clip.textOverlay!,
+                          fontSize: 48,
+                          fontWeight: 600,
+                          color: "#ffffff",
+                          backgroundColor: "#000000",
+                          backgroundOpacity: 0,
+                          position: { x: 50, y: 50 },
+                          animation: "none",
+                        },
+                      })
+                    }
+                    shortcut="Ctrl+R"
+                  />
+                  <QuickAction
+                    icon={<Trash2 className="w-4 h-4" />}
+                    label="Delete"
+                    onClick={() => onDeleteClip?.(clip.id)}
+                    variant="danger"
+                    disabled={!onDeleteClip}
+                    shortcut="Ctrl+X"
+                  />
+                </div>
+              </Section>
+
+              {/* Timing for Text */}
+              <div className="h-px bg-neutral-800" />
+              <Section title="Timing">
+                <div className="grid grid-cols-2 gap-3">
+                  <NumericInput
+                    label="Start"
+                    value={clip.start}
+                    onChange={(val) => onUpdateClip(clip.id, { start: val })}
+                    min={0}
+                  />
+                  <NumericInput
+                    label="Duration"
+                    value={clip.duration}
+                    onChange={(val) => onUpdateClip(clip.id, { duration: val })}
+                    min={0.1}
+                  />
+                </div>
+              </Section>
+            </>
+          ) : !media ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-20 opacity-50">
+              <InfoIcon className="w-8 h-8 text-neutral-600" />
+              <p className="text-xs text-neutral-500">Media not found</p>
             </div>
           ) : activeTab === "effects" && media.type === "video" ? (
             <EffectsPanel clip={clip} onUpdateClip={onUpdateClip} />
@@ -253,18 +366,26 @@ export const InspectorPanel = memo<InspectorPanelProps>(
 
               {/* Quick Actions */}
               <Section title="Quick Actions">
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-5 gap-2">
                   <QuickAction
                     icon={<Scissors className="w-4 h-4" />}
                     label="Split"
                     onClick={() => onSplitClip?.(clip.id, clip.start + clip.duration / 2)}
-                    disabled={!onSplitClip}
+                    disabled={!onSplitClip || clip.isLocked}
+                    shortcut="Ctrl+S"
                   />
                   <QuickAction
                     icon={<Copy className="w-4 h-4" />}
                     label="Duplicate"
                     onClick={() => onDuplicateClip?.(clip.id)}
                     disabled={!onDuplicateClip}
+                    shortcut="Ctrl+D"
+                  />
+                  <QuickAction
+                    icon={clip.isLocked ? <UnlockIcon className="w-4 h-4" /> : <LockIcon className="w-4 h-4" />}
+                    label={clip.isLocked ? "Unlock" : "Lock"}
+                    onClick={() => onUpdateClip(clip.id, { isLocked: !clip.isLocked })}
+                    shortcut="Ctrl+L"
                   />
                   <QuickAction
                     icon={<RotateCcw className="w-4 h-4" />}
@@ -275,15 +396,20 @@ export const InspectorPanel = memo<InspectorPanelProps>(
                         speed: 1,
                         offset: 0,
                         effects: undefined,
+                        fadeIn: 0,
+                        fadeOut: 0,
                       })
                     }
+                    disabled={clip.isLocked}
+                    shortcut="Ctrl+R"
                   />
                   <QuickAction
                     icon={<Trash2 className="w-4 h-4" />}
                     label="Delete"
                     onClick={() => onDeleteClip?.(clip.id)}
                     variant="danger"
-                    disabled={!onDeleteClip}
+                    disabled={!onDeleteClip || clip.isLocked}
+                    shortcut="Ctrl+X"
                   />
                 </div>
               </Section>
@@ -310,7 +436,7 @@ export const InspectorPanel = memo<InspectorPanelProps>(
                       className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
                         (clip.speed ?? 1) === speed
                           ? "bg-indigo-500 text-white"
-                          : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white"
+                          : "bg-neutral-800 text-neutral-500 hover:bg-neutral-700 hover:text-white"
                       }`}
                     >
                       {speed}x
@@ -371,37 +497,58 @@ export const InspectorPanel = memo<InspectorPanelProps>(
                       </button>
                     ))}
                   </div>
-                </div>
-              </Section>
 
-              <div className="h-px bg-neutral-800" />
-
-              {/* Timing */}
-              <Section title="Timing">
-                <div className="grid grid-cols-2 gap-3">
-                  <NumericInput
-                    label="Start"
-                    value={clip.start}
-                    onChange={(val) => onUpdateClip(clip.id, { start: val })}
-                    min={0}
-                  />
-                  <NumericInput
-                    label="Duration"
-                    value={clip.duration}
-                    onChange={(val) => onUpdateClip(clip.id, { duration: val })}
-                    min={0.1}
-                  />
-                  <NumericInput
-                    label="Offset"
-                    value={clip.offset}
-                    onChange={(val) => onUpdateClip(clip.id, { offset: val })}
-                    min={0}
-                    max={media.duration}
-                  />
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[9px] text-neutral-600 uppercase">End</label>
-                    <div className="p-2 bg-neutral-900/50 rounded border border-neutral-800/50 text-xs font-mono text-neutral-500">
-                      {(clip.start + clip.duration).toFixed(2)}s
+                  {/* Fade In/Out Controls */}
+                  <div className="pt-2 border-t border-neutral-800 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-neutral-500">Fade In</span>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="0"
+                          max={Math.min(clip.duration / 2, 3)}
+                          step="0.1"
+                          value={clip.fadeIn ?? 0}
+                          onChange={(e) => onUpdateClip(clip.id, { fadeIn: Number.parseFloat(e.target.value) })}
+                          className="w-20 h-1 bg-neutral-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
+                        />
+                        <span className="text-[10px] font-mono text-neutral-400 w-8">
+                          {(clip.fadeIn ?? 0).toFixed(1)}s
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-neutral-500">Fade Out</span>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="0"
+                          max={Math.min(clip.duration / 2, 3)}
+                          step="0.1"
+                          value={clip.fadeOut ?? 0}
+                          onChange={(e) => onUpdateClip(clip.id, { fadeOut: Number.parseFloat(e.target.value) })}
+                          className="w-20 h-1 bg-neutral-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
+                        />
+                        <span className="text-[10px] font-mono text-neutral-400 w-8">
+                          {(clip.fadeOut ?? 0).toFixed(1)}s
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      {[0, 0.5, 1, 2].map((val) => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => onUpdateClip(clip.id, { fadeIn: val, fadeOut: val })}
+                          className={`flex-1 py-1 rounded text-[9px] font-medium transition-all ${
+                            (clip.fadeIn ?? 0) === val && (clip.fadeOut ?? 0) === val
+                              ? "bg-white text-black"
+                              : "bg-neutral-800 text-neutral-500 hover:bg-neutral-700 hover:text-white"
+                          }`}
+                        >
+                          {val === 0 ? "None" : `${val}s`}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>

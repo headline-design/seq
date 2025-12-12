@@ -50,6 +50,9 @@ export interface TimelineClip {
   isAudioDetached?: boolean // If true, audio waveform is hidden and player is muted for this clip
   effects?: ClipEffects
   textOverlay?: TextOverlayStyle
+  fadeIn?: number // Duration in seconds for fade-in (0 = no fade)
+  fadeOut?: number // Duration in seconds for fade-out (0 = no fade)
+  isLocked?: boolean // If true, clip cannot be moved, trimmed, or deleted
 }
 
 export interface Track {
@@ -80,6 +83,13 @@ export interface VideoConfig {
   useFastModel: boolean
 }
 
+export interface Marker {
+  id: string
+  time: number // Position in seconds
+  label: string
+  color: "red" | "orange" | "yellow" | "green" | "blue" | "purple" | "pink"
+}
+
 export interface AppState {
   media: MediaItem[]
   timelineClips: TimelineClip[]
@@ -90,4 +100,5 @@ export interface AppState {
   zoomLevel: number // Pixels per second
   selectedClipId: string | null // ID of selected TimelineClip or MediaItem
   selectionType: "library" | "timeline" | null
+  markers?: Marker[] // Array of timeline markers/chapters
 }

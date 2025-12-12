@@ -1,17 +1,19 @@
 "use client"
 
 import type React from "react"
-import { useRef, useState, useCallback, memo, useMemo } from "react"
-import type { TimelineClip, Track, MediaItem } from "../types"
+import { useRef, useState, useCallback, memo, useMemo, useEffect } from "react"
+import type { TimelineClip, Track, MediaItem, Marker } from "../types"
 import { TimelineRuler } from "./timeline-ruler"
 import { TimelineClipItem } from "./timeline-clip"
 import { TimelineToolbar } from "./timeline-toolbar"
 import { TimelineTrackHeaders } from "./timeline-track-headers"
 import { TimelineContextMenu } from "./timeline-context-menu"
+import { TimelineMarkers } from "./timeline-markers"
 import { useTimelineSnap } from "../hooks/use-timeline-snap"
 import { useTimelineDrag } from "../hooks/use-timeline-drag"
 import { useTimelineSelection } from "../hooks/use-timeline-selection"
 import { useScrollPosition } from "../hooks/use-virtualized-clips"
+import { FilmIcon } from "./icons"
 
 interface TimelineProps {
   tracks: Track[]
@@ -58,6 +60,13 @@ interface TimelineProps {
   onUndo?: () => void
   onRedo?: () => void
   onShowShortcuts?: () => void
+  markers?: Marker[]
+  onAddMarker?: () => void
+  onMarkerClick?: (marker: Marker) => void
+  onMarkerDelete?: (markerId: string) => void
+  onMarkerUpdate?: (markerId: string, changes: Partial<Marker>) => void
+  onZoomToFit?: () => void
+  onOverwriteClips?: (movedClipIds: string[]) => void
 }
 
 export const Timeline = memo(function Timeline({
@@ -105,6 +114,13 @@ export const Timeline = memo(function Timeline({
   onUndo,
   onRedo,
   onShowShortcuts,
+  markers = [],
+  onAddMarker,
+  onMarkerClick,
+  onMarkerDelete,
+  onMarkerUpdate,
+  onZoomToFit,
+  onOverwriteClips,
 }: TimelineProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const headerContainerRef = useRef<HTMLDivElement>(null)
@@ -163,6 +179,7 @@ export const Timeline = memo(function Timeline({
     onSelectClips,
     onSplitClip,
     onDragStart,
+    onOverwriteClips: onOverwriteClips || (() => {}),
   })
 
   const { isSelecting, selectionBox, handleMouseDownBackground, handleSelectionMove, handleSelectionEnd } =
@@ -190,6 +207,97 @@ export const Timeline = memo(function Timeline({
     },
     [zoomLevel, onAddTextClip],
   )
+
+  useEffect(() => {
+    if (dragState.mode !== "none") {
+      const handleMouseMove = (e: MouseEvent) => {
+        handleDragMove(e)
+      }
+      const handleMouseUp = () => {
+        handleDragEnd()
+      }
+
+      window.addEventListener("mousemove", handleMouseMove)
+      window.addEventListener("mouseup", handleMouseUp)
+
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove)
+        window.removeEventListener("mouseup", handleMouseUp)
+      }
+    }
+  }, [dragState.mode, handleDragMove, handleDragEnd])
+
+  useEffect(() => {
+    if (isDraggingPlayhead) {
+      const handleMouseMove = (e: MouseEvent) => {
+        if (!scrollContainerRef.current) return
+        const rect = scrollContainerRef.current.getBoundingClientRect()
+        const scrollLeft = scrollContainerRef.current.scrollLeft
+        const x = e.clientX - rect.left + scrollLeft
+        const newTime = Math.max(0, Math.min(duration, x / zoomLevel))
+        onSeek(newTime)
+      }
+      const handleMouseUp = () => {
+        setIsDraggingPlayhead(false)
+      }
+
+      window.addEventListener("mousemove", handleMouseMove)
+      window.addEventListener("mouseup", handleMouseUp)
+
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove)
+        window.removeEventListener("mouseup", handleMouseUp)
+      }
+    }
+  }, [isDraggingPlayhead, duration, zoomLevel, onSeek])
+
+  useEffect(() => {
+    if (isSelecting) {
+      const handleMouseMove = (e: MouseEvent) => {
+        handleSelectionMove(e)
+      }
+      const handleMouseUp = () => {
+        handleSelectionEnd()
+      }
+
+      window.addEventListener("mousemove", handleMouseMove)
+      window.addEventListener("mouseup", handleMouseUp)
+
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove)
+        window.removeEventListener("mouseup", handleMouseUp)
+      }
+    }
+  }, [isSelecting, handleSelectionMove, handleSelectionEnd])
+
+  useEffect(() => {
+    if (contextMenu) {
+      const handleClickOutside = (e: MouseEvent) => {
+        setContextMenu(null)
+      }
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          setContextMenu(null)
+        }
+      }
+
+      // Use setTimeout to avoid the menu closing immediately from the same click
+      const timer = setTimeout(() => {
+        window.addEventListener("click", handleClickOutside)
+        window.addEventListener("contextmenu", handleClickOutside)
+      }, 0)
+      window.addEventListener("keydown", handleKeyDown)
+
+      return () => {
+        clearTimeout(timer)
+        window.removeEventListener("click", handleClickOutside)
+        window.removeEventListener("contextmenu", handleClickOutside)
+        window.removeEventListener("keydown", handleKeyDown)
+      }
+    }
+  }, [contextMenu])
+
+  const hasNoClips = clips.length === 0
 
   return (
     <div
@@ -240,6 +348,8 @@ export const Timeline = memo(function Timeline({
         onRenderPreview={onRenderPreview}
         onCancelRender={onCancelRender}
         onTogglePreviewPlayback={onTogglePreviewPlayback}
+        onAddMarker={onAddMarker}
+        onZoomToFit={onZoomToFit}
       />
 
       <div
@@ -253,6 +363,7 @@ export const Timeline = memo(function Timeline({
         >
           <TimelineTrackHeaders
             tracks={tracks}
+            hasClips={!hasNoClips}
             onTrackUpdate={onTrackUpdate}
             onAddTrack={onAddTrack}
             onReorderTracks={onReorderTracks}
@@ -276,119 +387,151 @@ export const Timeline = memo(function Timeline({
             }
           }}
         >
-          {/* Canvas Ruler */}
-          <TimelineRuler
-            duration={duration}
-            zoomLevel={zoomLevel}
-            scrollContainerRef={scrollContainerRef}
-            onClick={(time) => onSeek(time)}
-          />
-
-          {/* Tracks Render */}
-          <div className="min-w-full relative" style={{ width: `${totalWidth}px` }}>
-            {/* Playhead Line (Interactive) */}
-            <div
-              className="absolute top-0 bottom-0 z-50 group/playhead"
-              style={{ left: `${currentTime * zoomLevel}px` }}
-            >
-              {/* Hit Area */}
-              <div
-                className="absolute -left-2 w-4 h-full cursor-ew-resize z-50"
-                onMouseDown={(e) => {
-                  e.stopPropagation()
-                  e.preventDefault()
-                  setIsDraggingPlayhead(true)
-                }}
-              />
-              {/* Visual Line */}
-              <div
-                className={`absolute left-0 w-px h-full bg-[#6366f1] pointer-events-none ${
-                  isDraggingPlayhead ? "bg-white shadow-[0_0_8px_white]" : ""
-                }`}
-              />
-              {/* Head/Handle */}
-              <div
-                className={`absolute -left-[5.5px] top-0 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] pointer-events-none transition-colors ${
-                  isDraggingPlayhead ? "border-t-white" : "border-t-[#6366f1] group-hover/playhead:border-t-indigo-400"
-                }`}
-              />
-            </div>
-
-            {/* Snap Indicator Line */}
-            {snapIndicator !== null && (
-              <div
-                className="absolute top-0 bottom-0 w-[1px] bg-yellow-400 z-50 pointer-events-none shadow-[0_0_8px_rgba(250,204,21,0.5)]"
-                style={{ left: `${snapIndicator * zoomLevel}px` }}
-              />
-            )}
-
-            {/* Marquee Selection Box */}
-            {selectionBox && (
-              <div
-                className="absolute z-[60] bg-indigo-500/20 border border-indigo-500/50 pointer-events-none"
-                style={{
-                  left: selectionBox.x,
-                  top: selectionBox.y,
-                  width: selectionBox.w,
-                  height: selectionBox.h,
-                }}
-              />
-            )}
-
-            {/* Track Rows */}
-            {tracks.map((track) => {
-              const trackClips = visibleClipsByTrack[track.id] || []
-              const isAudio = track.type === "audio"
-              const isText = track.type === "text"
-              const trackHeight = isAudio ? "h-16" : isText ? "h-12" : "h-24"
-
-              return (
-                <div
-                  key={track.id}
-                  className={`${trackHeight} border-b border-neutral-800/30 relative group/track bg-[#0c0c0e]`}
-                  onDoubleClick={(e) => handleTrackDoubleClick(e, track)}
-                >
-                  <div
-                    className="absolute inset-0 bg-[linear-gradient(90deg,transparent_99%,#1f1f22_100%)] opacity-10 pointer-events-none"
-                    style={{ backgroundSize: `${zoomLevel}px 100%` }}
-                  />
-
-                  {trackClips.map((clip, index) => {
-                    const media = mediaMap[clip.mediaId]
-                    const isSelected = selectedClipIds.includes(clip.id)
-
-                    return (
-                      <TimelineClipItem
-                        key={clip.id}
-                        clip={clip}
-                        media={media}
-                        track={track}
-                        zoomLevel={zoomLevel}
-                        isSelected={isSelected}
-                        tool={tool}
-                        onMouseDown={(e, mode) => handleMouseDownClip(e, clip, mode)}
-                        onContextMenu={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          setContextMenu({ x: e.clientX, y: e.clientY, clipId: clip.id })
-                          if (!selectedClipIds.includes(clip.id)) {
-                            onSelectClips([clip.id])
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          // existing key handling
-                        }}
-                        tabIndex={index === 0 ? 0 : -1}
-                      />
-                    )
-                  })}
+          {hasNoClips ? (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-3 text-neutral-500">
+                <div className="w-12 h-12 rounded-full bg-neutral-800/50 flex items-center justify-center">
+                  <FilmIcon className="w-6 h-6" />
                 </div>
-              )
-            })}
+                <div className="text-center">
+                  <p className="text-sm font-medium text-neutral-400">No clips yet</p>
+                  <p className="text-xs mt-1">Drag media from the library or generate content to get started</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Canvas Ruler */}
+              <TimelineRuler
+                duration={duration}
+                zoomLevel={zoomLevel}
+                scrollContainerRef={scrollContainerRef}
+                onClick={(time) => onSeek(time)}
+              />
 
-            {/* Extra space at bottom */}
-            <div className="h-40" />
-          </div>
+              {/* Timeline Markers overlay */}
+              {markers.length > 0 && onMarkerClick && onMarkerDelete && onMarkerUpdate && (
+                <TimelineMarkers
+                  markers={markers}
+                  zoomLevel={zoomLevel}
+                  scrollLeft={scrollLeft}
+                  viewportWidth={viewportWidth}
+                  onMarkerClick={onMarkerClick}
+                  onMarkerDoubleClick={(marker) => onMarkerUpdate(marker.id, {})}
+                  onMarkerDelete={onMarkerDelete}
+                  onMarkerUpdate={onMarkerUpdate}
+                />
+              )}
+
+              {/* Tracks Render */}
+              <div className="min-w-full relative" style={{ width: `${totalWidth}px` }}>
+                {/* Playhead Line (Interactive) */}
+                <div
+                  className="absolute top-0 bottom-0 z-50 group/playhead"
+                  style={{ left: `${currentTime * zoomLevel}px` }}
+                >
+                  {/* Hit Area */}
+                  <div
+                    className="absolute -left-2 w-4 h-full cursor-ew-resize z-50"
+                    onMouseDown={(e) => {
+                      e.stopPropagation()
+                      e.preventDefault()
+                      setIsDraggingPlayhead(true)
+                    }}
+                  />
+                  {/* Visual Line */}
+                  <div
+                    className={`absolute left-0 w-px h-full bg-[#6366f1] pointer-events-none ${
+                      isDraggingPlayhead ? "bg-white shadow-[0_0_8px_white]" : ""
+                    }`}
+                  />
+                  {/* Head/Handle */}
+                  <div
+                    className={`absolute -left-[5.5px] top-0 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] pointer-events-none transition-colors ${
+                      isDraggingPlayhead
+                        ? "border-t-white"
+                        : "border-t-[#6366f1] group-hover/playhead:border-t-indigo-400"
+                    }`}
+                  />
+                </div>
+
+                {/* Snap Indicator Line */}
+                {snapIndicator !== null && (
+                  <div
+                    className="absolute top-0 bottom-0 w-[1px] bg-yellow-400 z-50 pointer-events-none shadow-[0_0_8px_rgba(250,204,21,0.5)]"
+                    style={{ left: `${snapIndicator * zoomLevel}px` }}
+                  />
+                )}
+
+                {/* Marquee Selection Box */}
+                {selectionBox && (
+                  <div
+                    className="absolute z-[60] bg-indigo-500/20 border border-indigo-500/50 pointer-events-none"
+                    style={{
+                      left: selectionBox.x,
+                      top: selectionBox.y,
+                      width: selectionBox.w,
+                      height: selectionBox.h,
+                    }}
+                  />
+                )}
+
+                {/* Track Rows */}
+                {tracks.map((track) => {
+                  const trackClips = visibleClipsByTrack[track.id] || []
+                  const isAudio = track.type === "audio"
+                  const isText = track.type === "text"
+                  const trackHeight = isAudio ? "h-16" : isText ? "h-12" : "h-24"
+
+                  return (
+                    <div
+                      key={track.id}
+                      className={`${trackHeight} border-b border-neutral-800/30 relative group/track bg-[#0c0c0e]`}
+                      onDoubleClick={(e) => handleTrackDoubleClick(e, track)}
+                    >
+                      <div
+                        className="absolute inset-0 bg-[linear-gradient(90deg,transparent_99%,#1f1f22_100%)] opacity-10 pointer-events-none"
+                        style={{ backgroundSize: `${zoomLevel}px 100%` }}
+                      />
+
+                      {trackClips.map((clip, index) => {
+                        const media = mediaMap[clip.mediaId]
+                        const isSelected = selectedClipIds.includes(clip.id)
+
+                        return (
+                          <TimelineClipItem
+                            key={clip.id}
+                            clip={clip}
+                            media={media}
+                            track={track}
+                            zoomLevel={zoomLevel}
+                            isSelected={isSelected}
+                            tool={tool}
+                            onMouseDown={(e, mode) => handleMouseDownClip(e, clip, mode)}
+                            onContextMenu={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              setContextMenu({ x: e.clientX, y: e.clientY, clipId: clip.id })
+                              if (!selectedClipIds.includes(clip.id)) {
+                                onSelectClips([clip.id])
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              // existing key handling
+                            }}
+                            tabIndex={index === 0 ? 0 : -1}
+                          />
+                        )
+                      })}
+                    </div>
+                  )
+                })}
+
+                {/* Extra space at bottom */}
+                <div className="h-40" />
+              </div>
+            </>
+          )}
         </div>
 
         {/* Context Menu */}

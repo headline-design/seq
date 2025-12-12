@@ -7,9 +7,7 @@ import type { TimelineClip, Track, MediaItem, StoryboardPanel } from "../types"
 
 const INITIAL_TRACKS: Track[] = [
   { id: "v1", name: "Video 1", type: "video", volume: 1 },
-  { id: "v2", name: "Video 2", type: "video", volume: 1 },
   { id: "a1", name: "Audio 1", type: "audio", volume: 1 },
-  { id: "a2", name: "Audio 2", type: "audio", volume: 1 },
 ]
 
 export interface UseTimelineStateOptions {
@@ -72,6 +70,7 @@ export interface UseTimelineStateResult {
   handleRippleDeleteClip: (clipIds: string[]) => void
   handleDuplicateClip: (clipIds: string[]) => void
   handleAddTextClip: (trackId: string, start: number) => void
+  handleOverwriteClips: (movedClipIds: string[]) => void
   onToolChange: (newTool: "select" | "razor") => void
 }
 
@@ -101,7 +100,7 @@ export function useTimelineState({
   }, [media])
 
   const contentDuration = Math.max(0, ...timelineClips.map((c) => c.start + c.duration))
-  const timelineDuration = Math.max(30, contentDuration) + 5
+  const timelineDuration = Math.max(10, contentDuration + 2)
 
   const selectionBounds = useMemo(() => {
     if (selectedClipIds.length === 0) return null
@@ -244,6 +243,7 @@ export function useTimelineState({
         start: splitTime,
         duration: secondDuration,
         offset: clip.offset + relativeSplit,
+        volume: 1,
       }
       setTimelineClips((prev) => prev.map((c) => (c.id === clipId ? clip1 : c)).concat(clip2))
       markPreviewStale()
@@ -353,6 +353,99 @@ export function useTimelineState({
     [pushToHistory, timelineClips, markPreviewStale],
   )
 
+  const handleOverwriteClips = useCallback(
+    (movedClipIds: string[]) => {
+      const movedClips = timelineClips.filter((c) => movedClipIds.includes(c.id))
+      if (movedClips.length === 0) return
+
+      let clipsModified = false
+      let updatedClips = [...timelineClips]
+      const clipsToDelete: string[] = []
+      const clipsToAdd: TimelineClip[] = []
+
+      movedClips.forEach((movedClip) => {
+        const movedStart = movedClip.start
+        const movedEnd = movedClip.start + movedClip.duration
+
+        // Find overlapping clips on the same track (excluding the moved clip itself)
+        const overlappingClips = updatedClips.filter(
+          (c) =>
+            c.trackId === movedClip.trackId &&
+            c.id !== movedClip.id &&
+            !movedClipIds.includes(c.id) &&
+            !c.isLocked &&
+            c.start < movedEnd &&
+            c.start + c.duration > movedStart,
+        )
+
+        overlappingClips.forEach((overlapClip) => {
+          const overlapStart = overlapClip.start
+          const overlapEnd = overlapClip.start + overlapClip.duration
+
+          // Case 1: Moved clip completely covers the overlap clip - delete it
+          if (movedStart <= overlapStart && movedEnd >= overlapEnd) {
+            clipsToDelete.push(overlapClip.id)
+            clipsModified = true
+          }
+          // Case 2: Moved clip is in the middle of overlap clip - split into two
+          else if (movedStart > overlapStart && movedEnd < overlapEnd) {
+            // First part: from original start to moved start
+            const firstPartDuration = movedStart - overlapStart
+            // Second part: from moved end to original end
+            const secondPartStart = movedEnd
+            const secondPartDuration = overlapEnd - movedEnd
+            const secondPartOffset = overlapClip.offset + (movedEnd - overlapStart)
+
+            // Update original clip to be the first part
+            updatedClips = updatedClips.map((c) =>
+              c.id === overlapClip.id ? { ...c, duration: firstPartDuration } : c,
+            )
+
+            // Create second part as new clip
+            clipsToAdd.push({
+              ...overlapClip,
+              id: `clip-${Date.now()}-split-${Math.random()}`,
+              start: secondPartStart,
+              duration: secondPartDuration,
+              offset: secondPartOffset,
+            })
+            clipsModified = true
+          }
+          // Case 3: Moved clip overlaps the start of overlap clip - trim start
+          else if (movedStart <= overlapStart && movedEnd > overlapStart && movedEnd < overlapEnd) {
+            const trimAmount = movedEnd - overlapStart
+            updatedClips = updatedClips.map((c) =>
+              c.id === overlapClip.id
+                ? {
+                    ...c,
+                    start: movedEnd,
+                    duration: c.duration - trimAmount,
+                    offset: c.offset + trimAmount,
+                  }
+                : c,
+            )
+            clipsModified = true
+          }
+          // Case 4: Moved clip overlaps the end of overlap clip - trim end
+          else if (movedStart > overlapStart && movedStart < overlapEnd && movedEnd >= overlapEnd) {
+            const newDuration = movedStart - overlapStart
+            updatedClips = updatedClips.map((c) => (c.id === overlapClip.id ? { ...c, duration: newDuration } : c))
+            clipsModified = true
+          }
+        })
+      })
+
+      if (clipsModified) {
+        // Remove deleted clips and add new split clips
+        updatedClips = updatedClips.filter((c) => !clipsToDelete.includes(c.id))
+        updatedClips = [...updatedClips, ...clipsToAdd]
+        setTimelineClips(updatedClips)
+        markPreviewStale()
+      }
+    },
+    [timelineClips, markPreviewStale],
+  )
+
   const handleAddTextClip = useCallback(
     (trackId: string, start: number) => {
       pushToHistory()
@@ -424,6 +517,7 @@ export function useTimelineState({
     handleDeleteClip,
     handleRippleDeleteClip,
     handleDuplicateClip,
+    handleOverwriteClips,
     handleAddTextClip,
     onToolChange,
   }

@@ -117,9 +117,7 @@ export const ASPECT_RATIOS = [
 // Initial tracks configuration
 export const INITIAL_TRACKS = [
   { id: "v1", name: "Video 1", type: "video" as const, volume: 1 },
-  { id: "v2", name: "Video 2", type: "video" as const, volume: 1 },
   { id: "a1", name: "Audio 1", type: "audio" as const, volume: 1 },
-  { id: "a2", name: "Audio 2", type: "audio" as const, volume: 1 },
 ] as const
 
 // Autosave configuration

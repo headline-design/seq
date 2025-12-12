@@ -1,4 +1,8 @@
-export const LogoIcon = ({ className }: { className?: string }) => (
+import type React from "react"
+
+type IconProps = { className?: string; style?: React.CSSProperties }
+
+export const LogoIcon = ({ className }: IconProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className={className}>
     <path
       fill="currentColor"
@@ -7,19 +11,19 @@ export const LogoIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const PlayIcon = ({ className }: { className?: string }) => (
+export const PlayIcon = ({ className }: IconProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
     <path d="M8 5v14l11-7z" />
   </svg>
 )
 
-export const PauseIcon = ({ className }: { className?: string }) => (
+export const PauseIcon = ({ className }: IconProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
     <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
   </svg>
 )
 
-export const PlusIcon = ({ className }: { className?: string }) => (
+export const PlusIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -37,7 +41,7 @@ export const PlusIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const FilmIcon = ({ className }: { className?: string }) => (
+export const FilmIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -61,7 +65,7 @@ export const FilmIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const SettingsIcon = ({ className }: { className?: string }) => (
+export const SettingsIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -79,7 +83,7 @@ export const SettingsIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const MagicIcon = ({ className }: { className?: string }) => (
+export const MagicIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -100,7 +104,7 @@ export const MagicIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const DownloadIcon = ({ className }: { className?: string }) => (
+export const DownloadIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -119,7 +123,7 @@ export const DownloadIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const LayoutIcon = ({ className }: { className?: string }) => (
+export const LayoutIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -138,7 +142,7 @@ export const LayoutIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const GridIcon = ({ className }: { className?: string }) => (
+export const GridIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -158,7 +162,7 @@ export const GridIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const PanelLeftClose = ({ className }: { className?: string }) => (
+export const PanelLeftClose = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -177,7 +181,7 @@ export const PanelLeftClose = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const PanelLeftOpen = ({ className }: { className?: string }) => (
+export const PanelLeftOpen = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -196,7 +200,7 @@ export const PanelLeftOpen = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const MaximizeIcon = ({ className }: { className?: string }) => (
+export const MaximizeIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -216,7 +220,7 @@ export const MaximizeIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const MinimizeIcon = ({ className }: { className?: string }) => (
+export const MinimizeIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -236,7 +240,7 @@ export const MinimizeIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const MusicIcon = ({ className }: { className?: string }) => (
+export const MusicIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -255,7 +259,7 @@ export const MusicIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const VolumeIcon = ({ className }: { className?: string }) => (
+export const VolumeIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -274,7 +278,7 @@ export const VolumeIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const MuteIcon = ({ className }: { className?: string }) => (
+export const MuteIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -293,7 +297,7 @@ export const MuteIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const LockIcon = ({ className }: { className?: string }) => (
+export const LockIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -311,7 +315,7 @@ export const LockIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const UnlockIcon = ({ className }: { className?: string }) => (
+export const UnlockIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -329,7 +333,7 @@ export const UnlockIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const MagnetIcon = ({ className }: { className?: string }) => (
+export const MagnetIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -346,7 +350,7 @@ export const MagnetIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const ScissorsIcon = ({ className }: { className?: string }) => (
+export const ScissorsIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -367,7 +371,7 @@ export const ScissorsIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const TrashIcon = ({ className }: { className?: string }) => (
+export const TrashIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -386,7 +390,7 @@ export const TrashIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const CopyIcon = ({ className }: { className?: string }) => (
+export const CopyIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -404,7 +408,7 @@ export const CopyIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const SplitIcon = ({ className }: { className?: string }) => (
+export const SplitIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -425,7 +429,7 @@ export const SplitIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const TransitionIcon = ({ className }: { className?: string }) => (
+export const TransitionIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -446,7 +450,7 @@ export const TransitionIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const CrossDissolveIcon = ({ className }: { className?: string }) => (
+export const CrossDissolveIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -465,7 +469,7 @@ export const CrossDissolveIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const FadeIcon = ({ className }: { className?: string }) => (
+export const FadeIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -482,7 +486,7 @@ export const FadeIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const UndoIcon = ({ className }: { className?: string }) => (
+export const UndoIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -500,7 +504,7 @@ export const UndoIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const RedoIcon = ({ className }: { className?: string }) => (
+export const RedoIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -518,7 +522,7 @@ export const RedoIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const SpinnerIcon = ({ className }: { className?: string }) => (
+export const SpinnerIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -535,7 +539,7 @@ export const SpinnerIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const CheckCircleIcon = ({ className }: { className?: string }) => (
+export const CheckCircleIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -553,7 +557,7 @@ export const CheckCircleIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const KeyboardIcon = ({ className }: { className?: string }) => (
+export const KeyboardIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -578,7 +582,7 @@ export const KeyboardIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const Grid3x3Icon = ({ className }: { className?: string }) => (
+export const Grid3x3Icon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -599,7 +603,7 @@ export const Grid3x3Icon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const ChevronDownIcon = ({ className }: { className?: string }) => (
+export const ChevronDownIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -616,7 +620,24 @@ export const ChevronDownIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const EyeIcon = ({ className }: { className?: string }) => (
+export const ChevronRightIcon = ({ className }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="m9 18 6-6-6-6" />
+  </svg>
+)
+
+export const EyeIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -634,7 +655,7 @@ export const EyeIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const GripVerticalIcon = ({ className }: { className?: string }) => (
+export const GripVerticalIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -656,7 +677,7 @@ export const GripVerticalIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const TypeIcon = ({ className }: { className?: string }) => (
+export const TypeIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -675,7 +696,7 @@ export const TypeIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const StoryboardIcon = ({ className }: { className?: string }) => (
+export const StoryboardIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -702,8 +723,6 @@ export const StoryboardIcon = ({ className }: { className?: string }) => (
 export const LinkIcon = ({ className }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -717,7 +736,7 @@ export const LinkIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const Sparkles = ({ className }: { className?: string }) => (
+export const Sparkles = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -738,7 +757,7 @@ export const Sparkles = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const ZoomInIcon = ({ className }: { className?: string }) => (
+export const ZoomInIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -758,7 +777,7 @@ export const ZoomInIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const ZoomOutIcon = ({ className }: { className?: string }) => (
+export const ZoomOutIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -777,7 +796,7 @@ export const ZoomOutIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const ImageIcon = ({ className }: { className?: string }) => (
+export const ImageIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -796,7 +815,7 @@ export const ImageIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const UploadIcon = ({ className }: { className?: string }) => (
+export const UploadIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -815,7 +834,7 @@ export const UploadIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const SaveIcon = ({ className }: { className?: string }) => (
+export const SaveIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -834,7 +853,7 @@ export const SaveIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const FolderOpenIcon = ({ className }: { className?: string }) => (
+export const FolderOpenIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -851,7 +870,7 @@ export const FolderOpenIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const SkipBackIcon = ({ className }: { className?: string }) => (
+export const SkipBackIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -869,7 +888,7 @@ export const SkipBackIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const SkipForwardIcon = ({ className }: { className?: string }) => (
+export const SkipForwardIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -887,7 +906,7 @@ export const SkipForwardIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const RepeatIcon = ({ className }: { className?: string }) => (
+export const RepeatIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -907,7 +926,45 @@ export const RepeatIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const ChevronLeftIcon = ({ className }: { className?: string }) => (
+export const LoopIcon = ({ className }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M17 2l4 4-4 4" />
+    <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+    <path d="M7 22l-4-4 4-4" />
+    <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+  </svg>
+)
+
+export const FlagIcon = ({ className, style }: IconProps) => (
+  <svg className={className} style={style} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5 21V4h9l.4 2H20v10h-7l-.4-2H7v7H5Z" />
+  </svg>
+)
+
+export const CheckIcon = ({ className }: IconProps) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+)
+
+export const ChevronLeftIcon = ({ className }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -924,28 +981,9 @@ export const ChevronLeftIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const ChevronRightIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="m9 18 6-6-6-6" />
-  </svg>
-)
-
 export const InfoIcon = ({ className }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -960,16 +998,20 @@ export const InfoIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const CheckIcon = ({ className }: { className?: string }) => (
+export const VideoIcon = ({ className }: IconProps) => (
   <svg
-    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth={2}
+    strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
+    className={className}
   >
-    <polyline points="20 6 9 17 4 12" />
+    <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5" />
+    <rect x="2" y="6" width="14" height="12" rx="2" />
   </svg>
 )

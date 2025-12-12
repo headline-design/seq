@@ -4,6 +4,7 @@ import type React from "react"
 import { memo, useCallback, useState } from "react"
 import { SettingsIcon, PanelLeftClose, ChevronDownIcon, ChevronRightIcon } from "./icons"
 import { ASPECT_RATIOS, PLAYBACK_CONSTANTS } from "../constants"
+import { clearAutosave, hasAutosave } from "../services/project-service"
 
 interface ProjectSettings {
   projectName: string
@@ -232,6 +233,16 @@ export const SettingsPanel = memo(function SettingsPanel({
     }
   }, [onClearAll])
 
+  const handleClearAutosave = useCallback(() => {
+    if (
+      window.confirm("Clear autosaved data? This will remove any auto-saved project data and reset to default tracks.")
+    ) {
+      clearAutosave()
+      // Reload to apply default tracks
+      window.location.reload()
+    }
+  }, [])
+
   return (
     <div className="w-full flex flex-col bg-[#09090b] border-r border-neutral-800 h-full">
       {/* Header */}
@@ -449,6 +460,15 @@ export const SettingsPanel = memo(function SettingsPanel({
               >
                 Clear Media Library
               </button>
+
+              {hasAutosave() && (
+                <button
+                  onClick={handleClearAutosave}
+                  className="w-full py-2.5 px-4 rounded-lg border border-amber-900/30 bg-amber-900/10 text-amber-400 hover:bg-amber-900/20 text-xs font-medium transition-colors"
+                >
+                  Clear Autosave Data
+                </button>
+              )}
 
               <button
                 onClick={handleResetSettings}

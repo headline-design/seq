@@ -3,6 +3,10 @@
  * Supports both pure audio files and video files with audio tracks
  */
 
+type WebkitWindow = Window & {
+  webkitAudioContext?: typeof AudioContext
+}
+
 export interface WaveformData {
   peaks: number[]
   duration: number
@@ -26,7 +30,7 @@ function isLikelyAudioFile(url: string): boolean {
  */
 async function extractAudioFromMedia(mediaUrl: string, numBars: number): Promise<WaveformData | null> {
   return new Promise((resolve) => {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const audioContext = new (window.AudioContext || (window as WebkitWindow).webkitAudioContext!)()
 
     // Create an audio element (works for both audio and video)
     const mediaElement = document.createElement("audio")
@@ -113,7 +117,7 @@ async function extractAudioFromMedia(mediaUrl: string, numBars: number): Promise
  */
 async function decodeAudioFile(mediaUrl: string, numBars: number): Promise<WaveformData | null> {
   try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const audioContext = new (window.AudioContext || (window as WebkitWindow).webkitAudioContext!)()
 
     // Fetch the audio file
     const response = await fetch(mediaUrl)

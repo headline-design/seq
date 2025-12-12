@@ -14,6 +14,9 @@ interface DragState {
   initialStates: Record<string, { start: number; duration: number; offset: number }>
   minStartDelta: number
   maxStartDelta: number
+  snapLocked: boolean
+  snapPosition: number | null
+  snapBreakThreshold: number
 }
 
 interface UseTimelineDragOptions {
@@ -28,6 +31,7 @@ interface UseTimelineDragOptions {
   onSelectClips: (clipIds: string[]) => void
   onSplitClip: (clipId: string, splitTime: number) => void
   onDragStart: () => void
+  onOverwriteClips: (movedClipIds: string[]) => void
 }
 
 export function useTimelineDrag({
@@ -42,6 +46,7 @@ export function useTimelineDrag({
   onSelectClips,
   onSplitClip,
   onDragStart,
+  onOverwriteClips,
 }: UseTimelineDragOptions) {
   const [dragState, setDragState] = useState<DragState>({
     mode: "none",
@@ -50,6 +55,9 @@ export function useTimelineDrag({
     initialStates: {},
     minStartDelta: Number.NEGATIVE_INFINITY,
     maxStartDelta: Number.POSITIVE_INFINITY,
+    snapLocked: false,
+    snapPosition: null,
+    snapBreakThreshold: 20, // pixels to drag past snap point to break
   })
   const [snapIndicator, setSnapIndicator] = useState<number | null>(null)
   const [lastClickedClipId, setLastClickedClipId] = useState<string | null>(null)
@@ -67,11 +75,15 @@ export function useTimelineDrag({
   getSnapTimeRef.current = getSnapTime
   const snapEnabledRef = useRef(snapEnabled)
   snapEnabledRef.current = snapEnabled
+  const onOverwriteClipsRef = useRef(onOverwriteClips)
+  onOverwriteClipsRef.current = onOverwriteClips
 
   const handleMouseDownClip = useCallback(
     (e: React.MouseEvent, clip: TimelineClip, mode: DragMode) => {
       e.stopPropagation()
       e.preventDefault()
+
+      if (clip.isLocked) return
 
       const track = tracks.find((t) => t.id === clip.trackId)
       if (track?.isLocked) return
@@ -125,32 +137,25 @@ export function useTimelineDrag({
             : [clip.id]
           : [clip.id]
 
-      // Calculate constraints
+      // Only constraint is clips can't go before 0
       const initialStates: Record<string, { start: number; duration: number; offset: number }> = {}
-      let globalMinStartDelta = Number.NEGATIVE_INFINITY
-      let globalMaxStartDelta = Number.POSITIVE_INFINITY
 
       activeClipIds.forEach((id) => {
         const c = clips.find((x) => x.id === id)
         if (c) {
           initialStates[id] = { start: c.start, duration: c.duration, offset: c.offset }
+        }
+      })
 
-          const trackClips = clips.filter((x) => x.trackId === c.trackId && !activeClipIds.includes(x.id))
-
-          const prevClip = trackClips
-            .filter((x) => x.start + x.duration <= c.start)
-            .sort((a, b) => b.start + b.duration - (a.start + a.duration))[0]
-          const minStart = prevClip ? prevClip.start + prevClip.duration : 0
-          const maxLeftDelta = minStart - c.start
-
-          const nextClip = trackClips
-            .filter((x) => x.start >= c.start + c.duration)
-            .sort((a, b) => a.start - b.start)[0]
-          const maxEnd = nextClip ? nextClip.start : Number.POSITIVE_INFINITY
-          const maxRightDelta = maxEnd - (c.start + c.duration)
-
-          if (maxLeftDelta > globalMinStartDelta) globalMinStartDelta = maxLeftDelta
-          if (maxRightDelta < globalMaxStartDelta) globalMaxStartDelta = maxRightDelta
+      // Calculate min delta so clips don't go before timeline start (0)
+      let globalMinStartDelta = Number.NEGATIVE_INFINITY
+      activeClipIds.forEach((id) => {
+        const state = initialStates[id]
+        if (state) {
+          const minDelta = -state.start // Can't go below 0
+          if (minDelta > globalMinStartDelta) {
+            globalMinStartDelta = minDelta
+          }
         }
       })
 
@@ -160,7 +165,10 @@ export function useTimelineDrag({
         startX: e.clientX,
         initialStates,
         minStartDelta: globalMinStartDelta,
-        maxStartDelta: globalMaxStartDelta,
+        maxStartDelta: Number.POSITIVE_INFINITY, // No right-side limit - allow overlapping
+        snapLocked: false,
+        snapPosition: null,
+        snapBreakThreshold: 20,
       })
     },
     [clips, tracks, selectedClipIds, zoomLevel, tool, lastClickedClipId, onSelectClips, onSplitClip, onDragStart],
@@ -179,30 +187,50 @@ export function useTimelineDrag({
     if (ds.mode === "move") {
       let proposedDelta = deltaSeconds
       proposedDelta = Math.max(ds.minStartDelta, proposedDelta)
-      proposedDelta = Math.min(ds.maxStartDelta, proposedDelta)
 
       const leadClipId = ds.clipIds[0]
       const leadState = ds.initialStates[leadClipId]
+      const leadNewStart = leadState.start + proposedDelta
 
-      if (snapEnabledRef.current) {
-        const leadNewStart = leadState.start + proposedDelta
+      if (snapEnabledRef.current && !ds.snapLocked) {
+        // Try to find a snap point
         const snapLeft = getSnapTimeRef.current(leadNewStart, ds.clipIds)
         if (snapLeft !== null) {
           const snapDelta = snapLeft - leadState.start
-          if (snapDelta >= ds.minStartDelta && snapDelta <= ds.maxStartDelta) {
+          if (snapDelta >= ds.minStartDelta) {
+            // Lock to this snap position
             proposedDelta = snapDelta
             snappedTime = snapLeft
+
+            // Update drag state to track snap position
+            setDragState((prev) => ({ ...prev, snapPosition: snapLeft }))
           }
         } else {
           const leadNewEnd = leadNewStart + leadState.duration
           const snapRight = getSnapTimeRef.current(leadNewEnd, ds.clipIds)
           if (snapRight !== null) {
             const snapDelta = snapRight - leadState.duration - leadState.start
-            if (snapDelta >= ds.minStartDelta && snapDelta <= ds.maxStartDelta) {
+            if (snapDelta >= ds.minStartDelta) {
               proposedDelta = snapDelta
               snappedTime = snapRight
+
+              // Update drag state to track snap position
+              setDragState((prev) => ({ ...prev, snapPosition: snapRight }))
             }
           }
+        }
+      } else if (ds.snapPosition !== null) {
+        const currentPosition = leadState.start + deltaSeconds
+        const distanceFromSnap = Math.abs(currentPosition - ds.snapPosition) * zoom
+
+        if (distanceFromSnap > ds.snapBreakThreshold) {
+          // Break through the snap - allow overlap
+          setDragState((prev) => ({ ...prev, snapLocked: true }))
+        } else {
+          // Still within threshold, maintain snap
+          const snapDelta = ds.snapPosition - leadState.start
+          proposedDelta = snapDelta
+          snappedTime = ds.snapPosition
         }
       }
 
@@ -266,6 +294,13 @@ export function useTimelineDrag({
   }, [])
 
   const handleDragEnd = useCallback(() => {
+    const ds = dragStateRef.current
+
+    // If we were moving clips, check for overlaps and trigger overwrite
+    if (ds.mode === "move" && ds.clipIds.length > 0) {
+      onOverwriteClipsRef.current(ds.clipIds)
+    }
+
     setDragState({
       mode: "none",
       clipIds: [],
@@ -273,6 +308,10 @@ export function useTimelineDrag({
       initialStates: {},
       minStartDelta: 0,
       maxStartDelta: 0,
+      // Reset snap state on drag end
+      snapLocked: false,
+      snapPosition: null,
+      snapBreakThreshold: 20,
     })
     setSnapIndicator(null)
     document.body.style.cursor = "default"

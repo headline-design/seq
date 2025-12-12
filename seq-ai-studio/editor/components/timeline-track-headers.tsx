@@ -8,6 +8,7 @@ import { MusicIcon, VolumeIcon, LockIcon, UnlockIcon, MuteIcon, PlusIcon, GripVe
 
 interface TimelineTrackHeadersProps {
   tracks: Track[]
+  hasClips: boolean
   onTrackUpdate: (trackId: string, changes: Partial<Track>) => void
   onAddTrack?: (type: "video" | "audio" | "text") => void
   onReorderTracks?: (trackIds: string[]) => void
@@ -15,6 +16,7 @@ interface TimelineTrackHeadersProps {
 
 export const TimelineTrackHeaders = memo(function TimelineTrackHeaders({
   tracks,
+  hasClips,
   onTrackUpdate,
   onAddTrack,
   onReorderTracks,
@@ -73,6 +75,35 @@ export const TimelineTrackHeaders = memo(function TimelineTrackHeaders({
     setDraggedTrackId(null)
     setDragOverTrackId(null)
   }, [])
+
+  if (!hasClips) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-3">
+        {onAddTrack && (
+          <div className="flex flex-col gap-1 w-full">
+            <button
+              onClick={() => onAddTrack("video")}
+              className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-neutral-800 hover:bg-neutral-800 text-[10px] text-neutral-500 hover:text-neutral-300 transition-colors"
+            >
+              <PlusIcon className="w-3 h-3" /> Video
+            </button>
+            <button
+              onClick={() => onAddTrack("audio")}
+              className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-neutral-800 hover:bg-neutral-800 text-[10px] text-neutral-500 hover:text-neutral-300 transition-colors"
+            >
+              <PlusIcon className="w-3 h-3" /> Audio
+            </button>
+            <button
+              onClick={() => onAddTrack("text")}
+              className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-neutral-800 hover:bg-neutral-800 text-[10px] text-neutral-500 hover:text-neutral-300 transition-colors"
+            >
+              <PlusIcon className="w-3 h-3" /> Text
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <>
@@ -169,30 +200,6 @@ export const TimelineTrackHeaders = memo(function TimelineTrackHeaders({
           </div>
         )
       })}
-
-      {/* Add Track Buttons */}
-      {onAddTrack && (
-        <div className="p-2 flex flex-col gap-1 mt-2">
-          <button
-            onClick={() => onAddTrack("video")}
-            className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-neutral-800 hover:bg-neutral-800 text-[10px] text-neutral-500 hover:text-neutral-300 transition-colors"
-          >
-            <PlusIcon className="w-3 h-3" /> Video Track
-          </button>
-          <button
-            onClick={() => onAddTrack("audio")}
-            className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-neutral-800 hover:bg-neutral-800 text-[10px] text-neutral-500 hover:text-neutral-300 transition-colors"
-          >
-            <PlusIcon className="w-3 h-3" /> Audio Track
-          </button>
-          <button
-            onClick={() => onAddTrack("text")}
-            className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-neutral-800 hover:bg-neutral-800 text-[10px] text-neutral-500 hover:text-neutral-300 transition-colors"
-          >
-            <PlusIcon className="w-3 h-3" /> Text Track
-          </button>
-        </div>
-      )}
 
       {/* Spacer */}
       <div className="h-20 shrink-0" />

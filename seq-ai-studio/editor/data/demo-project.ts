@@ -36,17 +36,6 @@ export const DEMO_MEDIA: MediaItem[] = [
     type: "video",
     resolution: { width: 1280, height: 720 },
   },
-  {
-    id: "demo-image-1",
-    url: "/majestic-mountain-vista.png",
-    thumbnailUrl: "/majestic-mountain-thumbnail.png",
-    prompt: "Majestic mountain landscape",
-    duration: 5,
-    aspectRatio: "16:9",
-    status: "ready",
-    type: "image",
-    resolution: { width: 1280, height: 720 },
-  },
 ]
 
 export const DEMO_CLIPS: TimelineClip[] = [
@@ -77,16 +66,6 @@ export const DEMO_CLIPS: TimelineClip[] = [
     trackId: "v1",
     start: 11,
     duration: 4,
-    offset: 0,
-    volume: 1,
-    speed: 1,
-  },
-  {
-    id: "demo-clip-4",
-    mediaId: "demo-image-1",
-    trackId: "v2",
-    start: 2,
-    duration: 3,
     offset: 0,
     volume: 1,
     speed: 1,

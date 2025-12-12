@@ -79,8 +79,9 @@ export function useStoryboard({ initialPanels, videoConfig, onMediaAdd }: UseSto
 
         const result = await response.json()
         updatePanel(panelId, { imageUrl: result.url, status: "idle" })
-      } catch (error: any) {
-        updatePanel(panelId, { status: "error", error: error.message || "Image generation failed" })
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Image generation failed"
+        updatePanel(panelId, { status: "error", error: message })
       }
     },
     [videoConfig.aspectRatio, updatePanel],
@@ -132,8 +133,9 @@ export function useStoryboard({ initialPanels, videoConfig, onMediaAdd }: UseSto
         } else {
           throw new Error("No video URL in response")
         }
-      } catch (error: any) {
-        updatePanel(panelId, { status: "error", error: error.message || "Video generation failed" })
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Video generation failed"
+        updatePanel(panelId, { status: "error", error: message })
       }
     },
     [videoConfig, panels, updatePanel, onMediaAdd],
@@ -168,8 +170,9 @@ export function useStoryboard({ initialPanels, videoConfig, onMediaAdd }: UseSto
         } else {
           throw new Error("No upscaled URL in response")
         }
-      } catch (error: any) {
-        updatePanel(panelId, { status: "error", error: error.message || "Upscale failed" })
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Upscale failed"
+        updatePanel(panelId, { status: "error", error: message })
         toast.error("Failed to upscale image")
       }
     },
@@ -197,8 +200,9 @@ export function useStoryboard({ initialPanels, videoConfig, onMediaAdd }: UseSto
         setMasterDescription(result.enhancedPrompt)
         toast.success("Description enhanced!")
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to enhance description")
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to enhance description"
+      toast.error(message)
     } finally {
       setIsEnhancingMaster(false)
     }
