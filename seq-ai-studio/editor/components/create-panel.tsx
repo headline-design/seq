@@ -263,7 +263,7 @@ export const CreatePanel = memo(function CreatePanel({
   const [history, setHistory] = useState<GeneratedItem[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const prevGeneratedRef = useRef<typeof generatedItem>(null)
-  const { showToast } = useToastContext()
+ const { toast } = useToastContext()
 
   useEffect(() => {
     if (generatedItem && generatedItem !== prevGeneratedRef.current && prompt.trim()) {
@@ -294,17 +294,17 @@ export const CreatePanel = memo(function CreatePanel({
       if (response.ok) {
         const data = await response.json()
         setPrompt(data.enhancedPrompt || prompt)
-        showToast("Prompt enhanced successfully", "success")
+       toast.success("Prompt enhanced successfully")
       } else {
-        showToast("Failed to enhance prompt", "error")
+       toast.error("Failed to enhance prompt")
       }
     } catch (err) {
       console.error("Failed to enhance prompt:", err)
-      showToast("Failed to enhance prompt", "error")
+      toast.error("Failed to enhance prompt")
     } finally {
       setIsEnhancing(false)
     }
-  }, [prompt, activeTab, isEnhancing, showToast])
+  }, [prompt, activeTab, isEnhancing, toast])
 
   const handleApplyPreset = useCallback((prefix: string) => {
     setPrompt((prev) => prefix + prev)

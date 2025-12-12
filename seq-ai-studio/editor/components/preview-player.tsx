@@ -62,6 +62,7 @@ export interface PreviewPlayerProps {
   ffmpegLoading: boolean
   activeClip?: TimelineClip | null
   textClips?: TimelineClip[]
+  onCancelRender: () => void
   onPlay: () => void
   onSeek: (time: number) => void
   onTogglePlay: () => void

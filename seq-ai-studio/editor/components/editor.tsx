@@ -1147,7 +1147,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
   }, [timeline, storyboard, toastCtx])
 
   const handleZoomToFit = useCallback(() => {
-    const { clips, setZoomLevel } = timeline
+    const { timelineClips: clips, setZoomLevel } = timeline
     if (clips.length === 0) return
     const maxEnd = Math.max(...clips.map((c) => c.start + c.duration))
     if (maxEnd <= 0) return
@@ -1163,9 +1163,9 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
     onZoomToFit: handleZoomToFit,
     onSaveFrame: () => {},
     currentTime: playback.currentTime,
-    previewVideoRef: playback.previewVideoRef,
-    videoRefA: playback.videoRefA,
-    videoRefB: playback.videoRefB,
+    previewVideoRef: playback.previewVideoRef as React.RefObject<HTMLVideoElement>,
+    videoRefA: playback.videoRefA as React.RefObject<HTMLVideoElement>,
+    videoRefB: playback.videoRefB as React.RefObject<HTMLVideoElement>,
     isPreviewPlayback: playback.isPreviewPlayback,
     toastCtx,
   })
@@ -1385,7 +1385,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                         selectedId={timeline.selectedClipIds[0]}
                         onSelect={(m) => timeline.setSelectedClipIds([m.id])}
                         onAddToTimeline={timeline.handleAddToTimeline}
-                        onImport={mediaManagement.importFile}
+                        onImport={mediaManagement.handleImport}
                         onRemove={timeline.handleRemoveMedia}
                         onClose={() => setIsPanelOpen(false)}
                       />

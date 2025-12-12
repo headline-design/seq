@@ -11,6 +11,7 @@ interface StoryboardPanelProps {
   onClose: () => void
   panels: IStoryboardPanel[]
   masterDescription: string
+  setMasterDescription: (desc: string) => void
   isEnhancingMaster: boolean
   setIsEnhancingMaster: (isEnhancing: boolean) => void
   onMasterDescriptionChange: (desc: string) => void
@@ -56,7 +57,7 @@ export const StoryboardPanel = memo<StoryboardPanelProps>(
     onAddToTimeline,
     onUpscaleImage,
   }) => {
-    const { showToast } = useToastContext()
+    const { toast } = useToastContext()
     const [isGeneratingAll, setIsGeneratingAll] = useState<"images" | "videos" | null>(null)
 
     const isAnyGenerating = panels.some((p) => p.status === "generating-image" || p.status === "generating-video")
@@ -78,17 +79,17 @@ export const StoryboardPanel = memo<StoryboardPanelProps>(
           const data = await response.json()
           if (data.enhancedPrompt) {
             onUpdatePanel(panelId, { prompt: data.enhancedPrompt, status: "idle" })
-            showToast("Prompt enhanced", "success")
+            toast.success("Prompt enhanced")
           } else {
             onUpdatePanel(panelId, { status: "idle" })
           }
         } catch (error) {
           console.error("Error enhancing prompt:", error)
           onUpdatePanel(panelId, { status: "error", error: "Enhancement failed" })
-          showToast("Failed to enhance prompt", "error")
+          toast.error("Failed to enhance prompt")
         }
       },
-      [onUpdatePanel, showToast],
+      [onUpdatePanel, toast],
     )
 
     const handleEnhanceMaster = useCallback(async () => {
@@ -102,19 +103,19 @@ export const StoryboardPanel = memo<StoryboardPanelProps>(
         })
         if (!response.ok) {
           setIsEnhancingMaster(false)
-          showToast("Failed to enhance master description", "error")
+          toast.error("Failed to enhance master description")
           return
         }
         const data = await response.json()
         const enhanced = data.enhancedPrompt || masterDescription
         setMasterDescription(enhanced)
         setIsEnhancingMaster(false)
-        showToast("Master description enhanced", "success")
+        toast.success("Master description enhanced")
       } catch (error) {
         setIsEnhancingMaster(false)
-        showToast("Failed to enhance master description", "error")
+        toast.error("Failed to enhance master description")
       }
-    }, [masterDescription, setIsEnhancingMaster, setMasterDescription, showToast])
+    }, [masterDescription, setIsEnhancingMaster, setMasterDescription, toast])
 
     const panelsWithVideos = panels.filter((p) => p.videoUrl)
     const panelsNeedingImages = panels.filter((p) => !p.imageUrl && p.prompt && p.status === "idle")
