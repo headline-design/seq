@@ -65,7 +65,6 @@ export function useFFmpeg(): UseFFmpegResult {
     setFfmpegLoading(true)
     setFfmpegError(null)
 
-    // Multiple CDN sources to try
     const cdnSources = [
       "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm",
       "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm",
@@ -80,26 +79,18 @@ export function useFFmpeg(): UseFFmpegResult {
       }
       const ffmpeg = ffmpegRef.current
 
-      ffmpeg.on("log", ({ message }: { message: string }) => {
-        console.log("[FFmpeg]", message)
-      })
-
-      // Try each CDN source until one works
       let loadSuccess = false
       let lastError: Error | null = null
 
       for (const baseURL of cdnSources) {
         try {
-          console.log(`[FFmpeg] Trying CDN: ${baseURL}`)
           await ffmpeg.load({
             coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
             wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
           })
           loadSuccess = true
-          console.log(`[FFmpeg] Successfully loaded from: ${baseURL}`)
           break
         } catch (cdnError) {
-          console.warn(`[FFmpeg] Failed to load from ${baseURL}:`, cdnError)
           lastError = cdnError as Error
         }
       }

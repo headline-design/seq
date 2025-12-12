@@ -303,6 +303,9 @@ export const Timeline = memo(function Timeline({
     <div
       className={`${className || ""} bg-[#09090b] border-t border-neutral-800 flex flex-col shrink-0 select-none relative z-10 transition-none overflow-hidden`}
       style={style || { height: 320 }}
+      role="region"
+      aria-label="Video timeline"
+      aria-description="Multi-track timeline for video, audio, and text editing"
     >
       {/* Toolbar */}
       <TimelineToolbar

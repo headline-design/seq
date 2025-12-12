@@ -3,8 +3,9 @@
 import type React from "react"
 import { memo, useState, useRef, useCallback, useEffect } from "react"
 import { MagicIcon, PanelLeftClose, ChevronDownIcon, ChevronRightIcon } from "./icons"
-import { Upload, X, Sparkles, Clock, Trash2, GripVertical, Wand2, Copy, Check } from "lucide-react"
+import { Upload, X, Clock, Trash2, GripVertical, Wand2, Copy, Check } from "lucide-react"
 import { VIDEO_MODELS } from "../constants"
+import { useToastContext } from "@/components/ui/sonner"
 
 interface GeneratedItem {
   id: string
@@ -262,6 +263,7 @@ export const CreatePanel = memo(function CreatePanel({
   const [history, setHistory] = useState<GeneratedItem[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const prevGeneratedRef = useRef<typeof generatedItem>(null)
+  const { showToast } = useToastContext()
 
   useEffect(() => {
     if (generatedItem && generatedItem !== prevGeneratedRef.current && prompt.trim()) {
@@ -292,13 +294,17 @@ export const CreatePanel = memo(function CreatePanel({
       if (response.ok) {
         const data = await response.json()
         setPrompt(data.enhancedPrompt || prompt)
+        showToast("Prompt enhanced successfully", "success")
+      } else {
+        showToast("Failed to enhance prompt", "error")
       }
     } catch (err) {
       console.error("Failed to enhance prompt:", err)
+      showToast("Failed to enhance prompt", "error")
     } finally {
       setIsEnhancing(false)
     }
-  }, [prompt, activeTab, isEnhancing])
+  }, [prompt, activeTab, isEnhancing, showToast])
 
   const handleApplyPreset = useCallback((prefix: string) => {
     setPrompt((prev) => prefix + prev)

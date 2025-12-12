@@ -5,6 +5,7 @@ import { PlusIcon } from "./icons"
 import { StoryboardHeader } from "./storyboard/storyboard-header"
 import { StoryboardBatchActions } from "./storyboard/storyboard-batch-actions"
 import { StoryboardPanelItem } from "./storyboard/storyboard-panel-item"
+import { useToastContext } from "@/components/ui/sonner"
 
 interface StoryboardPanelProps {
   onClose: () => void
@@ -14,7 +15,6 @@ interface StoryboardPanelProps {
   setIsEnhancingMaster: (isEnhancing: boolean) => void
   onMasterDescriptionChange: (desc: string) => void
   setIsEnhancing: (isEnhancing: boolean) => void
-  setMasterDescription: (desc: string) => void
   setPrompt: (prompt: string) => void
   videoConfig: VideoConfig
   setVideoConfig: (config: VideoConfig) => void
@@ -56,6 +56,7 @@ export const StoryboardPanel = memo<StoryboardPanelProps>(
     onAddToTimeline,
     onUpscaleImage,
   }) => {
+    const { showToast } = useToastContext()
     const [isGeneratingAll, setIsGeneratingAll] = useState<"images" | "videos" | null>(null)
 
     const isAnyGenerating = panels.some((p) => p.status === "generating-image" || p.status === "generating-video")
@@ -77,35 +78,43 @@ export const StoryboardPanel = memo<StoryboardPanelProps>(
           const data = await response.json()
           if (data.enhancedPrompt) {
             onUpdatePanel(panelId, { prompt: data.enhancedPrompt, status: "idle" })
+            showToast("Prompt enhanced", "success")
           } else {
             onUpdatePanel(panelId, { status: "idle" })
           }
         } catch (error) {
           console.error("Error enhancing prompt:", error)
           onUpdatePanel(panelId, { status: "error", error: "Enhancement failed" })
+          showToast("Failed to enhance prompt", "error")
         }
       },
-      [onUpdatePanel],
+      [onUpdatePanel, showToast],
     )
 
     const handleEnhanceMaster = useCallback(async () => {
       if (!masterDescription.trim()) return
       setIsEnhancingMaster(true)
-      const response = await fetch("/api/enhance-text", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: masterDescription }),
-      })
-      if (!response.ok) {
+      try {
+        const response = await fetch("/api/enhance-text", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: masterDescription }),
+        })
+        if (!response.ok) {
+          setIsEnhancingMaster(false)
+          showToast("Failed to enhance master description", "error")
+          return
+        }
+        const data = await response.json()
+        const enhanced = data.enhancedPrompt || masterDescription
+        setMasterDescription(enhanced)
         setIsEnhancingMaster(false)
-        console.error("Enhancement failed")
-        return
+        showToast("Master description enhanced", "success")
+      } catch (error) {
+        setIsEnhancingMaster(false)
+        showToast("Failed to enhance master description", "error")
       }
-      const data = await response.json()
-      const enhanced = data.enhancedPrompt || masterDescription
-      setMasterDescription(enhanced)
-      setIsEnhancingMaster(false)
-    }, [masterDescription, setIsEnhancingMaster, setMasterDescription])
+    }, [masterDescription, setIsEnhancingMaster, setMasterDescription, showToast])
 
     const panelsWithVideos = panels.filter((p) => p.videoUrl)
     const panelsNeedingImages = panels.filter((p) => !p.imageUrl && p.prompt && p.status === "idle")

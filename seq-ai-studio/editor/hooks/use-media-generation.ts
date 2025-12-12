@@ -107,10 +107,11 @@ export function useMediaGeneration({
             onAddToTimeline(readyItem)
           }
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (isMountedRef.current) {
           onMediaUpdate(newId, { status: "error" })
-          alert(error.message || "Generation failed")
+          const message = error instanceof Error ? error.message : "Generation failed"
+          alert(message)
         }
       } finally {
         if (isMountedRef.current) setIsGenerating(false)

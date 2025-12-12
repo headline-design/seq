@@ -10,11 +10,10 @@ interface ShortcutHandlers {
   onDuplicate?: () => void
   onDelete?: () => void
   onRippleDelete?: () => void
-  onSaveFrame?: () => void
   onEscape?: () => void
 }
 
-export function useShortcuts(handlers: ShortcutHandlers, dependencies: any[] = []) {
+export function useShortcuts(handlers: ShortcutHandlers, dependencies: unknown[] = []) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if user is typing in an input

@@ -128,11 +128,12 @@ export function StoryboardContainer({
       } else {
         throw new Error("No video URL in response")
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Video generation failed:", error)
+      const message = error instanceof Error ? error.message : "Failed to generate video"
       updatePanel(id, {
         isGenerating: false,
-        error: error.message || "Failed to generate video",
+        error: message,
       })
       toast.error("Video generation failed")
     }

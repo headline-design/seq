@@ -99,6 +99,7 @@ export const PreviewPlayer = memo(function PreviewPlayer({
   onLoadFFmpeg,
   onTogglePlay,
   onTogglePreviewPlayback,
+  onCancelRender,
   onZoomReset,
   mediaMap,
   onZoomChange,
@@ -228,7 +229,12 @@ export const PreviewPlayer = memo(function PreviewPlayer({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="flex-1 w-full bg-[#050505] relative flex items-center justify-center p-6 overflow-hidden min-h-[200px]">
+      <div
+        className="flex-1 w-full bg-[#050505] relative flex items-center justify-center p-6 overflow-hidden min-h-[200px]"
+        role="region"
+        aria-label="Video preview player"
+        aria-description="Preview area for video playback and frame capture"
+      >
         {isSafeGuidesVisible && (
           <div
             className="absolute z-40 inset-0 pointer-events-none flex items-center justify-center"

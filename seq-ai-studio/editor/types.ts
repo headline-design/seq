@@ -25,7 +25,7 @@ export interface TextOverlayStyle {
   text: string
   fontSize: number // 12-200
   fontFamily: string
-  fontWeight: "normal" | "bold" | "bolder" | "lighter" | number
+  fontWeight: "normal" | "bold"
   color: string
   backgroundColor: string
   backgroundOpacity: number // 0-100
@@ -79,7 +79,7 @@ export interface StoryboardPanel {
 }
 
 export interface VideoConfig {
-  aspectRatio: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9" | string
+  aspectRatio: "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9"
   useFastModel: boolean
 }
 

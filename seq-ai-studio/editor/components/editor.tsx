@@ -12,6 +12,8 @@ import { useRafCallback } from "../hooks/use-debounced-callback"
 import { useTimelineKeyboard } from "../hooks/use-timeline-keyboard"
 import { useStoryboard } from "../hooks/use-storyboard"
 import { useMediaGeneration } from "../hooks/use-media-generation"
+import { useMediaManagement } from "../hooks/use-media-management"
+import { useEditorKeyboard } from "../hooks/use-editor-keyboard"
 
 import { PreviewPlayer } from "./preview-player"
 import { EditorHeader } from "./editor-header"
@@ -30,7 +32,6 @@ import { ShortcutsModal } from "./shortcuts-modal"
 import { Timeline } from "./timeline"
 import { AddMarkerDialog } from "./add-marker-dialog"
 import { audioBufferToWav } from "../utils/audio-processing"
-import { useShortcuts } from "../hooks/use-shortcuts"
 import { useImageGeneration } from "@/components/image-combiner/hooks/use-image-generation"
 import { useImageUpload } from "@/components/image-combiner/hooks/use-image-upload"
 import { useAspectRatio } from "@/components/image-combiner/hooks/use-aspect-ratio"
@@ -56,7 +57,7 @@ interface VideoConfig {
   useFastModel: boolean
 }
 
-interface IStoryboardPanel extends StoryboardPanelType { }
+interface IStoryboardPanel extends StoryboardPanelType {}
 
 type WebkitWindow = Window & {
   webkitOfflineAudioContext?: typeof OfflineAudioContext
@@ -109,6 +110,13 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
     onMediaUpdate: (id, updates) =>
       timeline.setMedia((prev) => prev.map((m) => (m.id === id ? { ...m, ...updates } : m))),
     onAddToTimeline: timeline.handleAddToTimeline,
+  })
+
+  const mediaManagement = useMediaManagement({
+    defaultDuration,
+    onMediaAdd: (media) => timeline.setMedia((prev) => [media, ...prev]),
+    onMediaUpdate: (id, updates) =>
+      timeline.setMedia((prev) => prev.map((m) => (m.id === id ? { ...m, ...updates } : m))),
   })
 
   const handleExportAudio = useCallback(
@@ -395,9 +403,9 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
           prompt: panel.prompt,
           duration: panel.duration || 5,
           aspectRatio: videoConfig.aspectRatio,
+          resolution: { width: 1280, height: 720 },
           status: "ready",
           type: "video",
-          resolution: { width: 1280, height: 720 },
         }
         timeline.setMedia((prev) => [newMedia, ...prev])
       }
@@ -478,7 +486,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
     addGeneration,
     onToast: showToast,
     onImageUpload: handleImageUpload,
-    onOutOfCredits: () => { },
+    onOutOfCredits: () => {},
     onApiKeyMissing: () => setApiKeyMissing(true),
   })
 
@@ -557,10 +565,11 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
             timeline.handleAddToTimeline(readyItem)
           }
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (isMountedRef.current) {
           timeline.setMedia((prev) => prev.map((m) => (m.id === newId ? { ...m, status: "error" } : m)))
-          alert(error.message || "Generation failed")
+          const message = error instanceof Error ? error.message : "Generation failed"
+          alert(message)
         }
       } finally {
         if (isMountedRef.current) setIsGenerating(false)
@@ -570,47 +579,8 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
   )
 
   // Import handler
-  const handleImport = useCallback(
-    (file: File) => {
-      const url = URL.createObjectURL(file)
-      objectUrlsRef.current.push(url)
-      const newId = Math.random().toString(36).substr(2, 9)
-      const isAudio = file.type.startsWith("audio")
-      const newMedia: MediaItem = {
-        id: newId,
-        url,
-        prompt: file.name,
-        duration: defaultDuration,
-        aspectRatio: "16:9",
-        status: "ready",
-        type: isAudio ? "audio" : "video",
-      }
-      const el = isAudio ? document.createElement("audio") : document.createElement("video")
-      el.crossOrigin = "anonymous"
-      el.onloadedmetadata = () => {
-        newMedia.duration = el.duration
-        if (!isAudio) {
-          const videoEl = el as HTMLVideoElement
-          const r = videoEl.videoWidth / videoEl.videoHeight
-          newMedia.resolution = { width: videoEl.videoWidth, height: videoEl.videoHeight }
-          if (Math.abs(r - 16 / 9) < 0.1) newMedia.aspectRatio = "16:9"
-          else if (Math.abs(r - 9 / 16) < 0.1) newMedia.aspectRatio = "9:16"
-          else if (Math.abs(r - 1) < 0.1) newMedia.aspectRatio = "1:1"
-          else newMedia.aspectRatio = "custom"
-        }
-        timeline.setMedia((prev) =>
-          prev.map((m) =>
-            m.id === newId
-              ? { ...m, duration: el.duration, aspectRatio: newMedia.aspectRatio, resolution: newMedia.resolution }
-              : m,
-          ),
-        )
-      }
-      el.src = url
-      timeline.setMedia((prev) => [newMedia, ...prev])
-    },
-    [defaultDuration, timeline],
-  )
+
+  const handleImport = mediaManagement.handleImport
 
   // Export handlers
   const startExport = useCallback(
@@ -697,10 +667,10 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
 
           try {
             await ffmpegInstance.deleteFile("preview_input.mp4")
-          } catch (e) { }
+          } catch (e) {}
           try {
             await ffmpegInstance.deleteFile("output.mp4")
-          } catch (e) { }
+          } catch (e) {}
         } catch (err: any) {
           if (err.message !== "Export cancelled") {
             console.error("Export Failed", err)
@@ -747,7 +717,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
               const arrayBuffer = await response.arrayBuffer()
               const audioBuffer = await offlineCtx.decodeAudioData(arrayBuffer)
               audioBufferMap.set(mid, audioBuffer)
-            } catch (e) { }
+            } catch (e) {}
           }
         }
 
@@ -888,19 +858,20 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
         // Cleanup
         try {
           await ffmpegInstance.deleteFile("audio.wav")
-        } catch (e) { }
+        } catch (e) {}
         try {
           await ffmpegInstance.deleteFile("output.mp4")
-        } catch (e) { }
+        } catch (e) {}
         for (let i = 0; i < frameCount; i++) {
           try {
             await ffmpegInstance.deleteFile(`frame${i.toString().padStart(4, "0")}.jpg`)
-          } catch (e) { }
+          } catch (e) {}
         }
-      } catch (err: any) {
-        if (err.message !== "Export cancelled") {
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : ""
+        if (errorMessage !== "Export cancelled") {
           console.error("Export Failed", err)
-          alert(`Export failed: ${err.message}`)
+          alert(`Export failed: ${errorMessage || "Unknown error"}`)
         }
         ffmpeg.setExportPhase("idle")
       } finally {
@@ -915,7 +886,6 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
   )
 
   const handleCancelExport = useCallback(() => {
-    ffmpeg.abortExportRef.current = true
     ffmpeg.exportCancelledRef.current = true
     ffmpeg.setIsExporting(false)
     setIsExportModalOpen(false)
@@ -979,7 +949,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
             const response = await fetch(item.url)
             const arrayBuffer = await response.arrayBuffer()
             audioBufferMap.set(mid, await offlineCtx.decodeAudioData(arrayBuffer))
-          } catch (e) { }
+          } catch (e) {}
         }
       }
 
@@ -1046,10 +1016,8 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
           )
         })
 
-        await ffmpegInstance.writeFile(
-          `pframe${frameCount.toString().padStart(4, "0")}.jpg`,
-          new Uint8Array(await blob.arrayBuffer()),
-        )
+        const buffer = await blob.arrayBuffer()
+        await ffmpegInstance.writeFile(`pframe${frameCount.toString().padStart(4, "0")}.jpg`, new Uint8Array(buffer))
         ffmpeg.setRenderProgress(5 + (exportTime / contentDuration) * 65)
         exportTime += dt
         frameCount++
@@ -1094,19 +1062,20 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
       // Cleanup
       try {
         await ffmpegInstance.deleteFile("preview_audio.wav")
-      } catch (e) { }
+      } catch (e) {}
       try {
         await ffmpegInstance.deleteFile("preview.mp4")
-      } catch (e) { }
+      } catch (e) {}
       for (let i = 0; i < frameCount; i++) {
         try {
           await ffmpegInstance.deleteFile(`pframe${i.toString().padStart(4, "0")}.jpg`)
-        } catch (e) { }
+        } catch (e) {}
       }
-    } catch (err: any) {
-      if (err.message !== "Render cancelled") {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : ""
+      if (errorMessage !== "Render cancelled") {
         console.error("Render Failed", err)
-        alert(`Render failed: ${err.message}`)
+        alert(`Render failed: ${errorMessage || "Unknown error"}`)
       }
     } finally {
       ffmpeg.setIsRendering(false)
@@ -1120,31 +1089,6 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
   }, [ffmpeg])
 
   // Keyboard shortcuts
-  useShortcuts(
-    {
-      onPlayPause: () => playback.setIsPlaying((p) => !p),
-      onUndo: () => {
-        if (timeline.history.length > 0) timeline.undo()
-      },
-      onRedo: () => {
-        if (timeline.future.length > 0) timeline.redo()
-      },
-      onCut: () => timeline.setTool((t) => (t === "select" ? "razor" : "select")),
-      onDuplicate: () => timeline.handleDuplicateClip(timeline.selectedClipIds),
-      onDelete: () => timeline.handleDeleteClip(timeline.selectedClipIds),
-      onRippleDelete: () => timeline.handleRippleDeleteClip(timeline.selectedClipIds),
-      onSaveFrame: () => {
-        // This functionality is now handled by the 'f' keydown event,
-        // but kept here for potential future use or alternative trigger.
-        // Call the high-quality frame capture function directly
-        if (saveFrameRef.current) {
-          saveFrameRef.current()
-        }
-      },
-    },
-    [timeline.history.length, timeline.future.length, timeline.selectedClipIds, ffmpeg, playback, toastCtx],
-  )
-
   const handleSaveProject = useCallback(async () => {
     setIsSaving(true)
     try {
@@ -1188,7 +1132,6 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
         masterDescription: loadedDescription,
       } = deserializeProject(projectData)
 
-      // Update all state
       timeline.setMedia(media)
       timeline.setTimelineClips(timelineClips)
       timeline.setTracks(tracks)
@@ -1202,6 +1145,30 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
       toastCtx.error("Failed to load project")
     }
   }, [timeline, storyboard, toastCtx])
+
+  const handleZoomToFit = useCallback(() => {
+    const { clips, setZoomLevel } = timeline
+    if (clips.length === 0) return
+    const maxEnd = Math.max(...clips.map((c) => c.start + c.duration))
+    if (maxEnd <= 0) return
+    const containerWidth = 800
+    const newZoom = Math.max(10, Math.min(200, (containerWidth - 100) / maxEnd))
+    setZoomLevel(newZoom)
+  }, [timeline])
+
+  useEditorKeyboard({
+    onSaveProject: handleSaveProject,
+    onLoadProject: handleLoadProject,
+    onAddMarker: () => setShowAddMarkerDialog(true),
+    onZoomToFit: handleZoomToFit,
+    onSaveFrame: () => {},
+    currentTime: playback.currentTime,
+    previewVideoRef: playback.previewVideoRef,
+    videoRefA: playback.videoRefA,
+    videoRefB: playback.videoRefB,
+    isPreviewPlayback: playback.isPreviewPlayback,
+    toastCtx,
+  })
 
   useEffect(() => {
     if (hasAutosave() && !initialMedia?.length && !initialClips?.length) {
@@ -1321,102 +1288,11 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
     )
   }, [])
 
-  const handleZoomToFit = useCallback(() => {
-    // Ensure clips is accessed from timeline state
-    const { timelineClips: clips, setZoomLevel } = timeline
-    if (clips.length === 0) return
-    const maxEnd = Math.max(...clips.map((c) => c.start + c.duration))
-    if (maxEnd <= 0) return
-    // Calculate zoom to fit content with some padding
-    const containerWidth = 800 // approximate timeline width
-    const newZoom = Math.max(10, Math.min(200, (containerWidth - 100) / maxEnd))
-    setZoomLevel(newZoom)
-  }, [timeline, timeline.setZoomLevel]) // Depend on timeline and timeline.setZoomLevel
-
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
-        e.preventDefault()
-        handleSaveProject()
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === "o") {
-        e.preventDefault()
-        handleLoadProject()
-      }
-      if (e.key === "f" && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        e.preventDefault()
-        // Try to capture from the active video element for highest quality
-        const videoElement = playback.isPreviewPlayback
-          ? playback.previewVideoRef?.current
-          : playback.videoRefA.current && Number.parseFloat(playback.videoRefA.current.style.opacity || "1") > 0
-            ? playback.videoRefA?.current
-            : playback.videoRefB?.current
-
-        if (videoElement && videoElement.readyState >= 2) {
-          const width = videoElement.videoWidth || 1920
-          const height = videoElement.videoHeight || 1080
-
-          const canvas = document.createElement("canvas")
-          canvas.width = width
-          canvas.height = height
-
-          const ctx = canvas.getContext("2d", {
-            alpha: false,
-            willReadFrequently: false,
-          })
-
-          if (ctx) {
-            ctx.imageSmoothingEnabled = false
-            ctx.drawImage(videoElement, 0, 0, width, height)
-
-            const mins = Math.floor(playback.currentTime / 60)
-            const secs = Math.floor(playback.currentTime % 60)
-            const ms = Math.floor((playback.currentTime % 1) * 1000)
-            const timecode = `${mins.toString().padStart(2, "0")}-${secs.toString().padStart(2, "0")}-${ms.toString().padStart(3, "0")}`
-            const filename = `frame_${timecode}_${width}x${height}.png`
-
-            canvas.toBlob((blob) => {
-              if (blob) {
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement("a")
-                a.href = url
-                a.download = filename
-                document.body.appendChild(a)
-                a.click()
-                document.body.removeChild(a)
-                URL.revokeObjectURL(url)
-                toastCtx.success("Frame saved as PNG")
-              }
-            }, "image/png")
-          }
-        } else {
-          toastCtx.error("No video frame available to capture")
-        }
-      }
-      if (e.key === "m" || e.key === "M") {
-        e.preventDefault()
-        setShowAddMarkerDialog(true)
-        return
-      }
-
-      if (e.key === "z" && e.shiftKey && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault()
-        handleZoomToFit()
-        return
-      }
+    return () => {
+      mediaManagement.cleanup()
     }
-
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [
-    handleSaveProject,
-    handleLoadProject,
-    playback,
-    toastCtx,
-    handleZoomToFit, // Add handleZoomToFit to dependencies
-    setShowAddMarkerDialog, // Add setShowAddMarkerDialog to dependencies
-    timeline, // Ensure timeline is available for handleZoomToFit
-  ])
+  }, [mediaManagement])
 
   // Project Name State
   const [projectName, setProjectName] = useState<string>("Untitled Project")
@@ -1509,7 +1385,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                         selectedId={timeline.selectedClipIds[0]}
                         onSelect={(m) => timeline.setSelectedClipIds([m.id])}
                         onAddToTimeline={timeline.handleAddToTimeline}
-                        onImport={mediaGeneration.importFile}
+                        onImport={mediaManagement.importFile}
                         onRemove={timeline.handleRemoveMedia}
                         onClose={() => setIsPanelOpen(false)}
                       />
@@ -1553,7 +1429,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                         clips={timeline.timelineClips}
                         selectedClipIds={timeline.selectedClipIds}
                         onUpdateClip={timeline.handleClipUpdate}
-                        onApplyTransition={() => { }}
+                        onApplyTransition={() => {}}
                         selectedClipId={timeline.selectedClipIds[0] ?? null}
                       />
                     </PanelErrorBoundary>
@@ -1629,6 +1505,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                   isPreviewPlayback={playback.isPreviewPlayback}
                   isPreviewStale={ffmpeg.isPreviewStale}
                   onRenderPreview={handleRenderPreview}
+                  onCancelRender={handleCancelRender}
                   isRendering={ffmpeg.isRendering}
                   renderProgress={ffmpeg.renderProgress}
                   onTogglePreviewPlayback={() => playback.setIsPreviewPlayback(!playback.isPreviewPlayback)}
