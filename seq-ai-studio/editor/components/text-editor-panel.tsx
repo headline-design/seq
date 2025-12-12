@@ -219,11 +219,10 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
               key={pos.label}
               variant="outline"
               size="sm"
-              className={`text-[10px] h-7 ${
-                textOverlay.position.x === pos.x && textOverlay.position.y === pos.y
+              className={`text-[10px] h-7 ${textOverlay.position.x === pos.x && textOverlay.position.y === pos.y
                   ? "bg-purple-500/20 border-purple-500"
                   : "bg-neutral-900 border-neutral-700"
-              }`}
+                }`}
               onClick={() => updateTextOverlay({ position: { x: pos.x, y: pos.y } })}
             >
               {pos.label}

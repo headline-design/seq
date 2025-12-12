@@ -56,7 +56,7 @@ interface VideoConfig {
   useFastModel: boolean
 }
 
-interface IStoryboardPanel extends StoryboardPanelType {}
+interface IStoryboardPanel extends StoryboardPanelType { }
 
 type WebkitWindow = Window & {
   webkitOfflineAudioContext?: typeof OfflineAudioContext
@@ -478,7 +478,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
     addGeneration,
     onToast: showToast,
     onImageUpload: handleImageUpload,
-    onOutOfCredits: () => {},
+    onOutOfCredits: () => { },
     onApiKeyMissing: () => setApiKeyMissing(true),
   })
 
@@ -697,10 +697,10 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
 
           try {
             await ffmpegInstance.deleteFile("preview_input.mp4")
-          } catch (e) {}
+          } catch (e) { }
           try {
             await ffmpegInstance.deleteFile("output.mp4")
-          } catch (e) {}
+          } catch (e) { }
         } catch (err: any) {
           if (err.message !== "Export cancelled") {
             console.error("Export Failed", err)
@@ -747,7 +747,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
               const arrayBuffer = await response.arrayBuffer()
               const audioBuffer = await offlineCtx.decodeAudioData(arrayBuffer)
               audioBufferMap.set(mid, audioBuffer)
-            } catch (e) {}
+            } catch (e) { }
           }
         }
 
@@ -888,14 +888,14 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
         // Cleanup
         try {
           await ffmpegInstance.deleteFile("audio.wav")
-        } catch (e) {}
+        } catch (e) { }
         try {
           await ffmpegInstance.deleteFile("output.mp4")
-        } catch (e) {}
+        } catch (e) { }
         for (let i = 0; i < frameCount; i++) {
           try {
             await ffmpegInstance.deleteFile(`frame${i.toString().padStart(4, "0")}.jpg`)
-          } catch (e) {}
+          } catch (e) { }
         }
       } catch (err: any) {
         if (err.message !== "Export cancelled") {
@@ -979,7 +979,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
             const response = await fetch(item.url)
             const arrayBuffer = await response.arrayBuffer()
             audioBufferMap.set(mid, await offlineCtx.decodeAudioData(arrayBuffer))
-          } catch (e) {}
+          } catch (e) { }
         }
       }
 
@@ -1094,14 +1094,14 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
       // Cleanup
       try {
         await ffmpegInstance.deleteFile("preview_audio.wav")
-      } catch (e) {}
+      } catch (e) { }
       try {
         await ffmpegInstance.deleteFile("preview.mp4")
-      } catch (e) {}
+      } catch (e) { }
       for (let i = 0; i < frameCount; i++) {
         try {
           await ffmpegInstance.deleteFile(`pframe${i.toString().padStart(4, "0")}.jpg`)
-        } catch (e) {}
+        } catch (e) { }
       }
     } catch (err: any) {
       if (err.message !== "Render cancelled") {
@@ -1323,7 +1323,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
 
   const handleZoomToFit = useCallback(() => {
     // Ensure clips is accessed from timeline state
-    const { clips, setZoomLevel } = timeline
+    const { timelineClips: clips, setZoomLevel } = timeline
     if (clips.length === 0) return
     const maxEnd = Math.max(...clips.map((c) => c.start + c.duration))
     if (maxEnd <= 0) return
@@ -1553,7 +1553,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                         clips={timeline.timelineClips}
                         selectedClipIds={timeline.selectedClipIds}
                         onUpdateClip={timeline.handleClipUpdate}
-                        onApplyTransition={() => {}}
+                        onApplyTransition={() => { }}
                         selectedClipId={timeline.selectedClipIds[0] ?? null}
                       />
                     </PanelErrorBoundary>
@@ -1629,7 +1629,6 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                   isPreviewPlayback={playback.isPreviewPlayback}
                   isPreviewStale={ffmpeg.isPreviewStale}
                   onRenderPreview={handleRenderPreview}
-                  onCancelRender={handleCancelRender}
                   isRendering={ffmpeg.isRendering}
                   renderProgress={ffmpeg.renderProgress}
                   onTogglePreviewPlayback={() => playback.setIsPreviewPlayback(!playback.isPreviewPlayback)}

@@ -99,7 +99,6 @@ export const PreviewPlayer = memo(function PreviewPlayer({
   onLoadFFmpeg,
   onTogglePlay,
   onTogglePreviewPlayback,
-  onCancelRender,
   onZoomReset,
   mediaMap,
   onZoomChange,
