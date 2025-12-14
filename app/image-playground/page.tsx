@@ -1,8 +1,8 @@
-import { ImageCombiner } from "@/components/image-combiner"
+import { ImageCombiner } from "@/seq/components/image-combiner"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Sparkles } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/seq/components/ui/button"
 
 export const metadata: Metadata = {
   title: "Nano Banana Pro - Free AI Image Generator & Editor",

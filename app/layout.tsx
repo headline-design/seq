@@ -2,9 +2,9 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
 import { Suspense } from "react"
-import { ErrorBoundary } from "@/components/error-boundary"
-import { Toaster, ToastProvider } from "@/components/ui/sonner"
-import { DeploymentNotice } from "@/components/deployment-notice"
+import { ErrorBoundary } from "@/seq/components/error-boundary"
+import { Toaster, ToastProvider } from "@/seq/components/ui/sonner"
+import { DeploymentNotice } from "@/seq/components/deployment-notice"
 import "./globals.css"
 
 const inter = Inter({

@@ -453,7 +453,7 @@ packages:
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
     engines: {node: '>=12'}
 
-  '@emnapi/runtime@1.7.1':
+  '@emnapi/seq/runtime@1.7.1':
     resolution: {integrity: sha512-PVtJr5CmLwYAU9PZDMITZoR5iAOShYREoR45EyyLrbntV50mdePTgUn4AmOw90Ifcj+x2kRjdzr1HP3RrNiHGA==}
 
   '@emotion/hash@0.9.2':
@@ -2351,10 +2351,10 @@ packages:
     cpu: [wasm32]
     bundledDependencies:
       - '@napi-rs/wasm-runtime'
-      - '@emnapi/core'
-      - '@emnapi/runtime'
+      - '@emnapi/seq/core'
+      - '@emnapi/seq/runtime'
       - '@tybys/wasm-util'
-      - '@emnapi/wasi-threads'
+      - '@emnapi/seq/wasi-threads'
       - tslib
 
   '@tailwindcss/oxide-win32-arm64-msvc@4.1.9':
@@ -5528,7 +5528,7 @@ snapshots:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
 
-  '@emnapi/runtime@1.7.1':
+  '@emnapi/seq/runtime@1.7.1':
     dependencies:
       tslib: 2.8.1
     optional: true
@@ -6028,12 +6028,12 @@ snapshots:
 
   '@img/sharp-wasm32@0.33.5':
     dependencies:
-      '@emnapi/runtime': 1.7.1
+      '@emnapi/seq/runtime': 1.7.1
     optional: true
 
   '@img/sharp-wasm32@0.34.5':
     dependencies:
-      '@emnapi/runtime': 1.7.1
+      '@emnapi/seq/runtime': 1.7.1
     optional: true
 
   '@img/sharp-win32-arm64@0.34.5':

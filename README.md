@@ -80,7 +80,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 \`\`\`plaintext
 seq/
 ├── app/                    # Next.js App Router pages
-│   ├── api/               # AI service endpoints
+│   ├── api/seq/               # AI service endpoints
 │   ├── storyboard/        # AI storyboard generator
 │   ├── editor/            # Video editor (NLE)
 │   ├── image-playground/  # Image generation sandbox

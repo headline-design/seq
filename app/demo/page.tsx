@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { ArrowLeft, ArrowRight, Play, Sparkles, Film, Layers } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { SeqLogo } from "@/components/ui/logo"
+import { Button } from "@/seq/components/ui/button"
+import { SeqLogo } from "@/seq/components/ui/logo"
 
 export const metadata: Metadata = {
   title: "Demo Video - Seq",

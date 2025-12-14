@@ -1,4 +1,4 @@
-import Editor from "@/seq-ai-studio/editor/app"
+import Editor from "@/seq/components/editor/app"
 import { Metadata } from "next"
 
 export const metadata: Metadata = {

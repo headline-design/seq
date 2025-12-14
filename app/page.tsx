@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { LandingPage } from "@/seq-ai-studio/landing-page/components/landing-page"
+import { LandingPage } from "@/seq/components/landing-page/components/landing-page"
 
 export const metadata: Metadata = {
   title: "Seq - AI-Powered Storyboard to Video Sequence Editor",
