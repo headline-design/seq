@@ -5,6 +5,8 @@ import dynamic from "next/dynamic"
 import { DEMO_FINAL_SEQUENCE } from "@/seq/lib/demo-data"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense } from "react"
+import { useIsMobile } from "@/seq/hooks/use-is-mobile"
+import { MobileEditorNotice } from "./components/mobile-editor-notice"
 
 const Editor = dynamic(() => import("./components/editor").then((mod) => mod.Editor), { ssr: false })
 
@@ -54,11 +56,20 @@ function createDemoData() {
 
 export { createDemoData }
 
+
+
 function EditorContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
   const loadDemo = searchParams.get("demo") === "true"
+
+  const isMobile = useIsMobile()
+  if (isMobile) {
+    return (
+      <MobileEditorNotice />
+    )
+  }
 
   const demoData = loadDemo ? createDemoData() : null
 

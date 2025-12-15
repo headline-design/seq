@@ -52,7 +52,7 @@ Visit [v0 Template](https://v0.app/templates/seq-ZAICjqmFe5w) to start building 
 
 ### Local Development
 
-```bash
+\`\`\`bash
 # Clone the repository
 git clone https://github.com/headline-design/seq.git
 cd seq
@@ -66,7 +66,7 @@ cp .env.example .env.local
 
 # Start the development server
 npm run dev
-```
+\`\`\`
 
 Open [http://localhost:3000](http://localhost:3000) to see the app.
 
@@ -76,7 +76,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 Seq uses a modular architecture designed for maintainability and extensibility. Each feature is self-contained with its own components, hooks, and utilities.
 
-```plaintext
+\`\`\`plaintext
 seq/
 ├── app/                              # Next.js App Router
 │   ├── api/seq/                      # Namespaced API routes
@@ -130,7 +130,7 @@ seq/
 │   └── ui/                           # Base UI primitives
 │
 └── hooks/                            # Global hooks
-```
+\`\`\`
 
 ### Module Structure
 
@@ -206,13 +206,11 @@ The timeline editor underwent a major refactor in v0.2, reducing the main editor
 ## What's New in v0.2
 
 ### Architecture
-
 - Modular folder structure with self-contained feature modules
 - API routes namespaced under `/api/seq/`
 - Editor refactored from 3,000+ to ~1,500 lines using custom hooks
 
 ### Editor UX
-
 - Empty states for timeline, preview, and track headers
 - Magnetic snap-then-overlap drag behavior
 - Tooltips with keyboard shortcuts on all buttons
@@ -220,13 +218,11 @@ The timeline editor underwent a major refactor in v0.2, reducing the main editor
 - Default single video/audio track
 
 ### Accessibility
-
 - Reduced motion support via `prefers-reduced-motion`
 - High contrast mode support
 - Enhanced ARIA labels on timeline and preview
 
 ### Code Quality
-
 - TypeScript `any` types eliminated (99%+ type coverage)
 - Debug console.log statements cleaned up
 - User-facing toast notifications for all operations

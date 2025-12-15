@@ -47,20 +47,20 @@ export const StatusBar = memo(function StatusBar({
 
   return (
     <div
-      className="h-6 bg-[#0a0a0c] border-t border-neutral-800 px-3 flex items-center justify-between text-[10px] text-neutral-500 select-none"
+      className="h-7 bg-[#0a0a0a] border-t border-neutral-800/50 px-4 flex items-center justify-between text-[11px] text-neutral-500 select-none"
       role="status"
       aria-live="polite"
     >
       {/* Left - Project info */}
-      <div className="flex items-center gap-4">
-        <span className="text-neutral-400 font-medium truncate max-w-[150px]" title={projectName}>
+      <div className="flex items-center gap-3">
+        <span className="text-neutral-300 font-medium truncate max-w-[150px]" title={projectName}>
           {projectName}
         </span>
-        <span className="text-neutral-600">|</span>
-        <span>{formatDuration(totalDuration)}</span>
-        <span className="text-neutral-600">|</span>
+        <span className="text-neutral-700">|</span>
+        <span className="font-mono">{formatDuration(totalDuration)}</span>
+        <span className="text-neutral-700">|</span>
         <span>{clipCount} clips</span>
-        <span className="text-neutral-600">|</span>
+        <span className="text-neutral-700">|</span>
         <span>{trackCount} tracks</span>
       </div>
 
@@ -75,9 +75,9 @@ export const StatusBar = memo(function StatusBar({
       </div>
 
       {/* Right - Zoom and FPS */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 font-mono">
         <span>Zoom: {Math.round(zoomLevel * 10)}%</span>
-        <span className="text-neutral-600">|</span>
+        <span className="text-neutral-700">|</span>
         <span>{fps} fps</span>
       </div>
     </div>

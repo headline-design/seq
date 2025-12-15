@@ -231,7 +231,7 @@ export const PreviewPlayer = memo(function PreviewPlayer({
   return (
     <TooltipProvider delayDuration={300}>
       <div
-        className="flex-1 w-full bg-[#050505] relative flex items-center justify-center p-6 overflow-hidden min-h-[200px]"
+        className="flex-1 w-full bg-[#040404] relative flex items-center justify-center p-4 overflow-hidden min-h-[200px]"
         role="region"
         aria-label="Video preview player"
         aria-description="Preview area for video playback and frame capture"
@@ -247,13 +247,13 @@ export const PreviewPlayer = memo(function PreviewPlayer({
         )}
 
         {!isExporting && !isRendering && (
-          <div className="absolute top-4 right-4 z-50 flex items-center gap-2 bg-black/60 backdrop-blur rounded p-1.5 border border-white/10">
+          <div className="absolute top-3 right-3 z-50 flex items-center gap-1.5 bg-black/70 backdrop-blur-sm rounded-lg p-1 border border-white/5">
             <DropdownMenu>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <DropdownMenuTrigger asChild>
                     <button
-                      className={`p-1 text-neutral-400 hover:text-white transition-colors flex items-center gap-0.5 ${isSavingFrame ? "opacity-50" : ""}`}
+                      className={`p-1.5 text-neutral-400 hover:text-white transition-colors flex items-center gap-0.5 rounded hover:bg-white/10 ${isSavingFrame ? "opacity-50" : ""}`}
                       disabled={isSavingFrame}
                     >
                       <ImageIcon className="w-3.5 h-3.5" />
@@ -288,17 +288,23 @@ export const PreviewPlayer = memo(function PreviewPlayer({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <div className="w-px h-3.5 bg-white/20" />
-            <button onClick={onZoomReset} className="text-[10px] text-neutral-400 hover:text-white px-2">
+            <div className="w-px h-4 bg-white/10" />
+            <button
+              onClick={onZoomReset}
+              className="text-[10px] text-neutral-400 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors"
+            >
               Fit
             </button>
             <button
               onClick={onToggleSafeGuides}
-              className={`p-1 ${isSafeGuidesVisible ? "text-indigo-400" : "text-neutral-400"}`}
+              className={`p-1.5 rounded transition-colors ${isSafeGuidesVisible ? "text-indigo-400 bg-indigo-500/10" : "text-neutral-400 hover:text-white hover:bg-white/10"}`}
             >
               <Grid3x3Icon className="w-3.5 h-3.5" />
             </button>
-            <button onClick={onToggleCinemaMode} className="p-1 text-neutral-400 hover:text-white">
+            <button
+              onClick={onToggleCinemaMode}
+              className="p-1.5 text-neutral-400 hover:text-white rounded hover:bg-white/10 transition-colors"
+            >
               <MaximizeIcon className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -306,12 +312,12 @@ export const PreviewPlayer = memo(function PreviewPlayer({
 
         <div
           ref={previewContainerRef}
-          className="relative aspect-video w-full max-h-full shadow-2xl bg-black flex items-center justify-center overflow-hidden"
+          className="relative aspect-video w-full max-h-full shadow-2xl bg-black flex items-center justify-center overflow-hidden rounded-sm"
           style={{ transform: `scale(${playerZoom})` }}
         >
           {!hasClips && !isExporting && !isRendering && (
             <div className="absolute inset-0 flex flex-col items-center justify-center z-30 text-neutral-500">
-              <VideoIcon className="w-16 h-16 mb-4 opacity-30" />
+              <VideoIcon className="w-16 h-16 mb-4 opacity-20" />
               <p className="text-sm font-medium text-neutral-400">No clips in timeline</p>
               <p className="text-xs text-neutral-600 mt-1">Add media or generate content to preview</p>
             </div>
@@ -367,10 +373,10 @@ export const PreviewPlayer = memo(function PreviewPlayer({
               {!isPlaying && !isExporting && !isRendering && !isPreviewPlayback && (
                 <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
                   <div
-                    className="w-16 h-16 bg-white/10 backdrop-blur rounded-full flex items-center justify-center cursor-pointer pointer-events-auto hover:scale-105 transition-transform"
+                    className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center cursor-pointer pointer-events-auto hover:scale-105 hover:bg-white/15 transition-all border border-white/10"
                     onClick={onPlay}
                   >
-                    <PlayIcon className="w-6 h-6 text-white ml-1" />
+                    <PlayIcon className="w-5 h-5 text-white ml-0.5" />
                   </div>
                 </div>
               )}
@@ -378,17 +384,17 @@ export const PreviewPlayer = memo(function PreviewPlayer({
           )}
 
           {isPreviewPlayback && (
-            <div className="absolute top-4 left-4 z-40 flex items-center gap-2 bg-cyan-500/20 backdrop-blur rounded px-3 py-1.5 border border-cyan-500/30">
-              <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
-              <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider">Rendered Preview</span>
+            <div className="absolute top-3 left-3 z-40 flex items-center gap-2 bg-cyan-500/20 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-cyan-500/30">
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></div>
+              <span className="text-[10px] font-bold text-cyan-300 uppercase tracking-wider">Rendered Preview</span>
             </div>
           )}
 
           {isRendering && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none bg-black/70 backdrop-blur">
-              <div className="w-12 h-12 border-t-2 border-indigo-500 rounded-full animate-spin mb-3"></div>
-              <p className="text-sm">Rendering Preview...</p>
-              <p className="text-xs text-neutral-400">{Math.round(renderProgress)}%</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none bg-black/80 backdrop-blur-sm">
+              <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+              <p className="text-sm font-medium">Rendering Preview...</p>
+              <p className="text-xs text-neutral-400 mt-1">{Math.round(renderProgress)}%</p>
             </div>
           )}
         </div>

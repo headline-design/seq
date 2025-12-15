@@ -167,29 +167,28 @@ export const ProjectLibrary = memo(function ProjectLibrary({
 
   return (
     <div
-      className={`flex flex-col h-full relative ${isDragOver ? "ring-2 ring-indigo-500 ring-inset" : ""}`}
+      className={`flex flex-col h-full relative bg-[#0a0a0a] ${isDragOver ? "ring-2 ring-indigo-500 ring-inset" : ""}`}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
     >
-      {/* Header */}
-      <div className="p-3 border-b border-neutral-800 flex items-center justify-between shrink-0">
-        <span className="text-sm font-medium text-neutral-300">Project Media</span>
-        <button onClick={onClose} className="p-1 hover:bg-neutral-800 rounded text-neutral-400 hover:text-white">
+      <div className="p-3 border-b border-neutral-800/50 flex items-center justify-between shrink-0">
+        <span className="text-sm font-medium text-white">Project Media</span>
+        <button
+          onClick={onClose}
+          className="p-1.5 hover:bg-neutral-800 rounded-lg text-neutral-500 hover:text-white transition-colors"
+        >
           <PanelLeftClose className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-1 px-3 py-2 border-b border-neutral-800 shrink-0">
+      <div className="flex gap-1.5 px-3 py-2.5 border-b border-neutral-800/50 shrink-0">
         {(["all", "video", "image", "audio"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-2 py-1 text-[10px] rounded font-medium transition-colors ${
-              filter === f
-                ? "bg-neutral-700 text-white"
-                : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800"
+            className={`px-3 py-1.5 text-[11px] rounded-full font-medium transition-all ${
+              filter === f ? "bg-white text-black" : "text-neutral-500 hover:text-white hover:bg-neutral-800"
             }`}
           >
             {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -197,14 +196,13 @@ export const ProjectLibrary = memo(function ProjectLibrary({
         ))}
       </div>
 
-      {/* Media List */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
         {filteredMedia.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-neutral-500 text-xs gap-2 p-4">
-            <p>No media yet</p>
+          <div className="flex flex-col items-center justify-center h-full text-neutral-500 text-xs gap-3 p-4">
+            <p className="text-neutral-400">No media yet</p>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 rounded text-neutral-400 hover:text-white transition-colors"
+              className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 hover:text-white transition-colors font-medium"
             >
               Import Media
             </button>
@@ -230,12 +228,11 @@ export const ProjectLibrary = memo(function ProjectLibrary({
         )}
       </div>
 
-      {/* Footer with size slider */}
-      <div className="p-2 border-t border-neutral-800 flex items-center justify-between shrink-0">
+      <div className="p-2.5 border-t border-neutral-800/50 flex items-center justify-between shrink-0 bg-[#0a0a0a]">
         <input type="file" ref={fileInputRef} accept="video/*,audio/*,image/*" onChange={handleFileChange} hidden />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="text-[10px] text-neutral-500 hover:text-white px-2 py-1 bg-neutral-800 hover:bg-neutral-700 rounded transition-colors"
+          className="text-[11px] text-neutral-400 hover:text-white px-3 py-1.5 bg-neutral-800/80 hover:bg-neutral-700 rounded-lg transition-colors font-medium"
         >
           + Import
         </button>
@@ -245,13 +242,12 @@ export const ProjectLibrary = memo(function ProjectLibrary({
           max="120"
           value={thumbnailSize}
           onChange={(e) => setThumbnailSize(Number.parseInt(e.target.value))}
-          className="w-16 h-1 bg-neutral-700 rounded appearance-none cursor-pointer accent-indigo-500"
+          className="w-20 h-1 bg-neutral-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 [&::-webkit-slider-thumb]:cursor-pointer"
         />
       </div>
 
-      {/* Drag overlay */}
       {isDragOver && (
-        <div className="absolute inset-0 bg-indigo-900/30 flex items-center justify-center pointer-events-none z-50">
+        <div className="absolute inset-0 bg-indigo-900/30 flex items-center justify-center pointer-events-none z-50 backdrop-blur-sm">
           <p className="text-white font-medium">Drop to import</p>
         </div>
       )}

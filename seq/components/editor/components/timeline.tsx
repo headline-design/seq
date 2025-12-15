@@ -301,7 +301,7 @@ export const Timeline = memo(function Timeline({
 
   return (
     <div
-      className={`${className || ""} bg-[#09090b] border-t border-neutral-800 flex flex-col shrink-0 select-none relative z-10 transition-none overflow-hidden`}
+      className={`${className || ""} bg-[#0a0a0a] border-t border-neutral-800/50 flex flex-col shrink-0 select-none relative z-10 transition-none overflow-hidden`}
       style={style || { height: 320 }}
       role="region"
       aria-label="Video timeline"
@@ -362,7 +362,7 @@ export const Timeline = memo(function Timeline({
         {/* Track Headers */}
         <div
           ref={headerContainerRef}
-          className="w-32 bg-[#09090b] border-r border-neutral-800 shrink-0 z-20 flex flex-col pt-8 shadow-[4px_0_15px_-5px_rgba(0,0,0,0.5)] overflow-hidden"
+          className="w-32 bg-[#0a0a0a] border-r border-neutral-800/50 shrink-0 z-20 flex flex-col pt-8 shadow-[4px_0_15px_-5px_rgba(0,0,0,0.5)] overflow-hidden"
         >
           <TimelineTrackHeaders
             tracks={tracks}
@@ -381,9 +381,8 @@ export const Timeline = memo(function Timeline({
               headerContainerRef.current.scrollTop = scrollContainerRef.current.scrollTop
             }
           }}
-          className="flex-1 overflow-x-auto overflow-y-auto relative bg-[#0c0c0e] custom-scrollbar"
+          className="flex-1 overflow-x-auto overflow-y-auto relative bg-[#080808] custom-scrollbar"
           onMouseDown={(e) => {
-            // Only handle background selection if not clicking on a clip
             const target = e.target as HTMLElement
             if (!target.closest("[data-clip]")) {
               handleMouseDownBackground(e)
@@ -398,7 +397,9 @@ export const Timeline = memo(function Timeline({
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-medium text-neutral-400">No clips yet</p>
-                  <p className="text-xs mt-1">Drag media from the library or generate content to get started</p>
+                  <p className="text-xs mt-1 text-neutral-600">
+                    Drag media from the library or generate content to get started
+                  </p>
                 </div>
               </div>
             </div>
@@ -444,7 +445,7 @@ export const Timeline = memo(function Timeline({
                   />
                   {/* Visual Line */}
                   <div
-                    className={`absolute left-0 w-px h-full bg-[#6366f1] pointer-events-none ${
+                    className={`absolute left-0 w-px h-full bg-indigo-500 pointer-events-none ${
                       isDraggingPlayhead ? "bg-white shadow-[0_0_8px_white]" : ""
                     }`}
                   />
@@ -453,7 +454,7 @@ export const Timeline = memo(function Timeline({
                     className={`absolute -left-[5.5px] top-0 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] pointer-events-none transition-colors ${
                       isDraggingPlayhead
                         ? "border-t-white"
-                        : "border-t-[#6366f1] group-hover/playhead:border-t-indigo-400"
+                        : "border-t-indigo-500 group-hover/playhead:border-t-indigo-400"
                     }`}
                   />
                 </div>
@@ -489,11 +490,11 @@ export const Timeline = memo(function Timeline({
                   return (
                     <div
                       key={track.id}
-                      className={`${trackHeight} border-b border-neutral-800/30 relative group/track bg-[#0c0c0e]`}
+                      className={`${trackHeight} border-b border-neutral-800/30 relative group/track bg-[#080808]`}
                       onDoubleClick={(e) => handleTrackDoubleClick(e, track)}
                     >
                       <div
-                        className="absolute inset-0 bg-[linear-gradient(90deg,transparent_99%,#1f1f22_100%)] opacity-10 pointer-events-none"
+                        className="absolute inset-0 bg-[linear-gradient(90deg,transparent_99%,#1a1a1a_100%)] opacity-10 pointer-events-none"
                         style={{ backgroundSize: `${zoomLevel}px 100%` }}
                       />
 
