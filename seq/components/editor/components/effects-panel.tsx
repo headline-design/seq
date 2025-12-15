@@ -55,7 +55,7 @@ const EffectSlider = memo(function EffectSlider({
           max={max}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full h-1.5 bg-neutral-800 rounded-full appearance-none cursor-pointer
+          className="w-full h-1.5 bg-white/[0.06] rounded-full appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none 
             [&::-webkit-slider-thumb]:w-3 
             [&::-webkit-slider-thumb]:h-3 
@@ -67,13 +67,13 @@ const EffectSlider = memo(function EffectSlider({
             [&::-webkit-slider-thumb]:hover:bg-indigo-400
             [&::-webkit-slider-thumb]:transition-colors"
           style={{
-            background: `linear-gradient(to right, #6366f1 0%, #6366f1 ${percentage}%, #27272a ${percentage}%, #27272a 100%)`,
+            background: `linear-gradient(to right, #6366f1 0%, #6366f1 ${percentage}%, rgba(255,255,255,0.06) ${percentage}%, rgba(255,255,255,0.06) 100%)`,
           }}
         />
         {/* Center marker for bipolar sliders */}
         {min < 0 && (
           <div
-            className="absolute top-1/2 -translate-y-1/2 w-0.5 h-3 bg-neutral-600 pointer-events-none"
+            className="absolute top-1/2 -translate-y-1/2 w-0.5 h-3 bg-white/[0.15] pointer-events-none"
             style={{ left: `${((0 - min) / (max - min)) * 100}%` }}
           />
         )}
@@ -127,7 +127,7 @@ export const EffectsPanel = memo<EffectsPanelProps>(function EffectsPanel({ clip
               <TooltipTrigger asChild>
                 <button
                   onClick={resetEffects}
-                  className="p-1.5 rounded hover:bg-neutral-800 text-neutral-500 hover:text-white transition-colors"
+                  className="p-1.5 rounded hover:bg-white/[0.06] text-neutral-500 hover:text-white transition-colors"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                 </button>
@@ -140,7 +140,7 @@ export const EffectsPanel = memo<EffectsPanelProps>(function EffectsPanel({ clip
         </div>
 
         {/* Color Adjustments */}
-        <div className="bg-[#18181b] rounded-lg border border-neutral-800 p-3 flex flex-col gap-4">
+        <div className="bg-[#18181b] rounded-lg border border-white/[0.06] p-3 flex flex-col gap-4">
           <span className="text-[9px] text-neutral-600 uppercase font-bold">Color</span>
 
           <EffectSlider
@@ -182,7 +182,7 @@ export const EffectsPanel = memo<EffectsPanelProps>(function EffectsPanel({ clip
         </div>
 
         {/* Effects */}
-        <div className="bg-[#18181b] rounded-lg border border-neutral-800 p-3 flex flex-col gap-4">
+        <div className="bg-[#18181b] rounded-lg border border-white/[0.06] p-3 flex flex-col gap-4">
           <span className="text-[9px] text-neutral-600 uppercase font-bold">Effects</span>
 
           <EffectSlider
@@ -209,31 +209,27 @@ export const EffectsPanel = memo<EffectsPanelProps>(function EffectsPanel({ clip
         {/* Quick Presets */}
         <div className="flex flex-col gap-2">
           <span className="text-[9px] text-neutral-600 uppercase font-bold">Presets</span>
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-3 gap-2">
             {[
-              {
-                name: "Vivid",
-                effects: { brightness: 10, contrast: 15, saturation: 30, hue: 0, blur: 0, opacity: 100 },
-              },
-              {
-                name: "Muted",
-                effects: { brightness: 0, contrast: -10, saturation: -40, hue: 0, blur: 0, opacity: 100 },
-              },
-              { name: "Warm", effects: { brightness: 5, contrast: 5, saturation: 10, hue: 15, blur: 0, opacity: 100 } },
-              { name: "Cool", effects: { brightness: 0, contrast: 5, saturation: 0, hue: -20, blur: 0, opacity: 100 } },
-              {
-                name: "B&W",
-                effects: { brightness: 0, contrast: 10, saturation: -100, hue: 0, blur: 0, opacity: 100 },
-              },
-              {
-                name: "Dreamy",
-                effects: { brightness: 15, contrast: -10, saturation: -20, hue: 0, blur: 2, opacity: 90 },
-              },
+              { name: "Vivid", effects: { saturation: 30, contrast: 15 } },
+              { name: "Muted", effects: { saturation: -30, contrast: -10 } },
+              { name: "B&W", effects: { saturation: -100 } },
+              { name: "Warm", effects: { hue: 15, saturation: 10 } },
+              { name: "Cool", effects: { hue: -15, saturation: 10 } },
+              { name: "Faded", effects: { contrast: -20, brightness: 10 } },
             ].map((preset) => (
               <button
                 key={preset.name}
-                onClick={() => clip && onUpdateClip(clip.id, { effects: preset.effects })}
-                className="px-2 py-1.5 bg-neutral-800 hover:bg-neutral-700 rounded text-[10px] font-medium text-neutral-400 hover:text-white transition-colors"
+                onClick={() => {
+                  if (!clip) return
+                  onUpdateClip(clip.id, {
+                    effects: {
+                      ...DEFAULT_EFFECTS,
+                      ...preset.effects,
+                    },
+                  })
+                }}
+                className="py-2 px-3 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[10px] font-medium text-neutral-400 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.1] transition-all"
               >
                 {preset.name}
               </button>
@@ -245,4 +241,4 @@ export const EffectsPanel = memo<EffectsPanelProps>(function EffectsPanel({ clip
   )
 })
 
-export default EffectsPanel
+EffectsPanel.displayName = "EffectsPanel"

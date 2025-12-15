@@ -301,7 +301,7 @@ export const Timeline = memo(function Timeline({
 
   return (
     <div
-      className={`${className || ""} bg-[#0a0a0a] border-t border-neutral-800/50 flex flex-col shrink-0 select-none relative z-10 transition-none overflow-hidden`}
+      className={`${className || ""} bg-[#0a0a0a] border-t border-white/[0.06] flex flex-col shrink-0 select-none relative z-10 transition-none overflow-hidden`}
       style={style || { height: 320 }}
       role="region"
       aria-label="Video timeline"
@@ -362,7 +362,7 @@ export const Timeline = memo(function Timeline({
         {/* Track Headers */}
         <div
           ref={headerContainerRef}
-          className="w-32 bg-[#0a0a0a] border-r border-neutral-800/50 shrink-0 z-20 flex flex-col pt-8 shadow-[4px_0_15px_-5px_rgba(0,0,0,0.5)] overflow-hidden"
+          className="w-32 bg-[#0a0a0a] border-r border-white/[0.06] shrink-0 z-20 flex flex-col pt-8 shadow-[4px_0_15px_-5px_rgba(0,0,0,0.5)] overflow-hidden"
         >
           <TimelineTrackHeaders
             tracks={tracks}
@@ -490,7 +490,7 @@ export const Timeline = memo(function Timeline({
                   return (
                     <div
                       key={track.id}
-                      className={`${trackHeight} border-b border-neutral-800/30 relative group/track bg-[#080808]`}
+                      className={`${trackHeight} border-b border-white/[0.04] relative group/track bg-[#080808]`}
                       onDoubleClick={(e) => handleTrackDoubleClick(e, track)}
                     >
                       <div

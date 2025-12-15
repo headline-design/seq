@@ -3,7 +3,8 @@
 import type React from "react"
 import { memo, useState, useCallback, useEffect } from "react"
 import type { TimelineClip, TransitionType } from "../types"
-import { CrossDissolveIcon, TransitionIcon, PanelLeftClose } from "./icons"
+import { CrossDissolveIcon, TransitionIcon } from "./icons"
+import { PanelContainer, PanelHeader, PanelContent } from "./panel-primitives"
 
 interface TransitionsPanelProps {
   onClose: () => void
@@ -127,10 +128,10 @@ const TransitionCard = memo(function TransitionCard({
     <div
       className={`relative rounded-lg border transition-all cursor-pointer overflow-hidden ${
         isDisabled
-          ? "opacity-40 cursor-not-allowed border-neutral-800"
+          ? "opacity-40 cursor-not-allowed border-white/[0.06]"
           : isSelected
             ? "border-indigo-500 bg-indigo-500/10 ring-1 ring-indigo-500/30"
-            : "border-neutral-800 hover:border-neutral-700 hover:bg-neutral-800/30"
+            : "border-white/[0.06] hover:border-white/[0.1] hover:bg-white/[0.04]"
       }`}
       onClick={() => !isDisabled && onSelect()}
       onMouseEnter={() => setIsHovered(true)}
@@ -175,7 +176,7 @@ const DurationSlider = memo(function DurationSlider({
   const presets = [0.5, 1, 1.5, 2, 3]
 
   return (
-    <div className="flex flex-col gap-3 p-4 bg-neutral-900/50 rounded-lg border border-neutral-800">
+    <div className="flex flex-col gap-3 p-4 bg-white/[0.02] rounded-lg border border-white/[0.06]">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-neutral-400">Duration</span>
         <span className="text-sm font-mono text-indigo-400">{value.toFixed(1)}s</span>
@@ -200,7 +201,7 @@ const DurationSlider = memo(function DurationSlider({
             className={`flex-1 py-1.5 rounded text-xs font-medium transition-all ${
               value === preset
                 ? "bg-indigo-500 text-white"
-                : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white"
+                : "bg-white/[0.04] text-neutral-400 hover:bg-white/[0.08] hover:text-white"
             }`}
           >
             {preset}s
@@ -247,19 +248,10 @@ export const TransitionsPanel = memo(function TransitionsPanel({
   }, [selectedClipId, onApplyTransition])
 
   return (
-    <div className="w-full flex flex-col bg-[#09090b] border-r border-neutral-800 h-full">
-      {/* Header */}
-      <div className="h-14 flex items-center px-4 justify-between shrink-0 border-b border-neutral-800">
-        <h2 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400">Transitions</h2>
-        <div
-          className="p-1.5 rounded hover:bg-neutral-800 cursor-pointer text-neutral-500 transition-colors"
-          onClick={onClose}
-        >
-          <PanelLeftClose className="w-4 h-4" />
-        </div>
-      </div>
+    <PanelContainer>
+      <PanelHeader title="Transitions" onClose={onClose} />
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
+      <PanelContent className="p-0">
         <div className="p-4 flex flex-col gap-4">
           {/* Warning if no clip selected */}
           {!selectedClipId && (
@@ -325,7 +317,7 @@ export const TransitionsPanel = memo(function TransitionsPanel({
             </div>
           )}
         </div>
-      </div>
+      </PanelContent>
 
       {/* Custom keyframes for animations */}
       <style jsx global>{`
@@ -342,7 +334,7 @@ export const TransitionsPanel = memo(function TransitionsPanel({
           50% { clip-path: inset(0 0 0 0); }
         }
       `}</style>
-    </div>
+    </PanelContainer>
   )
 })
 

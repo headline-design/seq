@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils"
 
 import type React from "react"
 import { memo } from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
 import { SettingsIcon, GridIcon, PlusIcon, TransitionIcon, InfoIcon, StoryboardIcon, LogoIcon } from "./icons"
 import {
   Sidebar,
@@ -19,6 +18,7 @@ import {
   useSidebar,
 } from "@/seq/components/ui/sidebar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/seq/components/ui/tooltip"
+import { UserMenu } from "./user-menu"
 
 export type SidebarView = "library" | "create" | "settings" | "transitions" | "inspector" | "storyboard"
 
@@ -30,7 +30,13 @@ export interface EditorSidebarProps {
   onBack: () => void
 }
 
-const SIDEBAR_ITEMS: { id: SidebarView; icon: React.FC<{ className?: string }>; label: string; miniLabel: string; shortcut?: string }[] = [
+const SIDEBAR_ITEMS: {
+  id: SidebarView
+  icon: React.FC<{ className?: string }>
+  label: string
+  miniLabel: string
+  shortcut?: string
+}[] = [
   { id: "create", icon: PlusIcon, label: "Create", miniLabel: "Create", shortcut: "1" },
   { id: "library", icon: GridIcon, label: "Library", miniLabel: "Library", shortcut: "2" },
   { id: "storyboard", icon: StoryboardIcon, label: "Storyboard", miniLabel: "Panels", shortcut: "3" },
@@ -45,33 +51,36 @@ function EditorSidebarInner({ activeView, isPanelOpen, onViewChange, onTogglePan
 
   return (
     <Sidebar collapsible="icon" className="border-r border-white/[0.06]">
-      <SidebarHeader className={cn("flex h-[88px] flex-row justify-start p-4 pt-8 ",
-        isCollapsed && "relative inline-block h-auto w-full max-w-28 p-2 pt-4 pb-0"
-      )}>
-        <a
-          className="relative inline-block h-auto w-full max-w-28 p-2 "
-          href="/"
-        >
-          <span className={cn(" flex items-center justify-center drop-shadow-logo [&_path]:transition-[d] [&_path]:duration-[3s] h-full w-full object-contain drop-shadow-logo md:drop-shadow-none ",
-          )} >
-            <LogoIcon className="h-7 w-7 flex-shrink-0"/>
+      <SidebarHeader
+        className={cn(
+          "flex h-[88px] flex-row justify-start p-4 pt-8 ",
+          isCollapsed && "relative inline-block h-auto w-full max-w-28 p-2 pt-4 pb-0",
+        )}
+      >
+        <a className="relative inline-block h-auto w-full max-w-28 p-2 " href="/">
+          <span
+            className={cn(
+              " flex items-center justify-center drop-shadow-logo [&_path]:transition-[d] [&_path]:duration-[3s] h-full w-full object-contain drop-shadow-logo md:drop-shadow-none ",
+            )}
+          >
+            <LogoIcon className="h-7 w-7 flex-shrink-0" />
           </span>
         </a>
       </SidebarHeader>
 
-
       <SidebarContent className="px-0">
         <SidebarGroup className="p-0">
           <SidebarGroupContent>
+            <div className="mb-2 flex justify-center">
+              <UserMenu />
+            </div>
+
             <SidebarMenu className="flex flex-col gap-[10px]">
               {SIDEBAR_ITEMS.map(({ id, icon: Icon, label, miniLabel, shortcut }) => {
                 const isActive = activeView === id && isPanelOpen
                 return (
-                  <SidebarMenuItem key={id} className={cn("p-0",
-
-                  )}>
+                  <SidebarMenuItem key={id} className={cn("p-0")}>
                     <Tooltip>
-
                       <TooltipTrigger asChild>
                         <SidebarMenuButton
                           onClick={() => {
@@ -85,21 +94,27 @@ function EditorSidebarInner({ activeView, isPanelOpen, onViewChange, onTogglePan
                           className={cn(
                             !isCollapsed && "h-10 gap-3 rounded-md px-3 transition-colors items-center flex",
 
-                            isCollapsed && "data-[active=true]:bg-transparent active:bg-transparent focus:bg-transparent hover:bg-transparent h-auto flex flex-col items-center justify-center gap-[2px] text-center text-[11px] leading-[16px] group/sidebar-item font-semibold p-0"
+                            isCollapsed &&
+                              "data-[active=true]:bg-transparent active:bg-transparent focus:bg-transparent hover:bg-transparent h-auto flex flex-col items-center justify-center gap-[2px] text-center text-[11px] leading-[16px] group/sidebar-item font-semibold p-0",
                           )}
                         >
-                          <div className={cn("p-1.5 rounded-md group-hover/sidebar-item:bg-indigo-500/10 transition-colors",
-                            isActive && "bg-indigo-500/10",
-                          )}>
-                            <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-indigo-400" : "text-neutral-400")} />
+                          <div
+                            className={cn(
+                              "p-1.5 rounded-md group-hover/sidebar-item:bg-white/[0.06] transition-colors",
+                              isActive && "bg-indigo-500/15",
+                            )}
+                          >
+                            <Icon
+                              className={cn("h-4 w-4 shrink-0", isActive ? "text-indigo-400" : "text-neutral-400")}
+                            />
                           </div>
                           {isCollapsed && (
-                            <>
-                              {miniLabel}
-                            </>
+                            <span className={cn(isActive ? "text-indigo-400" : "text-neutral-400")}>{miniLabel}</span>
                           )}
                           {!isCollapsed && (
-                            <span className={cn("text-sm", isActive ? "text-indigo font-medium" : "text-neutral-400")}>
+                            <span
+                              className={cn("text-sm", isActive ? "text-indigo-400 font-medium" : "text-neutral-400")}
+                            >
                               {label}
                             </span>
                           )}

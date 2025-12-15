@@ -47,7 +47,7 @@ export const StatusBar = memo(function StatusBar({
 
   return (
     <div
-      className="h-7 bg-[#0a0a0a] border-t border-neutral-800/50 px-4 flex items-center justify-between text-[11px] text-neutral-500 select-none"
+      className="h-7 bg-[#0a0a0a] border-t border-white/[0.06] px-4 flex items-center justify-between text-[11px] text-neutral-500 select-none"
       role="status"
       aria-live="polite"
     >
@@ -56,11 +56,11 @@ export const StatusBar = memo(function StatusBar({
         <span className="text-neutral-300 font-medium truncate max-w-[150px]" title={projectName}>
           {projectName}
         </span>
-        <span className="text-neutral-700">|</span>
+        <span className="text-white/[0.1]">|</span>
         <span className="font-mono">{formatDuration(totalDuration)}</span>
-        <span className="text-neutral-700">|</span>
+        <span className="text-white/[0.1]">|</span>
         <span>{clipCount} clips</span>
-        <span className="text-neutral-700">|</span>
+        <span className="text-white/[0.1]">|</span>
         <span>{trackCount} tracks</span>
       </div>
 
@@ -77,7 +77,7 @@ export const StatusBar = memo(function StatusBar({
       {/* Right - Zoom and FPS */}
       <div className="flex items-center gap-3 font-mono">
         <span>Zoom: {Math.round(zoomLevel * 10)}%</span>
-        <span className="text-neutral-700">|</span>
+        <span className="text-white/[0.1]">|</span>
         <span>{fps} fps</span>
       </div>
     </div>

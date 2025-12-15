@@ -116,11 +116,11 @@ export const TimelineToolbar = memo(function TimelineToolbar({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="h-10 border-b border-neutral-800 flex items-center justify-between px-4 bg-[#09090b] shrink-0 z-30 overflow-x-auto min-w-0 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="h-10 border-b border-white/[0.06] flex items-center justify-between px-4 bg-[#0a0a0a] shrink-0 z-30 overflow-x-auto min-w-0 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <div className="flex items-center gap-3 shrink-0">
           {onUndo && onRedo && (
             <>
-              <div className="flex items-center gap-0.5 bg-neutral-800/50 rounded-md p-0.5 border border-neutral-700/50">
+              <div className="flex items-center gap-0.5 bg-white/[0.04] rounded-md p-0.5 border border-white/[0.06]">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -156,11 +156,11 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                 </Tooltip>
               </div>
 
-              <div className="h-4 w-px bg-neutral-800" />
+              <div className="h-4 w-px bg-white/[0.06]" />
             </>
           )}
 
-          <div className="flex items-center gap-0.5 bg-neutral-800/50 rounded-md p-0.5 border border-neutral-700/50">
+          <div className="flex items-center gap-0.5 bg-white/[0.04] rounded-md p-0.5 border border-white/[0.06]">
             {/* Jump to Start */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -246,7 +246,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
               </TooltipContent>
             </Tooltip>
 
-            <div className="w-px h-4 bg-neutral-700 mx-0.5" />
+            <div className="w-px h-4 bg-white/[0.06] mx-0.5" />
 
             {/* Loop Toggle */}
             <Tooltip>
@@ -273,7 +273,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
             <span className="text-neutral-500 tabular-nums">{formatTimecode(duration, frameRate)}</span>
           </div>
 
-          <div className="h-4 w-px bg-neutral-800" />
+          <div className="h-4 w-px bg-white/[0.06]" />
 
           {/* Tool Group */}
           <div className="flex items-center gap-1">
@@ -306,7 +306,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
             </div>
           </div>
 
-          <div className="h-4 w-px bg-neutral-800" />
+          <div className="h-4 w-px bg-white/[0.06]" />
 
           {/* Render Preview Controls */}
           {onRenderPreview && (
@@ -402,13 +402,13 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                   </div>
                 )}
               </div>
-              <div className="h-4 w-px bg-neutral-800" />
+              <div className="h-4 w-px bg-white/[0.06]" />
             </>
           )}
 
           {/* Snapping Controls */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center bg-neutral-800 rounded-md p-0.5 border border-neutral-700">
+            <div className="flex items-center bg-white/[0.04] rounded-md p-0.5 border border-white/[0.06]">
               <button
                 onClick={onToggleSnap}
                 className={`p-1 rounded transition-colors ${
@@ -418,11 +418,11 @@ export const TimelineToolbar = memo(function TimelineToolbar({
               >
                 <MagnetIcon className="w-3.5 h-3.5" />
               </button>
-              <div className="w-px h-3.5 bg-neutral-700 mx-0.5" />
+              <div className="w-px h-3.5 bg-white/[0.06] mx-0.5" />
               <button
                 onClick={() => onSetShowSnapMenu(!showSnapMenu)}
-                className={`p-0.5 rounded hover:bg-neutral-700 text-neutral-400 ${
-                  showSnapMenu ? "bg-neutral-700 text-neutral-200" : ""
+                className={`p-0.5 rounded hover:bg-white/[0.06] text-neutral-400 ${
+                  showSnapMenu ? "bg-white/[0.06] text-neutral-200" : ""
                 }`}
               >
                 <ChevronDownIcon className="w-3 h-3" />
@@ -430,7 +430,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
             </div>
 
             {showSnapMenu && (
-              <div className="absolute top-full left-0 mt-1 w-48 bg-[#18181b] border border-neutral-700 rounded-lg shadow-xl py-2 z-50 flex flex-col gap-1">
+              <div className="absolute top-full left-0 mt-1 w-48 bg-[#0a0a0a] border border-white/[0.06] rounded-lg shadow-xl py-2 z-50 flex flex-col gap-1">
                 <div className="px-3 py-1 text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
                   Snap Targets
                 </div>
@@ -441,21 +441,21 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                 ].map((opt) => (
                   <div
                     key={opt.key}
-                    className="px-3 py-1.5 hover:bg-neutral-800 cursor-pointer flex items-center justify-between group"
+                    className="px-3 py-1.5 hover:bg-white/[0.06] cursor-pointer flex items-center justify-between group"
                     onClick={() => onToggleSnapOption(opt.key)}
                   >
                     <span className="text-xs text-neutral-300">{opt.label}</span>
                     {snapConfig[opt.key] && <CheckIcon className="w-3 h-3 text-indigo-400" />}
                   </div>
                 ))}
-                <div className="h-px bg-neutral-800 my-1" />
+                <div className="h-px bg-white/[0.06] my-1" />
                 <div className="px-3 py-1 text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
                   Grid Interval
                 </div>
                 {[0.1, 0.25, 0.5, 1.0].map((val) => (
                   <div
                     key={val}
-                    className="px-3 py-1.5 hover:bg-neutral-800 cursor-pointer flex items-center justify-between"
+                    className="px-3 py-1.5 hover:bg-white/[0.06] cursor-pointer flex items-center justify-between"
                     onClick={() => onSetGridInterval(val)}
                   >
                     <span className="text-xs text-neutral-300">{val}s</span>
@@ -481,7 +481,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
               <TooltipTrigger asChild>
                 <button
                   onClick={onAddMarker}
-                  className="p-1.5 rounded hover:bg-neutral-800 text-neutral-400 hover:text-yellow-400 transition-colors"
+                  className="p-1.5 rounded hover:bg-white/[0.06] text-neutral-400 hover:text-yellow-400 transition-colors"
                 >
                   <FlagIcon className="w-4 h-4" />
                 </button>
@@ -497,9 +497,9 @@ export const TimelineToolbar = memo(function TimelineToolbar({
               <TooltipTrigger asChild>
                 <button
                   onClick={onShowShortcuts}
-                  className="flex items-center gap-1.5 px-2 py-1 rounded bg-neutral-800/50 border border-neutral-700/50 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-700/50 transition-colors"
+                  className="flex items-center gap-1.5 px-2 py-1 rounded bg-white/[0.04] border border-white/[0.06] text-neutral-400 hover:text-neutral-200 hover:bg-white/[0.06] transition-colors"
                 >
-                  <kbd className="text-[10px] font-mono bg-neutral-700 px-1 rounded">?</kbd>
+                  <kbd className="text-[10px] font-mono bg-white/[0.06] px-1 rounded">?</kbd>
                   <span className="text-[10px] font-medium">Shortcuts</span>
                 </button>
               </TooltipTrigger>
@@ -509,10 +509,10 @@ export const TimelineToolbar = memo(function TimelineToolbar({
             </Tooltip>
           )}
 
-          <div className="flex items-center gap-2 bg-[#18181b] rounded-md p-1 border border-neutral-800">
+          <div className="flex items-center gap-2 bg-white/[0.04] rounded-md p-1 border border-white/[0.06]">
             <button
               onClick={() => onZoomChange(getPrevZoom(zoomLevel))}
-              className="p-1 hover:text-white text-neutral-500 hover:bg-neutral-800 rounded"
+              className="p-1 hover:text-white text-neutral-500 hover:bg-white/[0.06] rounded"
             >
               <ZoomOutIcon className="w-3.5 h-3.5" />
             </button>
@@ -521,7 +521,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                 <TooltipTrigger asChild>
                   <button
                     onClick={onZoomToFit}
-                    className="p-1 hover:text-white text-neutral-500 hover:bg-neutral-800 rounded"
+                    className="p-1 hover:text-white text-neutral-500 hover:bg-white/[0.06] rounded"
                   >
                     <MaximizeIcon className="w-3.5 h-3.5" />
                   </button>
@@ -531,12 +531,12 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                 </TooltipContent>
               </Tooltip>
             )}
-            <div className="w-20 px-2 flex items-center justify-center border-x border-neutral-800">
+            <div className="w-20 px-2 flex items-center justify-center border-x border-white/[0.06]">
               <span className="text-[10px] font-mono text-neutral-400">{Math.round(zoomLevel)}px/s</span>
             </div>
             <button
               onClick={() => onZoomChange(getNextZoom(zoomLevel))}
-              className="p-1 hover:text-white text-neutral-500 hover:bg-neutral-800 rounded"
+              className="p-1 hover:text-white text-neutral-500 hover:bg-white/[0.06] rounded"
             >
               <ZoomInIcon className="w-3.5 h-3.5" />
             </button>

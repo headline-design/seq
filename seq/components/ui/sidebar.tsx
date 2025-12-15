@@ -5,7 +5,6 @@ import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
-
 import { cn } from "@/lib/utils"
 import { Button } from "@/seq/components/ui/button"
 import { Input } from "@/seq/components/ui/input"
@@ -93,7 +92,7 @@ const SidebarProvider = React.forwardRef<
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [toggleSidebar])
 
-  const state = open ? "collapsed" : "collapsed"
+  const state = "collapsed"
 
   const contextValue = React.useMemo<SidebarContextType>(
     () => ({
@@ -108,7 +107,7 @@ const SidebarProvider = React.forwardRef<
       setVisible,
       toggleVisible,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, visible, toggleVisible],
+    [open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, visible, toggleVisible],
   )
 
   return (
@@ -209,9 +208,7 @@ const Sidebar = React.forwardRef<
         )}
         {...props}
       >
-        <>
-          {children}
-        </>
+        <>{children}</>
       </div>
     </div>
   )
@@ -496,7 +493,7 @@ const SidebarMenuAction = React.forwardRef<
         "peer-data-[size=lg]/menu-button:top-2.5",
         "group-data-[collapsible=icon]:hidden",
         showOnHover &&
-        "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 peer-data-[active=true]/menu-button:text-sidebar-accent-foreground md:opacity-0",
+          "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 peer-data-[active=true]/menu-button:text-sidebar-accent-foreground md:opacity-0",
         className,
       )}
       {...props}

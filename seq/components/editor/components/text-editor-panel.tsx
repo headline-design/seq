@@ -59,21 +59,21 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
     <div className="space-y-4">
       {/* Text Content */}
       <div className="space-y-2">
-        <Label className="text-xs text-neutral-400">Text Content</Label>
+        <Label className="text-xs text-neutral-500">Text Content</Label>
         <Textarea
           value={textOverlay.text}
           onChange={(e) => updateTextOverlay({ text: e.target.value })}
           placeholder="Enter text..."
-          className="h-20 text-sm bg-neutral-900 border-neutral-700 resize-none"
+          className="h-20 text-sm bg-[#0a0a0a] border-white/[0.06] resize-none"
         />
       </div>
 
       {/* Font Settings */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-400">Font Family</Label>
+          <Label className="text-xs text-neutral-500">Font Family</Label>
           <Select value={textOverlay.fontFamily} onValueChange={(value) => updateTextOverlay({ fontFamily: value })}>
-            <SelectTrigger className="h-8 text-xs bg-neutral-900 border-neutral-700">
+            <SelectTrigger className="h-8 text-xs bg-[#0a0a0a] border-white/[0.06]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -87,7 +87,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
         </div>
 
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-400">Font Size</Label>
+          <Label className="text-xs text-neutral-500">Font Size</Label>
           <div className="flex items-center gap-2">
             <Slider
               value={[textOverlay.fontSize]}
@@ -105,12 +105,12 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
       {/* Font Weight & Alignment */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-400">Font Weight</Label>
+          <Label className="text-xs text-neutral-500">Font Weight</Label>
           <Select
             value={String(textOverlay.fontWeight)}
             onValueChange={(value) => updateTextOverlay({ fontWeight: Number(value) as 400 | 500 | 600 | 700 | 800 })}
           >
-            <SelectTrigger className="h-8 text-xs bg-neutral-900 border-neutral-700">
+            <SelectTrigger className="h-8 text-xs bg-[#0a0a0a] border-white/[0.06]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -134,33 +134,31 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
         </div>
 
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-400">Text Align</Label>
-          <Select
-            value={textOverlay.textAlign}
-            onValueChange={(value) => updateTextOverlay({ textAlign: value as "left" | "center" | "right" })}
-          >
-            <SelectTrigger className="h-8 text-xs bg-neutral-900 border-neutral-700">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="left" className="text-xs">
-                Left
-              </SelectItem>
-              <SelectItem value="center" className="text-xs">
-                Center
-              </SelectItem>
-              <SelectItem value="right" className="text-xs">
-                Right
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <Label className="text-xs text-neutral-500">Text Align</Label>
+          <div className="flex gap-1.5">
+            {(["left", "center", "right"] as const).map((align) => (
+              <Button
+                key={align}
+                variant="outline"
+                size="sm"
+                onClick={() => updateTextOverlay({ textAlign: align })}
+                className={`flex-1 h-8 ${
+                  textOverlay.textAlign === align
+                    ? "bg-indigo-500/15 border-indigo-500/50 text-indigo-400"
+                    : "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.06]"
+                }`}
+              >
+                {align.charAt(0).toUpperCase() + align.slice(1)}
+              </Button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Colors */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-400">Text Color</Label>
+          <Label className="text-xs text-neutral-500">Text Color</Label>
           <div className="flex items-center gap-2">
             <input
               type="color"
@@ -177,7 +175,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
         </div>
 
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-400">Background Color</Label>
+          <Label className="text-xs text-neutral-500">Background Color</Label>
           <div className="flex items-center gap-2">
             <input
               type="color"
@@ -196,7 +194,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
 
       {/* Background Opacity */}
       <div className="space-y-2">
-        <Label className="text-xs text-neutral-400">Background Opacity</Label>
+        <Label className="text-xs text-neutral-500">Background Opacity</Label>
         <div className="flex items-center gap-2">
           <Slider
             value={[textOverlay.backgroundOpacity]}
@@ -212,7 +210,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
 
       {/* Position */}
       <div className="space-y-2">
-        <Label className="text-xs text-neutral-400">Position</Label>
+        <Label className="text-xs text-neutral-500">Position</Label>
         <div className="grid grid-cols-3 gap-1">
           {PRESET_POSITIONS.map((pos) => (
             <Button
@@ -235,7 +233,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
       {/* Custom Position */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-400">X Position (%)</Label>
+          <Label className="text-xs text-neutral-500">X Position (%)</Label>
           <div className="flex items-center gap-2">
             <Slider
               value={[textOverlay.position.x]}
@@ -250,7 +248,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
         </div>
 
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-400">Y Position (%)</Label>
+          <Label className="text-xs text-neutral-500">Y Position (%)</Label>
           <div className="flex items-center gap-2">
             <Slider
               value={[textOverlay.position.y]}
@@ -267,12 +265,12 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
 
       {/* Animation */}
       <div className="space-y-2">
-        <Label className="text-xs text-neutral-400">Animation</Label>
+        <Label className="text-xs text-neutral-500">Animation</Label>
         <Select
           value={textOverlay.animation}
           onValueChange={(value) => updateTextOverlay({ animation: value as TextOverlayStyle["animation"] })}
         >
-          <SelectTrigger className="h-8 text-xs bg-neutral-900 border-neutral-700">
+          <SelectTrigger className="h-8 text-xs bg-[#0a0a0a] border-white/[0.06]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

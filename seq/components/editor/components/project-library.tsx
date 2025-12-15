@@ -167,28 +167,28 @@ export const ProjectLibrary = memo(function ProjectLibrary({
 
   return (
     <div
-      className={`flex flex-col h-full relative bg-[#0a0a0a] ${isDragOver ? "ring-2 ring-indigo-500 ring-inset" : ""}`}
+      className={`flex flex-col h-full relative ${isDragOver ? "ring-2 ring-indigo-500 ring-inset" : ""}`}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
     >
-      <div className="p-3 border-b border-neutral-800/50 flex items-center justify-between shrink-0">
+      <div className="p-3 border-b border-white/[0.06] flex items-center justify-between shrink-0">
         <span className="text-sm font-medium text-white">Project Media</span>
         <button
           onClick={onClose}
-          className="p-1.5 hover:bg-neutral-800 rounded-lg text-neutral-500 hover:text-white transition-colors"
+          className="p-1.5 hover:bg-white/[0.06] rounded-lg text-neutral-500 hover:text-white transition-colors"
         >
           <PanelLeftClose className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="flex gap-1.5 px-3 py-2.5 border-b border-neutral-800/50 shrink-0">
+      <div className="flex gap-1.5 px-3 py-2.5 border-b border-white/[0.06] shrink-0">
         {(["all", "video", "image", "audio"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
             className={`px-3 py-1.5 text-[11px] rounded-full font-medium transition-all ${
-              filter === f ? "bg-white text-black" : "text-neutral-500 hover:text-white hover:bg-neutral-800"
+              filter === f ? "bg-white text-black" : "text-neutral-500 hover:text-white hover:bg-white/[0.06]"
             }`}
           >
             {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -202,7 +202,7 @@ export const ProjectLibrary = memo(function ProjectLibrary({
             <p className="text-neutral-400">No media yet</p>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 hover:text-white transition-colors font-medium"
+              className="px-4 py-2 bg-white/[0.06] hover:bg-white/[0.1] rounded-lg text-neutral-300 hover:text-white transition-colors font-medium"
             >
               Import Media
             </button>
@@ -228,11 +228,11 @@ export const ProjectLibrary = memo(function ProjectLibrary({
         )}
       </div>
 
-      <div className="p-2.5 border-t border-neutral-800/50 flex items-center justify-between shrink-0 bg-[#0a0a0a]">
+      <div className="p-2.5 border-t border-white/[0.06] flex items-center justify-between shrink-0">
         <input type="file" ref={fileInputRef} accept="video/*,audio/*,image/*" onChange={handleFileChange} hidden />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="text-[11px] text-neutral-400 hover:text-white px-3 py-1.5 bg-neutral-800/80 hover:bg-neutral-700 rounded-lg transition-colors font-medium"
+          className="text-[11px] text-neutral-400 hover:text-white px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.1] rounded-lg transition-colors font-medium"
         >
           + Import
         </button>

@@ -247,7 +247,7 @@ export const PreviewPlayer = memo(function PreviewPlayer({
         )}
 
         {!isExporting && !isRendering && (
-          <div className="absolute top-3 right-3 z-50 flex items-center gap-1.5 bg-black/70 backdrop-blur-sm rounded-lg p-1 border border-white/5">
+          <div className="absolute top-3 right-3 z-50 flex items-center gap-1.5 bg-black/70 backdrop-blur-sm rounded-lg p-1 border border-white/[0.06]">
             <DropdownMenu>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -288,7 +288,7 @@ export const PreviewPlayer = memo(function PreviewPlayer({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <div className="w-px h-4 bg-white/10" />
+            <div className="w-px h-4 bg-white/[0.1]" />
             <button
               onClick={onZoomReset}
               className="text-[10px] text-neutral-400 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors"
@@ -312,7 +312,7 @@ export const PreviewPlayer = memo(function PreviewPlayer({
 
         <div
           ref={previewContainerRef}
-          className="relative aspect-video w-full max-h-full shadow-2xl bg-black flex items-center justify-center overflow-hidden rounded-sm"
+          className="relative aspect-video w-full max-h-full shadow-2xl bg-black flex items-center justify-center overflow-hidden rounded-sm border border-white/[0.04]"
           style={{ transform: `scale(${playerZoom})` }}
         >
           {!hasClips && !isExporting && !isRendering && (
