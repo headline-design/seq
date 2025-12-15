@@ -76,18 +76,15 @@ const AspectRatioSelector = memo(function AspectRatioSelector({
           key={ratio.value}
           type="button"
           onClick={() => onChange(ratio.value)}
-          className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg border transition-all ${
-            value === ratio.value
+          className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg border transition-all ${value === ratio.value
               ? "bg-indigo-600/20 border-indigo-500 text-indigo-300"
               : "bg-white/[0.02] border-white/[0.06] text-neutral-400 hover:border-white/[0.1] hover:text-neutral-300"
-          }`}
+            }`}
         >
           <div
-            className={`flex items-center justify-center ${
-              ratio.value === "16:9" ? "w-10 h-6" : ratio.value === "9:16" ? "w-6 h-10" : "w-8 h-8"
-            } rounded border ${
-              value === ratio.value ? "border-indigo-400 bg-indigo-500/30" : "border-white/[0.1] bg-white/[0.04]"
-            }`}
+            className={`flex items-center justify-center ${ratio.value === "16:9" ? "w-10 h-6" : ratio.value === "9:16" ? "w-6 h-10" : "w-8 h-8"
+              } rounded border ${value === ratio.value ? "border-indigo-400 bg-indigo-500/30" : "border-white/[0.1] bg-white/[0.04]"
+              }`}
           />
           <span className="text-[10px] font-medium">{ratio.label}</span>
           <span className="text-[10px] text-neutral-500">{ratio.value}</span>
@@ -116,16 +113,14 @@ const ModelCard = memo(function ModelCard({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${
-        selected
+      className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${selected
           ? "bg-indigo-600/20 border-indigo-500"
           : "bg-white/[0.02] border-white/[0.06] hover:border-white/[0.1] hover:bg-white/[0.04]"
-      }`}
+        }`}
     >
       <div
-        className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-          selected ? "bg-indigo-500/30" : "bg-white/[0.04]"
-        }`}
+        className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${selected ? "bg-indigo-500/30" : "bg-white/[0.04]"
+          }`}
       >
         <Wand2 className={`w-5 h-5 ${selected ? "text-indigo-300" : "text-neutral-500"}`} />
       </div>
@@ -141,9 +136,8 @@ const ModelCard = memo(function ModelCard({
         <p className="text-[11px] text-neutral-500 truncate">{description}</p>
       </div>
       <div
-        className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
-          selected ? "border-indigo-500 bg-indigo-500" : "border-neutral-600"
-        }`}
+        className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${selected ? "border-indigo-500 bg-indigo-500" : "border-neutral-600"
+          }`}
       >
         {selected && <Check className="w-2.5 h-2.5 text-white" />}
       </div>
@@ -176,9 +170,8 @@ const GenerationHistoryItem = memo(function GenerationHistoryItem({
 
   return (
     <div
-      className={`group relative rounded-lg border transition-all ${
-        isDragging ? "opacity-50 scale-95" : "opacity-100"
-      } border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.1]`}
+      className={`group relative rounded-lg border transition-all ${isDragging ? "opacity-50 scale-95" : "opacity-100"
+        } border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.1]`}
       draggable
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
@@ -252,7 +245,7 @@ export const CreatePanel = memo(function CreatePanel({
 }: CreatePanelProps) {
   const [prompt, setPrompt] = useState("")
   const [aspectRatio, setAspectRatio] = useState("16:9")
-  const [selectedModel, setSelectedModel] = useState(VIDEO_MODELS[0].id)
+  const [selectedModel, setSelectedModel] = useState<string>(VIDEO_MODELS[0].id)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [history, setHistory] = useState<GeneratedItem[]>([])
   const [draggingId, setDraggingId] = useState<string | null>(null)
@@ -265,7 +258,7 @@ export const CreatePanel = memo(function CreatePanel({
     if (saved) {
       try {
         setHistory(JSON.parse(saved))
-      } catch {}
+      } catch { }
     }
   }, [])
 
@@ -377,7 +370,7 @@ export const CreatePanel = memo(function CreatePanel({
                   id={model.id}
                   name={model.name}
                   description={model.description}
-                  badge={model.badge}
+                  badge={undefined}
                   selected={selectedModel === model.id}
                   onClick={() => setSelectedModel(model.id)}
                 />
@@ -415,11 +408,10 @@ export const CreatePanel = memo(function CreatePanel({
           <button
             type="submit"
             disabled={!prompt.trim() || isGenerating}
-            className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 font-semibold text-sm transition-all ${
-              !prompt.trim() || isGenerating
+            className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 font-semibold text-sm transition-all ${!prompt.trim() || isGenerating
                 ? "bg-neutral-800 text-neutral-500 cursor-not-allowed"
                 : "bg-indigo-500 text-white hover:bg-indigo-600 shadow-lg shadow-indigo-500/20"
-            }`}
+              }`}
           >
             {isGenerating ? (
               <>
