@@ -1,11 +1,13 @@
 "use client"
 import { Film, Layers, Wand2, Settings2 } from "lucide-react"
+import type React from "react"
+
 import { Button } from "@/seq/components/ui/button"
 import { ScrollArea, ScrollBar } from "@/seq/components/ui/scroll-area"
 import { StoryboardPanel } from "./storyboard-panel"
 import type { StoryboardPanelData, VideoConfig, VideoModel } from "./types"
 import { useToastContext } from "@/seq/components/ui/sonner"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { Textarea } from "@/seq/components/ui/textarea"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/seq/components/ui/select"
 import { saveSession, loadSession } from "@/seq/lib/session-storage"
@@ -38,8 +40,46 @@ export function StoryboardContainer({
     useFastModel: true,
   })
 
+  const [leftWidth, setLeftWidth] = useState(35)
+  const [isResizing, setIsResizing] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
   const panels = propPanels || internalPanels
   const setPanels = propSetPanels || setInternalPanels
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsResizing(true)
+  }, [])
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isResizing || !containerRef.current) return
+      const rect = containerRef.current.getBoundingClientRect()
+      const newWidth = ((e.clientX - rect.left) / rect.width) * 100
+      setLeftWidth(Math.min(Math.max(newWidth, 25), 50))
+    },
+    [isResizing],
+  )
+
+  const handleMouseUp = useCallback(() => {
+    setIsResizing(false)
+  }, [])
+
+  const handleDoubleClick = useCallback(() => {
+    setLeftWidth(35)
+  }, [])
+
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener("mousemove", handleMouseMove)
+      window.addEventListener("mouseup", handleMouseUp)
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove)
+        window.removeEventListener("mouseup", handleMouseUp)
+      }
+    }
+  }, [isResizing, handleMouseMove, handleMouseUp])
 
   useEffect(() => {
     if (initialPanels && initialPanels.length > 0) {
@@ -187,7 +227,7 @@ export function StoryboardContainer({
 
   if (panels.length === 0) {
     return (
-      <div className="w-full p-8 border border-dashed border-[var(--border-default)] rounded-lg flex flex-col items-center justify-center text-center bg-[var(--surface-1)]">
+      <div className="w-full h-full flex flex-col items-center justify-center text-center bg-[var(--surface-1)]">
         <div className="h-12 w-12 rounded-full flex items-center justify-center mb-4 bg-[var(--surface-2)]">
           <Layers className="h-6 w-6 text-neutral-400" />
         </div>
@@ -200,148 +240,181 @@ export function StoryboardContainer({
   }
 
   return (
-    <div className="w-full space-y-4">
-      <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-2">
-          <Film className="h-4 w-4 text-neutral-400" />
-          <h2 className="text-sm font-semibold text-neutral-300">Video Storyboard</h2>
-          <span className="text-xs px-2 py-0.5 rounded-full border bg-[var(--surface-2)] border-[var(--border-default)] text-[var(--text-secondary)]">
-            {panels.length} Panels
-          </span>
-        </div>
-
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 text-xs bg-[var(--accent-bg-subtle)] border-[var(--accent-border)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)] hover:text-[var(--accent-primary)]"
-            onClick={loadDemoData}
-          >
-            <Layers className="mr-1.5 h-3 w-3" />
-            Load Demo Data
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 text-xs border text-neutral-300 bg-[var(--surface-2)] border-[var(--border-default)] hover:bg-[var(--hover-overlay)]"
-            onClick={() => setPanels([])}
-          >
-            Clear All
-          </Button>
-          <Button size="sm" className="h-7 text-xs bg-accent-gradient text-accent-text-white border-0" onClick={generateAll}>
-            <Wand2 className="mr-1.5 h-3 w-3" />
-            Generate All Videos
-          </Button>
-          {panels.length > 0 && panels.every((p) => p.videoUrl) && (
-            <Button
-              size="sm"
-              className="h-7 text-xs bg-green-600/80 hover:bg-green-600 text-white border-0"
-              onClick={() => (window.location.href = "/timeline")}
-            >
-              <Film className="mr-1.5 h-3 w-3" />
-              Continue to Timeline Editor
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {panels.length > 0 && panels.every((p) => !p.prompt) && (
-        <div className="px-1">
-          <div className="text-xs rounded-lg p-3 flex items-start gap-2 border bg-[var(--surface-2)] border-[var(--border-default)] text-[var(--text-secondary)]">
-            <Layers className="h-3.5 w-3.5 text-neutral-400 mt-0.5 shrink-0" />
-            <div>
-              <p className="font-medium text-neutral-300 mb-1">Your Storyboard is Ready</p>
-              <p>
-                Your selected panels are ready. You can now add video prompts manually, use the "Load Demo Data" button
-                to pre-fill example data, or enhance prompts using the master description and AI.
-              </p>
+    <div className="w-full h-full flex flex-col">
+      <div
+        ref={containerRef}
+        className="relative flex flex-1 overflow-hidden"
+        style={{ userSelect: isResizing ? "none" : "auto" }}
+      >
+        {/* Left Panel - Configuration */}
+        <div
+          className="flex flex-col overflow-hidden bg-[var(--surface-1)]"
+          style={{ width: `${leftWidth}%`, minWidth: "280px" }}
+        >
+          <div className="flex-shrink-0 h-12 px-4 flex items-center justify-between border-b border-[var(--border-subtle)]">
+            <div className="flex items-center gap-2">
+              <Film className="h-4 w-4 text-neutral-400" />
+              <span className="text-sm font-medium text-neutral-200">Video Storyboard</span>
+              <span className="text-xs px-2 py-0.5 border bg-[var(--surface-2)] border-[var(--border-default)] text-[var(--text-secondary)]">
+                {panels.length} Panels
+              </span>
             </div>
           </div>
-        </div>
-      )}
 
-      <div className="px-1 space-y-3">
-        <div className="space-y-1.5">
-          <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-semibold">
-            Master Clip Description / Story Context
-          </label>
-          <Textarea
-            value={masterDescription}
-            onChange={(e) => setMasterDescription(e.target.value)}
-            placeholder="Describe the overall scene, style, or story context (e.g. 'A flashback scene in Ratatouille, warm cinematic lighting, emotional tone'). This will be used to enhance individual shot prompts."
-            className="min-h-[60px] text-xs resize-none border rounded-lg text-neutral-200 placeholder:text-neutral-500 bg-[var(--surface-2)] border-[var(--border-default)] focus:border-[var(--accent-muted)] focus:ring-1 focus:ring-[var(--accent-ring)]"
-          />
-        </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* Info message if no prompts */}
+            {panels.length > 0 && panels.every((p) => !p.prompt) && (
+              <div className="text-xs p-3 flex items-start gap-2 border bg-[var(--surface-2)] border-[var(--border-default)] text-[var(--text-secondary)]">
+                <Layers className="h-3.5 w-3.5 text-neutral-400 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium text-neutral-300 mb-1">Your Storyboard is Ready</p>
+                  <p>
+                    Your selected panels are ready. You can now add video prompts manually, use the "Load Demo Data"
+                    button to pre-fill example data, or enhance prompts using the master description and AI.
+                  </p>
+                </div>
+              </div>
+            )}
 
-        <div className="border rounded-lg p-3 bg-[var(--surface-2)] border-[var(--border-default)]">
-          <div className="flex items-center gap-2 mb-3">
-            <Settings2 className="h-3.5 w-3.5 text-neutral-400" />
-            <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-semibold">
-              Video Configuration (Applied to All Panels)
-            </label>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-[10px] text-neutral-400 font-medium">Aspect Ratio</label>
-              <Select
-                value={videoConfig.aspectRatio}
-                onValueChange={(val) => setVideoConfig({ ...videoConfig, aspectRatio: val as "16:9" | "9:16" })}
-              >
-                <SelectTrigger className="h-8 text-xs border text-neutral-200 bg-[var(--surface-3)] border-[var(--border-default)]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="16:9">16:9 (Landscape)</SelectItem>
-                  <SelectItem value="9:16">9:16 (Portrait)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] text-neutral-400 font-medium">Quality</label>
-              <Select
-                value={videoConfig.useFastModel ? "fast" : "standard"}
-                onValueChange={(val) => setVideoConfig({ ...videoConfig, useFastModel: val === "fast" })}
-              >
-                <SelectTrigger className="h-8 text-xs border text-neutral-200 bg-[var(--surface-3)] border-[var(--border-default)]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fast">Fast (Quicker)</SelectItem>
-                  <SelectItem value="standard">Standard (Better)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <p className="text-[10px] text-neutral-500 mt-2">
-            Total sequence duration: ~{panels.reduce((sum, p) => sum + (p.duration || 5), 0)}s
-          </p>
-        </div>
-      </div>
-
-      <ScrollArea className="w-full whitespace-nowrap rounded-lg border p-4 bg-[var(--surface-1)] border-[var(--border-subtle)]">
-        <div className="flex w-max space-x-4 pb-4">
-          {panels.map((panel, index) => (
-            <div key={panel.id} className="w-[300px] h-[360px] flex-none">
-              <StoryboardPanel
-                panel={panel}
-                index={index}
-                masterDescription={masterDescription}
-                videoConfig={videoConfig}
-                onUpdate={updatePanel}
-                onRemove={removePanel}
-                onGenerate={generateVideo}
+              <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-semibold">
+                Master Clip Description / Story Context
+              </label>
+              <Textarea
+                value={masterDescription}
+                onChange={(e) => setMasterDescription(e.target.value)}
+                placeholder="Describe the overall scene, style, or story context (e.g. 'A flashback scene in Ratatouille, warm cinematic lighting, emotional tone'). This will be used to enhance individual shot prompts."
+                className="min-h-[100px] text-xs resize-none border text-neutral-200 placeholder:text-neutral-500 bg-[var(--surface-2)] border-[var(--border-default)] focus:border-[var(--accent-muted)] focus:ring-1 focus:ring-[var(--accent-ring)]"
               />
             </div>
-          ))}
 
-          {panels.length < 6 && (
-            <div className="w-[300px] h-[360px] flex-none border border-dashed rounded-lg bg-white/5 flex flex-col items-center justify-center text-center p-6 opacity-50 hover:opacity-100 transition-opacity cursor-help">
-              <p className="text-xs text-white/40">Select an image above and click "Add to Storyboard"</p>
+            <div className="border p-3 bg-[var(--surface-2)] border-[var(--border-default)]">
+              <div className="flex items-center gap-2 mb-3">
+                <Settings2 className="h-3.5 w-3.5 text-neutral-400" />
+                <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-semibold">
+                  Video Configuration
+                </label>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] text-neutral-400 font-medium">Aspect Ratio</label>
+                  <Select
+                    value={videoConfig.aspectRatio}
+                    onValueChange={(val) => setVideoConfig({ ...videoConfig, aspectRatio: val as "16:9" | "9:16" })}
+                  >
+                    <SelectTrigger className="h-8 text-xs border text-neutral-200 bg-[var(--surface-2)] border-[var(--border-default)]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="16:9">16:9 (Landscape)</SelectItem>
+                      <SelectItem value="9:16">9:16 (Portrait)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] text-neutral-400 font-medium">Quality</label>
+                  <Select
+                    value={videoConfig.useFastModel ? "fast" : "standard"}
+                    onValueChange={(val) => setVideoConfig({ ...videoConfig, useFastModel: val === "fast" })}
+                  >
+                    <SelectTrigger className="h-8 text-xs border text-neutral-200 bg-[var(--surface-2)] border-[var(--border-default)]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fast">Fast (Quicker)</SelectItem>
+                      <SelectItem value="standard">Standard (Better)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <p className="text-[10px] text-neutral-500 mt-3">
+                Total sequence duration: ~{panels.reduce((sum, p) => sum + (p.duration || 5), 0)}s
+              </p>
             </div>
-          )}
+
+            {/* Action buttons */}
+            <div className="flex flex-col gap-2 pt-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full h-8 text-xs bg-[var(--accent-bg-subtle)] border-[var(--accent-border)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)] hover:text-[var(--accent-primary)]"
+                onClick={loadDemoData}
+              >
+                <Layers className="mr-1.5 h-3 w-3" />
+                Load Demo Data
+              </Button>
+              <Button
+                size="sm"
+                className="w-full h-8 text-xs bg-accent-gradient text-accent-text-white border-0"
+                onClick={generateAll}
+              >
+                <Wand2 className="mr-1.5 h-3 w-3" />
+                Generate All Videos
+              </Button>
+              {panels.length > 0 && panels.every((p) => p.videoUrl) && (
+                <Button
+                  size="sm"
+                  className="w-full h-8 text-xs bg-green-600/80 hover:bg-green-600 text-white border-0"
+                  onClick={() => (window.location.href = "/timeline")}
+                >
+                  <Film className="mr-1.5 h-3 w-3" />
+                  Continue to Timeline Editor
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full h-8 text-xs border text-neutral-300 bg-[var(--surface-2)] border-[var(--border-default)] hover:bg-[var(--hover-overlay)]"
+                onClick={() => setPanels([])}
+              >
+                Clear All
+              </Button>
+            </div>
+          </div>
         </div>
-        <ScrollBar orientation="horizontal" className="bg-white/5" />
-      </ScrollArea>
+
+        {/* Resize handle */}
+        <div
+          className="relative w-1 cursor-col-resize flex-shrink-0 hover:bg-[var(--accent-hover)] transition-colors"
+          onMouseDown={handleMouseDown}
+          onDoubleClick={handleDoubleClick}
+        />
+
+        {/* Right Panel - Storyboard panels */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-[var(--surface-0)]">
+          <div className="flex-shrink-0 h-12 px-4 flex items-center justify-between border-b border-[var(--border-subtle)]">
+            <span className="text-sm font-medium text-neutral-200">Storyboard Panels</span>
+            <span className="text-xs text-neutral-400">
+              {panels.filter((p) => p.videoUrl).length}/{panels.length} videos generated
+            </span>
+          </div>
+
+          <ScrollArea className="flex-1 p-4">
+            <div className="flex w-max space-x-4 pb-4">
+              {panels.map((panel, index) => (
+                <div key={panel.id} className="w-[280px] h-[420px] flex-none">
+                  <StoryboardPanel
+                    panel={panel}
+                    index={index}
+                    masterDescription={masterDescription}
+                    videoConfig={videoConfig}
+                    onUpdate={updatePanel}
+                    onRemove={removePanel}
+                    onGenerate={generateVideo}
+                  />
+                </div>
+              ))}
+
+              {panels.length < 6 && (
+                <div className="w-[280px] h-[420px] flex-none border border-dashed border-[var(--border-default)] bg-[var(--surface-1)] flex flex-col items-center justify-center text-center p-6 opacity-50 hover:opacity-100 transition-opacity cursor-help">
+                  <p className="text-xs text-neutral-400">Select an image above and click "Add to Storyboard"</p>
+                </div>
+              )}
+            </div>
+            <ScrollBar orientation="horizontal" className="bg-white/5" />
+          </ScrollArea>
+        </div>
+      </div>
     </div>
   )
 }

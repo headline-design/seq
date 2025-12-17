@@ -15,7 +15,7 @@ export function ImageUploadBox({ imageNumber, preview, onDrop, onClear, onSelect
   return (
     <div
       className={cn(
-        "w-full h-[60px] sm:h-[80px] md:h-[100px] lg:h-[12vh] xl:h-[14vh] border border-[var(--border-default)] rounded-lg flex items-center justify-center cursor-pointer hover:border-[var(--accent-border)] transition-all bg-[var(--surface-2)] relative group",
+        "w-full h-[60px] sm:h-[80px] md:h-[100px] lg:h-[12vh] xl:h-[14vh] flex items-center justify-center cursor-pointer hover:border-[var(--accent-border)] transition-all bg-[var(--surface-2)] relative group border border-[var(--border-default)] rounded-lg",
         preview && "border-[var(--accent-primary)]",
       )}
       onDrop={onDrop}
@@ -56,7 +56,7 @@ export function ImageUploadBox({ imageNumber, preview, onDrop, onClear, onSelect
           <img
             src={preview || "/placeholder.svg"}
             alt={`Image ${imageNumber}`}
-            className="w-full h-full object-contain rounded"
+            className="w-full h-full object-contain"
           />
         </div>
       ) : (

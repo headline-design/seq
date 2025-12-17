@@ -14,7 +14,16 @@ import { ToastNotification } from "./toast-notification"
 import { GenerationHistory } from "./generation-history"
 import { GlobalDropZone } from "./global-drop-zone"
 import { FullscreenViewer } from "./fullscreen-viewer"
-import { ApiKeyWarning } from "./api-key-warning"
+import { Badge } from "../ui/badge"
+
+function EmptyFooterHistory() {
+  return (
+    <div className="flex flex-col items-center justify-center py-2 px-4 text-center">
+      <h3 className="text-lg font-medium text-white mb-1">No Generations Yet</h3>
+      <p className="text-sm text-neutral-400 max-w-sm">Start generating images to see them appear here.</p>
+    </div>
+  )
+}
 
 export function ImageCombiner() {
   const isMobile = useMobile()
@@ -22,7 +31,8 @@ export function ImageCombiner() {
   const [useUrls, setUseUrls] = useState(false)
   const [showFullscreen, setShowFullscreen] = useState(false)
   const [fullscreenImageUrl, setFullscreenImageUrl] = useState("")
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null)
+  const [mode, setMode] = useState<"simple" | "custom">("custom")
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null)
   const [isDraggingOver, setIsDraggingOver] = useState(false)
   const [dragCounter, setDragCounter] = useState(0)
   const [dropZoneHover, setDropZoneHover] = useState<1 | 2 | null>(null)
@@ -539,133 +549,161 @@ export function ImageCombiner() {
   }, [isResizing, handleMouseMove, handleMouseUp])
 
   return (
-    <div className="min-h-screen bg-[var(--surface-0)]">
-      {toast && <ToastNotification message={toast.message} type={toast.type} />}
+    <div className="h-screen bg-[var(--surface-0)] flex flex-col">
+      {toast && <ToastNotification message={toast.message} type={toast.type as any} />}
 
       {isDraggingOver && (
         <GlobalDropZone dropZoneHover={dropZoneHover} onSetDropZoneHover={setDropZoneHover} onDrop={handleGlobalDrop} />
       )}
 
-      <div className="max-w-6xl mx-auto px-6 py-6">
-        <div className="mb-6">
-          <h1 className="text-page-title mb-2">Image Playground</h1>
-          <p className="text-sm text-neutral-400">
-            Create stunning images from text prompts or edit existing images with AI
-          </p>
+      <div
+        ref={containerRef}
+        className="flex-1 flex overflow-hidden"
+        style={{ userSelect: isResizing ? "none" : "auto" }}
+      >
+        <div
+          className="flex flex-col overflow-hidden bg-[var(--surface-1)]"
+          style={{ width: `${leftWidth}%`, minWidth: "300px" }}
+        >
+          <div className="flex-shrink-0 h-16 px-4 flex items-center justify-between border-b border-[var(--border-subtle)]">
+            <div className="flex items-center gap-3">
+
+              <div className="flex items-center bg-[var(--surface-2)] rounded-lg p-0.5">
+                <button
+                  onClick={() => setMode("simple")}
+                  className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${mode === "simple" ? "bg-[var(--surface-3)] text-white" : "text-neutral-400 hover:text-neutral-200"
+                    }`}
+                >
+                  Simple
+                </button>
+                <button
+                  onClick={() => setMode("custom")}
+                  className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${mode === "custom" ? "bg-[var(--surface-3)] text-white" : "text-neutral-400 hover:text-neutral-200"
+                    }`}
+                >
+                  Custom
+                </button>
+              </div>
+              {apiKeyMissing && (
+                <span className="text-[10px] px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded">
+                  API Key Missing
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs px-2 py-1">
+                {currentMode === "text-to-image" ? "Text to Image" : "Image Editing"}
+              </Badge>
+
+
+            </div>
+          </div>
+
+
+          <>
+            <InputSection
+              prompt={prompt}
+              setPrompt={setPrompt}
+              aspectRatio={aspectRatio}
+              setAspectRatio={setAspectRatio}
+              availableAspectRatios={availableAspectRatios}
+              useUrls={useUrls}
+              setUseUrls={setUseUrls}
+              image1Preview={image1Preview}
+              image2Preview={image2Preview}
+              image1Url={image1Url}
+              image2Url={image2Url}
+              isConvertingHeic={isConvertingHeic}
+              canGenerate={canGenerate as boolean}
+              hasImages={hasImages as any}
+              onGenerate={runGeneration}
+              onClearAll={clearAll}
+              onImageUpload={handleImageUpload}
+              onUrlChange={handleUrlChange}
+              onClearImage={clearImage}
+              onKeyDown={handleKeyDown}
+              onPromptPaste={handlePromptPaste}
+              onImageFullscreen={openImageFullscreen}
+              promptTextareaRef={promptTextareaRef}
+              isAuthenticated={true}
+              remaining={100}
+              decrementOptimistic={() => { }}
+              usageLoading={false}
+              onShowAuthModal={() => { }}
+              generations={persistedGenerations}
+              selectedGenerationId={selectedGenerationId}
+              onSelectGeneration={setSelectedGenerationId}
+              onCancelGeneration={cancelGeneration}
+              onDeleteGeneration={deleteGeneration}
+              historyLoading={historyLoading}
+              hasMore={hasMore}
+              onLoadMore={loadMore}
+              isLoadingMore={isLoadingMore}
+            />
+          </>
+
+
+
         </div>
 
-        {apiKeyMissing && <ApiKeyWarning />}
-
         <div
-          ref={containerRef}
-          className="relative flex gap-4 h-[calc(100vh-180px)] min-h-[600px]"
-          style={{ userSelect: isResizing ? "none" : "auto" }}
-        >
-          {/* Left Panel */}
-          <div
-            className="flex flex-col overflow-hidden bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg"
-            style={{ width: `${leftWidth}%`, minWidth: "300px" }}
-          >
-            <div className="flex-1 overflow-y-auto p-6">
-              <InputSection
-                prompt={prompt}
-                setPrompt={setPrompt}
-                aspectRatio={aspectRatio}
-                setAspectRatio={setAspectRatio}
-                availableAspectRatios={availableAspectRatios}
-                useUrls={useUrls}
-                setUseUrls={setUseUrls}
-                image1Preview={image1Preview}
-                image2Preview={image2Preview}
-                image1Url={image1Url}
-                image2Url={image2Url}
-                isConvertingHeic={isConvertingHeic}
-                canGenerate={canGenerate as boolean}
-                hasImages={hasImages as any}
-                onGenerate={runGeneration}
-                onClearAll={clearAll}
-                onImageUpload={handleImageUpload}
-                onUrlChange={handleUrlChange}
-                onClearImage={clearImage}
-                onKeyDown={handleKeyDown}
-                onPromptPaste={handlePromptPaste}
-                onImageFullscreen={openImageFullscreen}
-                promptTextareaRef={promptTextareaRef}
-                isAuthenticated={true}
-                remaining={100}
-                decrementOptimistic={() => { }}
-                usageLoading={false}
-                onShowAuthModal={() => { }}
+          className="relative w-1 cursor-col-resize flex-shrink-0 hover:bg-[var(--accent-hover)] transition-colors bg-[var(--border-default)]"
+          onMouseDown={handleMouseDown}
+          onDoubleClick={handleDoubleClick}
+        />
+
+        <div className="flex-1 flex flex-col overflow-hidden bg-[var(--surface-0)]" style={{ minWidth: "300px" }}>
+          <div className="flex-shrink-0 h-16 px-4 flex items-center justify-between">
+            <span className="text-base font-medium text-neutral-200">Output</span>
+            {persistedGenerations.length > 0 && (
+              <span className="text-xs text-neutral-400">
+                {persistedGenerations.filter((g) => g.status === "complete").length} generated
+              </span>
+            )}
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-4 flex flex-col h-full">
+              <OutputSection
+                selectedGeneration={selectedGeneration}
                 generations={persistedGenerations}
                 selectedGenerationId={selectedGenerationId}
-                onSelectGeneration={setSelectedGenerationId}
+                setSelectedGenerationId={setSelectedGenerationId}
+                isConvertingHeic={isConvertingHeic}
+                heicProgress={heicProgress}
+                imageLoaded={imageLoaded}
+                setImageLoaded={setImageLoaded}
                 onCancelGeneration={cancelGeneration}
                 onDeleteGeneration={deleteGeneration}
-                historyLoading={historyLoading}
+                onOpenFullscreen={openFullscreen}
+                onLoadAsInput={loadGeneratedAsInput}
+                onCopy={copyImageToClipboard}
+                onDownload={downloadImage}
+                onOpenInNewTab={openImageInNewTab}
+              />
+            </div>
+
+          </div>
+          {/* History Panel */}
+          {persistedGenerations.length > 0 && (
+            <div className="border-t border-[var(--border-default)] bg-[var(--surface-1)] px-4 py-2 pt-4">
+
+
+              <GenerationHistory
+                generations={persistedGenerations}
+                selectedId={selectedGenerationId}
+                onSelect={setSelectedGenerationId}
+                onDelete={deleteGeneration}
+                onClear={clearHistory}
+                isLoading={historyLoading}
                 hasMore={hasMore}
                 onLoadMore={loadMore}
                 isLoadingMore={isLoadingMore}
+                onImageFullscreen={openImageFullscreen}
+                onCancel={cancelGeneration}
               />
             </div>
-          </div>
-
-          {/* Resize Handle */}
-          <div
-            className="relative w-1 cursor-col-resize group flex-shrink-0"
-            onMouseDown={handleMouseDown}
-            onDoubleClick={handleDoubleClick}
-          >
-            <div className="absolute inset-y-0 -left-1 -right-1 hover:bg-[var(--accent-primary)]/20 transition-colors rounded-full bg-[var(--accent-primary)]/10" />
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 h-12 bg-[var(--border-default)] group-hover:bg-[var(--accent-primary)]/50 rounded-full transition-colors" />
-          </div>
-
-          {/* Right Panel */}
-          <div
-            className="flex-1 flex flex-col overflow-hidden bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg"
-            style={{ minWidth: "300px" }}
-          >
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-6 flex flex-col h-full">
-                <OutputSection
-                  selectedGeneration={selectedGeneration}
-                  generations={persistedGenerations}
-                  selectedGenerationId={selectedGenerationId}
-                  setSelectedGenerationId={setSelectedGenerationId}
-                  isConvertingHeic={isConvertingHeic}
-                  heicProgress={heicProgress}
-                  imageLoaded={imageLoaded}
-                  setImageLoaded={setImageLoaded}
-                  onCancelGeneration={cancelGeneration}
-                  onDeleteGeneration={deleteGeneration}
-                  onOpenFullscreen={openFullscreen}
-                  onLoadAsInput={loadGeneratedAsInput}
-                  onCopy={copyImageToClipboard}
-                  onDownload={downloadImage}
-                  onOpenInNewTab={openImageInNewTab}
-                />
-              </div>
-            </div>
-
-            {/* History Panel */}
-            {persistedGenerations.length > 0 && (
-              <div className="border-t border-[var(--border-default)] bg-[var(--surface-1)]">
-
-                <GenerationHistory
-                  generations={persistedGenerations}
-                  selectedId={selectedGenerationId}
-                  onSelect={setSelectedGenerationId}
-                  onDelete={deleteGeneration}
-                  onClear={clearHistory}
-                  isLoading={historyLoading}
-                  hasMore={hasMore}
-                  onLoadMore={loadMore}
-                  isLoadingMore={isLoadingMore}
-                  onImageFullscreen={openImageFullscreen}
-                  onCancel={cancelGeneration}
-                />
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
@@ -678,8 +716,7 @@ export function ImageCombiner() {
         />
       )}
 
-      {showHowItWorks &&
-        <HowItWorksModal open={showHowItWorks} onOpenChange={setShowHowItWorks} />}
+      {showHowItWorks && <HowItWorksModal open={showHowItWorks} onOpenChange={setShowHowItWorks} />}
     </div>
   )
 }

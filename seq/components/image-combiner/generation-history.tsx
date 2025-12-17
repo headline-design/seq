@@ -59,7 +59,7 @@ export function GenerationHistory({
       <div
         className={cn(
           "w-full flex gap-1 overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-600 scrollbar-track-transparent h-20 md:h-28 items-end",
-          compact ? "pb-1" : "pb-2",
+          compact ? "pb-2" : "pb-4",
         )}
       >
         {isLoading ? (

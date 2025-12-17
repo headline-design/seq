@@ -15,9 +15,9 @@ interface OutputSectionProps {
   isConvertingHeic: boolean
   heicProgress: number
   imageLoaded: boolean
+  onDeleteGeneration: (id: string) => void
   setImageLoaded: (loaded: boolean) => void
   onCancelGeneration: (id: string) => void
-  onDeleteGeneration: (id: string) => void
   onOpenFullscreen: () => void
   onLoadAsInput: () => void
   onCopy: () => void
@@ -33,6 +33,7 @@ export function OutputSection({
   isConvertingHeic,
   heicProgress,
   imageLoaded,
+  onDeleteGeneration,
   setImageLoaded,
   onCancelGeneration,
   onOpenFullscreen,
@@ -150,7 +151,7 @@ export function OutputSection({
                 src={generatedImage.url || "/placeholder.svg"}
                 alt="Generated"
                 className={cn(
-                  "max-w-full max-h-full transition-all duration-700 ease-out cursor-pointer rounded-lg",
+                  "max-w-full max-h-full transition-all duration-700 ease-out cursor-pointer",
                   "lg:w-full lg:h-full lg:object-contain",
                   imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95",
                 )}
@@ -160,9 +161,9 @@ export function OutputSection({
             </div>
           </div>
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-center py-6 select-none bg-[var(--surface-1)]/50 rounded-lg border border-dashed border-[var(--border-default)]">
+          <div className="absolute inset-0 flex items-center justify-center text-center py-6 select-none bg-[var(--surface-1)]/50 border border-dashed border-[var(--border-default)]">
             <div>
-              <div className="w-8 h-8 md:w-16 md:h-16 mx-auto mb-3 border border-[var(--border-default)] rounded-lg flex items-center justify-center bg-[var(--surface-2)]">
+              <div className="w-8 h-8 md:w-16 md:h-16 mx-auto mb-3 border border-[var(--border-default)] flex items-center justify-center bg-[var(--surface-2)]">
                 <svg
                   className="w-4 h-4 md:w-8 md:h-8 text-neutral-500"
                   fill="none"
