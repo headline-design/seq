@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { cn } from "@/seq/lib/utils"
 import type { Generation } from "./types"
 import { Loader2 } from "lucide-react"
@@ -10,16 +9,18 @@ import Image from "next/image"
 
 interface GenerationHistoryProps {
   generations: Generation[]
-  selectedId?: string
+  selectedId?: string | null | undefined
   onSelect: (id: string) => void
   onCancel: (id: string) => void
+  onClear?: () => void
+  onImageFullscreen?: (id: string) => void
   onDelete?: (id: string) => Promise<void>
   isLoading?: boolean
   hasMore?: boolean
   onLoadMore?: () => void
   isLoadingMore?: boolean
   className?: string
-  compact?: boolean // Added compact prop
+  compact?: boolean
 }
 
 export function GenerationHistory({
@@ -28,21 +29,20 @@ export function GenerationHistory({
   onSelect,
   onCancel,
   onDelete,
+  onClear,
   isLoading = false,
   hasMore = false,
   onLoadMore,
   isLoadingMore = false,
   className,
-  compact = false, // Default to false
+  compact = false,
 }: GenerationHistoryProps) {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
-
     if (!onDelete) return
-
     setDeletingId(id)
     try {
       await onDelete(id)
@@ -55,19 +55,19 @@ export function GenerationHistory({
 
   return (
     <div className={cn("flex flex-col w-full", className)}>
-      {!compact && <h4 className="text-xs md:text-sm font-medium text-gray-400 mb-1">History</h4>}
+      {!compact && <h4 className="text-xs md:text-sm font-medium text-neutral-400 mb-1">History</h4>}
       <div
         className={cn(
-          "w-full flex gap-1 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent h-20 md:h-28 items-end",
+          "w-full flex gap-1 overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-600 scrollbar-track-transparent h-20 md:h-28 items-end",
           compact ? "pb-1" : "pb-2",
         )}
       >
         {isLoading ? (
-          <div className="flex items-center justify-center w-full h-20 md:h-28 text-gray-400">
+          <div className="flex items-center justify-center w-full h-20 md:h-28 text-neutral-500">
             <Loader2 className="w-6 h-6 md:w-8 md:h-8 animate-spin" />
           </div>
         ) : generations.length === 0 ? (
-          <div className="flex items-center justify-center w-full h-20 md:h-28 text-gray-500 text-xs md:text-sm">
+          <div className="flex items-center justify-center w-full h-20 md:h-28 text-neutral-500 text-xs md:text-sm">
             No generations yet
           </div>
         ) : (
@@ -77,10 +77,10 @@ export function GenerationHistory({
                 key={gen.id}
                 onClick={() => onSelect(gen.id)}
                 className={cn(
-                  "relative shrink-0 w-18 h-18 md:w-24 md:h-24 overflow-hidden transition-all cursor-pointer group",
+                  "relative shrink-0 w-18 h-18 md:w-24 md:h-24 overflow-hidden transition-all cursor-pointer group rounded-lg",
                   selectedId === gen.id
-                    ? "border-2 border-white opacity-100"
-                    : "border border-gray-600 hover:border-gray-500 opacity-60 hover:opacity-100",
+                    ? "border-2 border-[var(--accent-primary)] opacity-100 shadow-lg shadow-[var(--accent-shadow)]"
+                    : "border border-[var(--border-default)] hover:border-[var(--border-emphasis)] opacity-60 hover:opacity-100",
                   index === 0 && "animate-in fade-in-0 slide-in-from-left-4 duration-500",
                   deletingId === gen.id && "opacity-50 pointer-events-none",
                 )}
@@ -95,7 +95,7 @@ export function GenerationHistory({
                 }}
               >
                 {gen.status === "loading" ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--surface-2)]">
                     <span className="text-sm md:text-base text-white/90 font-mono font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                       {Math.round(gen.progress)}%
                     </span>
@@ -104,16 +104,16 @@ export function GenerationHistory({
                         e.stopPropagation()
                         onCancel(gen.id)
                       }}
-                      className="mt-2 text-[10px] px-2 py-0.5 bg-white/10 hover:bg-white text-white hover:text-black transition-all"
+                      className="mt-2 text-[10px] px-2 py-0.5 bg-[var(--surface-3)] hover:bg-[var(--accent-primary)] text-neutral-300 hover:text-white transition-all rounded"
                       aria-label="Cancel generation"
                     >
                       Cancel
                     </button>
                   </div>
                 ) : gen.status === "error" ? (
-                  <div className="absolute inset-0 bg-gray-900/50 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-[var(--surface-2)] flex items-center justify-center">
                     <svg
-                      className="w-6 h-6 text-gray-400"
+                      className="w-6 h-6 text-neutral-500"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -126,7 +126,7 @@ export function GenerationHistory({
                       <button
                         onClick={(e) => handleDelete(e, gen.id)}
                         disabled={deletingId === gen.id}
-                        className="absolute top-1 right-1 p-1 bg-black/70 hover:bg-white text-white hover:text-black opacity-100 transition-all disabled:opacity-50 z-10"
+                        className="absolute top-1 right-1 p-1 bg-[var(--surface-3)]/80 hover:bg-[var(--accent-primary)] text-neutral-300 hover:text-accent-text-white opacity-100 transition-all disabled:opacity-50 z-10 rounded"
                         aria-label="Delete generation"
                       >
                         {deletingId === gen.id ? (
@@ -151,7 +151,7 @@ export function GenerationHistory({
                       <button
                         onClick={(e) => handleDelete(e, gen.id)}
                         disabled={deletingId === gen.id}
-                        className="absolute top-1 right-1 p-1 bg-black/70 hover:bg-white text-white hover:text-black opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50 z-10"
+                        className="absolute top-1 right-1 p-1 bg-[var(--surface-3)]/80 hover:bg-[var(--accent-primary)] text-neutral-300 hover:text-white opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50 z-10 rounded"
                         aria-label="Delete generation"
                       >
                         {deletingId === gen.id ? (
@@ -183,7 +183,9 @@ export function GenerationHistory({
                       }}
                       unoptimized={gen.imageUrl?.includes("blob:") ?? false}
                     />
-                    {!loadedImages.has(gen.id) && <div className="absolute inset-0 bg-gray-800 animate-pulse" />}
+                    {!loadedImages.has(gen.id) && (
+                      <div className="absolute inset-0 bg-[var(--surface-3)] animate-pulse" />
+                    )}
                   </>
                 )}
               </div>
@@ -192,7 +194,7 @@ export function GenerationHistory({
               <button
                 onClick={onLoadMore}
                 disabled={isLoadingMore}
-                className="shrink-0 w-18 h-18 md:w-24 md:h-24 border border-gray-600 hover:border-white bg-black/30 hover:bg-black/50 transition-all flex items-center justify-center text-xs text-gray-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                className="shrink-0 w-18 h-18 md:w-24 md:h-24 border border-[var(--border-default)] hover:border-[var(--accent-border)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] transition-all flex items-center justify-center text-xs text-neutral-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
                 aria-label="Load more generations"
               >
                 {isLoadingMore ? (

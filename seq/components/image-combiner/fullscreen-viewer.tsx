@@ -15,7 +15,7 @@ export function FullscreenViewer({ imageUrl, generations, onClose, onNavigate }:
 
   return (
     <div
-      className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-8 select-none overflow-hidden"
+      className="fixed inset-0 bg-[var(--surface-0)]/98 backdrop-blur-md z-50 flex items-center justify-center p-4 md:p-8 select-none overflow-hidden"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -24,7 +24,7 @@ export function FullscreenViewer({ imageUrl, generations, onClose, onNavigate }:
       <div className="relative max-w-[90vw] max-h-[90vh] flex items-center justify-center">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 bg-black/80 hover:bg-black/90 text-white p-2 transition-all duration-200"
+          className="absolute top-4 right-4 z-10 bg-[var(--surface-2)] hover:bg-[var(--accent-primary)] text-neutral-400 hover:text-accent-text-white p-2 rounded-lg border border-[var(--border-default)] hover:border-[var(--accent-primary)] transition-all duration-200"
           title="Close (ESC)"
           aria-label="Close fullscreen"
         >
@@ -39,7 +39,7 @@ export function FullscreenViewer({ imageUrl, generations, onClose, onNavigate }:
                 e.stopPropagation()
                 onNavigate("prev")
               }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-black/80 hover:bg-black/90 text-white p-3 transition-all duration-200"
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-[var(--surface-2)] hover:bg-[var(--accent-primary)] text-neutral-400 hover:text-accent-text-white p-3 rounded-lg border border-[var(--border-default)] hover:border-[var(--accent-primary)] transition-all duration-200"
               title="Previous (←)"
               aria-label="Previous image"
             >
@@ -52,7 +52,7 @@ export function FullscreenViewer({ imageUrl, generations, onClose, onNavigate }:
                 e.stopPropagation()
                 onNavigate("next")
               }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-black/80 hover:bg-black/90 text-white p-3 transition-all duration-200"
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-[var(--surface-2)] hover:bg-[var(--accent-primary)] text-neutral-400 hover:text-accent-text-white p-3 rounded-lg border border-[var(--border-default)] hover:border-[var(--accent-primary)] transition-all duration-200"
               title="Next (→)"
               aria-label="Next image"
             >
@@ -65,7 +65,7 @@ export function FullscreenViewer({ imageUrl, generations, onClose, onNavigate }:
         <img
           src={imageUrl || "/placeholder.svg"}
           alt="Fullscreen"
-          className="max-w-full max-h-[90vh] object-contain mx-auto shadow-2xl"
+          className="max-w-full max-h-[90vh] object-contain mx-auto shadow-2xl rounded-lg"
           onClick={(e) => e.stopPropagation()}
         />
       </div>

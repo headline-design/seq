@@ -13,17 +13,19 @@ export function ToastNotification({ message, type }: ToastNotificationProps) {
     <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 duration-300 select-none">
       <div
         className={cn(
-          "bg-black/90 backdrop-blur-sm border p-4 shadow-lg max-w-sm",
-          type === "success" ? "border-green-500/50 text-green-100" : "border-gray-500/50 text-gray-100",
+          "bg-[var(--surface-2)]/95 backdrop-blur-sm border rounded-lg p-4 shadow-lg max-w-sm",
+          type === "success"
+            ? "border-[var(--success)]/30 text-[var(--success)]"
+            : "border-[var(--error)]/30 text-[var(--error)]",
         )}
       >
         <div className="flex items-center gap-3">
           {type === "success" ? (
-            <CheckCircle className="w-5 h-5 text-green-400 shrink-0" />
+            <CheckCircle className="w-5 h-5 text-[var(--success)] shrink-0" />
           ) : (
-            <AlertCircle className="w-5 h-5 text-gray-400 shrink-0" />
+            <AlertCircle className="w-5 h-5 text-[var(--error)] shrink-0" />
           )}
-          <p className="text-sm font-medium">{message}</p>
+          <p className="text-sm font-medium text-white">{message}</p>
         </div>
       </div>
     </div>

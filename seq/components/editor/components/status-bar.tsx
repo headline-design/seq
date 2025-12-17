@@ -36,7 +36,7 @@ export const StatusBar = memo(function StatusBar({
   }
 
   const getActiveOperation = () => {
-    if (isExporting) return { label: "Exporting...", color: "text-indigo-400" }
+    if (isExporting) return { label: "Exporting...", color: "text-[var(--accent-text)]" }
     if (isRendering) return { label: "Rendering...", color: "text-purple-400" }
     if (isGenerating) return { label: "Generating...", color: "text-amber-400" }
     if (isSaving) return { label: "Saving...", color: "text-emerald-400" }
@@ -47,7 +47,7 @@ export const StatusBar = memo(function StatusBar({
 
   return (
     <div
-      className="h-7 bg-[#0a0a0a] border-t border-white/[0.06] px-4 flex items-center justify-between text-[11px] text-neutral-500 select-none"
+      className="h-7 bg-[var(--surface-0)] border-t border-[var(--border-default)] px-4 flex items-center justify-between text-[11px] text-neutral-500 select-none"
       role="status"
       aria-live="polite"
     >

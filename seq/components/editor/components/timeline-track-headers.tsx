@@ -123,9 +123,9 @@ export const TimelineTrackHeaders = memo(function TimelineTrackHeaders({
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, track.id)}
             onDragEnd={handleDragEnd}
-            className={`${trackHeight} border-b border-neutral-800/50 flex flex-col px-3 py-2 gap-1 bg-[#09090b] relative group/header shrink-0 transition-all
+            className={`${trackHeight} border-b border-[var(--border-subtle)] flex flex-col px-3 py-2 gap-1 bg-[var(--surface-0)] relative group/header shrink-0 transition-all
               ${isDragging ? "opacity-50" : ""}
-              ${isDragOver ? "border-t-2 border-t-indigo-500" : ""}
+              ${isDragOver ? "border-t-2 border-t-[var(--accent-primary)]" : ""}
             `}
           >
             <div className="flex items-center justify-between">

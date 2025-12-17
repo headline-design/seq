@@ -261,7 +261,7 @@ export const ProgressBar = memo(function ProgressBar({
       {label && <span className="text-xs text-white/60">{label}</span>}
       <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
         <div
-          className="h-full rounded-full bg-purple-500 transition-all duration-300 ease-out"
+          className="h-full rounded-full bg-[var(--accent-primary)] transition-all duration-300 ease-out"
           style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
         />
       </div>

@@ -6,21 +6,20 @@ import { PanelProcessor } from "@/seq/components/automator/panel-processor"
 import { PanelSelector } from "@/seq/components/automator/panel-selector"
 import { StoryboardContainer } from "@/seq/components/storyboard/storyboard-container"
 import { Button } from "@/seq/components/ui/button"
-import { ArrowLeft, Save, Trash2, X, AlertTriangle, Info } from "lucide-react"
-import Link from "next/link"
+import { Save, Trash2, X, AlertTriangle, Info, Check, Wand2, Layers, Settings, LayoutGrid, Film } from "lucide-react"
 import { saveSession, loadSession, clearSession } from "@/seq/lib/session-storage"
 import { useToastContext } from "@/seq/components/ui/sonner"
 import { DevPanel } from "@/seq/components/dev-panel"
 import { TransitionGenerator } from "@/seq/components/automator/transition-generator"
 import { cn } from "@/seq/lib/utils"
-import { SeqLogo } from "@/seq/components/ui/logo"
+import { AppShell } from "@/seq/components/app-shell"
 
 const STEPS = [
-  { key: "prompt", label: "Generate", shortLabel: "1" },
-  { key: "transition", label: "Transitions", shortLabel: "2" },
-  { key: "process", label: "Process", shortLabel: "3" },
-  { key: "selection", label: "Select", shortLabel: "4" },
-  { key: "result", label: "Video", shortLabel: "5" },
+  { key: "prompt", label: "Generate", icon: Wand2 },
+  { key: "transition", label: "Transitions", icon: Layers },
+  { key: "process", label: "Process", icon: Settings },
+  { key: "selection", label: "Select", icon: LayoutGrid },
+  { key: "result", label: "Video", icon: Film },
 ] as const
 
 export default function StoryboardPage() {
@@ -155,9 +154,10 @@ export default function StoryboardPage() {
     }
   }
 
-  const handleStorageModeChange = (mode: "persistent" | "temporal") => {
-    setStorageMode(mode)
-    localStorage.setItem("storyboard-storage-mode", mode)
+  const handleStorageModeChange = (mode: string) => {
+    const storageValue = mode as "persistent" | "temporal"
+    setStorageMode(storageValue)
+    localStorage.setItem("storyboard-storage-mode", storageValue)
   }
 
   const dismissBanner = (id: string) => {
@@ -177,227 +177,218 @@ export default function StoryboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <DevPanel
-        currentStep={step}
-        masterData={masterData}
-        processedPanels={processedPanels}
-        finalPanels={finalPanels}
-        storageMode={storageMode}
-        linkedPanelData={linkedPanelData}
-        transitionPanels={transitionPanels}
-      />
+    <AppShell>
+      <div className="min-h-screen bg-[var(--surface-0)] text-white">
+        <DevPanel
+          currentStep={step}
+          masterData={masterData}
+          processedPanels={processedPanels}
+          finalPanels={finalPanels}
+          storageMode={storageMode}
+          linkedPanelData={linkedPanelData}
+          transitionPanels={transitionPanels}
+        />
 
-      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6">
-          {/* Top bar with logo and actions */}
-          <div className="flex items-center justify-between h-14">
-            <div className="flex items-center gap-3">
-              <Link href="/">
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                  <ArrowLeft className="w-4 h-4" />
-                </Button>
-              </Link>
-              <SeqLogo className="w-6 h-6 text-foreground" />
-              <div className="flex items-baseline gap-2">
-                <h1 className="text-base font-semibold tracking-tight">Storyboard</h1>
-                <span className="text-xs text-muted-foreground hidden sm:inline">Video Sequence Editor</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {/* Storage mode toggle - minimal design */}
-              <div className="flex items-center h-7 bg-secondary rounded-md p-0.5">
-                <button
-                  onClick={() => handleStorageModeChange("temporal")}
-                  className={cn(
-                    "px-2.5 h-6 text-xs font-medium rounded transition-all",
-                    storageMode === "temporal"
-                      ? "bg-foreground text-background shadow-sm"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  Temp
-                </button>
-                <button
-                  onClick={() => handleStorageModeChange("persistent")}
-                  className={cn(
-                    "px-2.5 h-6 text-xs font-medium rounded transition-all",
-                    storageMode === "persistent"
-                      ? "bg-foreground text-background shadow-sm"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  Persist
-                </button>
+        <header className="sticky top-0 z-40 border-b border-[var(--border-default)] bg-[var(--surface-0)]/95 backdrop-blur-xl">
+          <div className="px-6">
+            {/* Top bar */}
+            <div className="flex items-center justify-between h-14">
+              <div className="flex items-center gap-3">
+                <h1 className="text-page-title">Storyboard</h1>
+                <span className="text-xs text-neutral-500 hidden sm:inline">Video Sequence Editor</span>
               </div>
 
-              {step !== "prompt" && (
-                <>
-                  <Button variant="ghost" size="sm" onClick={handleSaveProgress} className="h-8 px-3 text-xs">
-                    <Save className="w-3.5 h-3.5 mr-1.5" />
-                    Save
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleClearSession}
-                    className="h-8 px-3 text-xs text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="py-3">
-            <div className="flex items-center justify-between max-w-xl mx-auto">
-              {STEPS.map((s, i) => {
-                const isActive = i === currentStepIndex
-                const isCompleted = i < currentStepIndex
-                const canNavigate = canNavigateToStep(i)
-
-                return (
-                  <div key={s.key} className="flex items-center flex-1 last:flex-none">
-                    <button
-                      onClick={() => canNavigate && setStep(s.key as any)}
-                      disabled={!canNavigate}
-                      className={cn(
-                        "flex flex-col items-center gap-1 group transition-all",
-                        canNavigate ? "cursor-pointer" : "cursor-not-allowed",
-                      )}
-                    >
-                      <div
-                        className={cn(
-                          "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all border-2",
-                          isActive
-                            ? "bg-foreground text-background border-foreground"
-                            : isCompleted
-                              ? "bg-foreground/20 text-foreground border-foreground/40"
-                              : canNavigate
-                                ? "bg-transparent text-muted-foreground border-border hover:border-foreground/50"
-                                : "bg-transparent text-muted-foreground/50 border-border/50",
-                        )}
-                      >
-                        {s.shortLabel}
-                      </div>
-                      <span
-                        className={cn(
-                          "text-[10px] font-medium transition-colors",
-                          isActive ? "text-foreground" : isCompleted ? "text-foreground/70" : "text-muted-foreground",
-                        )}
-                      >
-                        {s.label}
-                      </span>
-                    </button>
-                    {i < STEPS.length - 1 && (
-                      <div
-                        className={cn(
-                          "flex-1 h-px mx-2 transition-colors",
-                          i < currentStepIndex ? "bg-foreground/40" : "bg-border",
-                        )}
-                      />
+              <div className="flex items-center gap-2">
+                {/* Storage mode */}
+                <div className="flex p-0.5 rounded-lg bg-[var(--hover-overlay)]">
+                  <button
+                    onClick={() => handleStorageModeChange("temporal")}
+                    className={cn(
+                      "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
+                      storageMode === "temporal" ? "bg-[var(--active-overlay)] text-white" : "text-neutral-500",
                     )}
-                  </div>
-                )
-              })}
+                  >
+                    Temp
+                  </button>
+                  <button
+                    onClick={() => handleStorageModeChange("persistent")}
+                    className={cn(
+                      "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
+                      storageMode === "persistent" ? "bg-[var(--active-overlay)] text-white" : "text-neutral-500",
+                    )}
+                  >
+                    Persist
+                  </button>
+                </div>
+
+                {step !== "prompt" && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSaveProgress}
+                      className="h-8 px-3 text-xs text-neutral-400 hover:text-white"
+                    >
+                      <Save className="w-3.5 h-3.5 mr-1.5" />
+                      Save
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleClearSession}
+                      className="h-8 w-8 p-0 text-neutral-500 hover:text-red-400"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="py-4">
+              <div className="flex items-center justify-between max-w-2xl mx-auto">
+                {STEPS.map((s, i) => {
+                  const isActive = i === currentStepIndex
+                  const isCompleted = i < currentStepIndex
+                  const canNavigate = canNavigateToStep(i)
+                  const Icon = s.icon
+
+                  return (
+                    <div key={s.key} className="flex items-center flex-1 last:flex-none">
+                      <button
+                        onClick={() => canNavigate && setStep(s.key as typeof step)}
+                        disabled={!canNavigate}
+                        className={cn(
+                          "flex flex-col items-center gap-1.5 group transition-all",
+                          canNavigate ? "cursor-pointer" : "cursor-not-allowed opacity-40",
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "w-9 h-9 rounded-xl flex items-center justify-center transition-all",
+                            isActive
+                              ? "bg-accent-gradient text-accent-text-white shadow-lg shadow-[var(--accent-shadow)]"
+                              : isCompleted
+                                ? "bg-[var(--accent-bg-subtle)] text-[var(--accent-text)] border border-[var(--accent-border)]"
+                                : "bg-[var(--hover-overlay)] text-neutral-500 border border-[var(--border-default)] group-hover:border-[var(--border-strong)]",
+                          )}
+                        >
+                          {isCompleted ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+                        </div>
+                        <span
+                          className={cn(
+                            "text-[10px] font-medium transition-colors",
+                            isActive ? "text-white" : isCompleted ? "text-[var(--accent-text)]" : "text-neutral-500",
+                          )}
+                        >
+                          {s.label}
+                        </span>
+                      </button>
+                      {i < STEPS.length - 1 && (
+                        <div className="flex-1 flex items-center px-3">
+                          <div
+                            className={cn(
+                              "flex-1 h-px transition-colors",
+                              i < currentStepIndex ? "bg-[var(--accent-muted)]" : "bg-[var(--border-default)]",
+                            )}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {storageMode === "temporal" && step !== "prompt" && !dismissedBanners.has("temporal") && (
-          <div className="mb-6 flex items-center gap-3 px-4 py-3 bg-secondary/50 border border-border rounded-lg text-sm">
-            <AlertTriangle className="w-4 h-4 text-muted-foreground shrink-0" />
-            <p className="text-muted-foreground flex-1">
-              <span className="font-medium text-foreground">Temporary mode</span> — Work is stored in memory. Save
-              before leaving or refreshing.
-            </p>
-            <button
-              onClick={() => dismissBanner("temporal")}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {hasLoadedSession &&
-          step !== "prompt" &&
-          !dismissedBanners.has("session") &&
-          !dismissedBanners.has("temporal") === false && (
-            <div className="mb-6 flex items-center gap-3 px-4 py-3 bg-secondary/50 border border-border rounded-lg text-sm">
-              <Info className="w-4 h-4 text-muted-foreground shrink-0" />
-              <p className="text-muted-foreground flex-1">
-                <span className="font-medium text-foreground">Session restored</span> — Continue where you left off or
-                clear to start fresh.
+        <main className="px-6 py-6 max-w-6xl mx-auto">
+          {storageMode === "temporal" && step !== "prompt" && !dismissedBanners.has("temporal") && (
+            <div className="mb-6 flex items-center gap-3 px-4 py-3 bg-[var(--warning-muted)] border border-amber-500/20 rounded-xl text-sm">
+              <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+              <p className="text-neutral-300 flex-1">
+                <span className="font-medium text-amber-400">Temporary mode</span> — Save before leaving.
               </p>
-              <button
-                onClick={() => dismissBanner("session")}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <button onClick={() => dismissBanner("temporal")} className="p-1 text-neutral-500 hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
           )}
 
-        {step === "prompt" && <MasterGenerator onGenerate={handleMasterGenerated} />}
-
-        {step === "transition" && masterData && (
-          <TransitionGenerator
-            masterUrl={masterData.url}
-            masterPrompt={masterData.prompt}
-            storageMode={storageMode}
-            onGenerate={handleTransitionGenerated}
-            onSkip={handleTransitionSkipped}
-          />
-        )}
-
-        {step === "process" && masterData && (
-          <PanelProcessor
-            masterUrl={masterData.url}
-            masterPrompt={masterData.prompt}
-            panelCount={masterData.panelCount}
-            storageMode={storageMode}
-            onComplete={handleProcessingComplete}
-          />
-        )}
-
-        {step === "selection" && masterData && (
-          <PanelSelector
-            panels={processedPanels}
-            masterUrl={masterData.url}
-            transitionPanels={transitionPanels}
-            savedFinalPanels={finalPanels.length > 0 ? finalPanels : []}
-            savedLinkedPanelData={Object.keys(linkedPanelData).length > 0 ? linkedPanelData : {}}
-            savedPrompts={prompts}
-            savedDurations={durations}
-            savedVideoUrls={videoUrls}
-            onConfirm={handleSelectionComplete}
-          />
-        )}
-
-        {step === "result" && (
-          <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="text-center">
-              <h2 className="text-2xl font-semibold mb-2">Your Storyboard is Ready</h2>
-              <p className="text-muted-foreground max-w-lg mx-auto">
-                Your selected panels are ready. Generate videos for each panel using Veo3, Wan2.1, or Wan2.5.
+          {hasLoadedSession && step !== "prompt" && !dismissedBanners.has("session") && (
+            <div className="mb-6 flex items-center gap-3 px-4 py-3 bg-[var(--surface-1)] border border-[var(--border-default)] rounded-xl text-sm">
+              <Info className="w-4 h-4 text-neutral-400 flex-shrink-0" />
+              <p className="text-neutral-400 flex-1">
+                <span className="font-medium text-white">Session restored</span> — Continue or clear to start fresh.
               </p>
+              <button onClick={() => dismissBanner("session")} className="p-1 text-neutral-500 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
             </div>
+          )}
 
-            <StoryboardContainer
-              initialPanels={finalPanels}
-              linkedPanelData={linkedPanelData}
-              prompts={prompts}
-              durations={durations}
-              videoUrls={videoUrls}
+          {/* Step Content */}
+          {step === "prompt" && <MasterGenerator onGenerate={handleMasterGenerated} />}
+
+          {step === "transition" && masterData && (
+            <TransitionGenerator
+              masterUrl={masterData.url}
+              masterPrompt={masterData.prompt}
+              storageMode={storageMode}
+              onGenerate={handleTransitionGenerated}
+              onSkip={handleTransitionSkipped}
             />
-          </div>
-        )}
-      </main>
-    </div>
+          )}
+
+          {step === "process" && masterData && (
+            <PanelProcessor
+              masterUrl={masterData.url}
+              masterPrompt={masterData.prompt}
+              panelCount={masterData.panelCount}
+              storageMode={storageMode}
+              onComplete={handleProcessingComplete}
+            />
+          )}
+
+          {step === "selection" && masterData && (
+            <PanelSelector
+              panels={processedPanels}
+              masterUrl={masterData.url}
+              transitionPanels={transitionPanels}
+              savedFinalPanels={finalPanels.length > 0 ? finalPanels : []}
+              savedLinkedPanelData={Object.keys(linkedPanelData).length > 0 ? linkedPanelData : {}}
+              savedPrompts={prompts}
+              savedDurations={durations}
+              savedVideoUrls={videoUrls}
+              onConfirm={handleSelectionComplete}
+            />
+          )}
+
+          {step === "result" && (
+            <div className="space-y-6 animate-in fade-in duration-500">
+              <div className="text-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--accent-bg-subtle)] border border-[var(--accent-border)] text-xs font-medium text-[var(--accent-text)] mb-3">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-text)] opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent-primary)]" />
+                  </span>
+                  Ready to produce
+                </div>
+                <h2 className="text-xl font-semibold mb-2">Storyboard Complete</h2>
+                <p className="text-sm text-neutral-400">Generate videos for each panel, then export your sequence.</p>
+              </div>
+
+              <StoryboardContainer
+                initialPanels={finalPanels}
+                linkedPanelData={linkedPanelData}
+                prompts={prompts}
+                durations={durations}
+                videoUrls={videoUrls}
+              />
+            </div>
+          )}
+        </main>
+      </div>
+    </AppShell>
   )
 }

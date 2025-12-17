@@ -216,7 +216,7 @@ export function TransitionGenerator({
     <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-500">
       <div className="text-center space-y-3 mb-8">
         <h2 className="text-3xl font-bold tracking-tight">Generate Transition Frames</h2>
-        <p className="text-zinc-400 max-w-2xl mx-auto">
+        <p className="text-neutral-400 max-w-2xl mx-auto">
           Your main storyboard contains intermediate transition states. Generate clean first/last frames for smooth
           transitions.
         </p>
@@ -224,20 +224,30 @@ export function TransitionGenerator({
 
       {!generatedUrl && (
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Card className="p-4 bg-zinc-900 border-zinc-800">
-            <Label className="text-sm text-zinc-400 mb-2">Main Storyboard Reference</Label>
-            <div className="aspect-3/2 relative rounded-lg overflow-hidden border border-zinc-700">
+          <Card
+            className="p-4 border"
+            style={{ backgroundColor: "var(--surface-2)", borderColor: "var(--border-default)" }}
+          >
+            <Label className="text-sm text-neutral-400 mb-2">Main Storyboard Reference</Label>
+            <div
+              className="aspect-3/2 relative rounded-lg overflow-hidden border"
+              style={{ borderColor: "var(--border-default)" }}
+            >
               <Image src={masterUrl || "/placeholder.svg"} alt="Main Storyboard" fill className="object-cover" />
             </div>
-            <p className="text-xs text-zinc-500 mt-2 line-clamp-2">{masterPrompt}</p>
+            <p className="text-xs text-neutral-500 mt-2 line-clamp-2">{masterPrompt}</p>
           </Card>
 
-          <Card className="p-6 bg-zinc-900 border-zinc-800 space-y-4">
+          <Card
+            className="p-6 border space-y-4"
+            style={{ backgroundColor: "var(--surface-2)", borderColor: "var(--border-default)" }}
+          >
             <div className="space-y-2">
               <Label>Describe Transition Frames Needed</Label>
               <Textarea
                 placeholder="E.g., There are 2 transition panels. For transition 1, I need the first frame to be identical to panel 4 but without the warp effect..."
-                className="min-h-[140px] bg-black border-zinc-700 resize-none"
+                className="min-h-[140px] border resize-none text-neutral-200 placeholder:text-neutral-500 focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-primary)]"
+                style={{ backgroundColor: "var(--surface-3)", borderColor: "var(--border-default)" }}
                 value={transitionPrompt}
                 onChange={(e) => setTransitionPrompt(e.target.value)}
               />
@@ -247,7 +257,7 @@ export function TransitionGenerator({
               <Button
                 onClick={handleGenerate}
                 disabled={!transitionPrompt.trim() || isGenerating}
-                className="flex-1 h-11 font-medium"
+                className="flex-1 h-11 font-medium bg-[var(--accent-gradient)] hover:opacity-90 text-accent-text-white"
               >
                 {isGenerating ? (
                   <>
@@ -266,7 +276,7 @@ export function TransitionGenerator({
                 onClick={loadDemoTransitions}
                 variant="outline"
                 disabled={isGenerating}
-                className="border-emerald-700 hover:bg-emerald-950 bg-transparent text-emerald-400"
+                className="border-[var(--accent-border)] bg-[var(--accent-bg-subtle)] hover:bg-[var(--accent-hover)] text-[var(--accent-text)] hover:text-accent-text-white"
               >
                 Load Demo
               </Button>

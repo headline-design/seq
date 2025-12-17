@@ -39,6 +39,7 @@
     "@remix-run/dev": "latest",
     "@remix-run/react": "latest",
     "@remix-run/serve": "latest",
+    "@vercel/analytics": "1.6.1",
     "@vercel/blob": "latest",
     "ai": "latest",
     "autoprefixer": "^10.4.20",

@@ -52,7 +52,7 @@ Visit [v0 Template](https://v0.app/templates/seq-ZAICjqmFe5w) to start building 
 
 ### Local Development
 
-\`\`\`bash
+```bash
 # Clone the repository
 git clone https://github.com/headline-design/seq.git
 cd seq
@@ -66,7 +66,7 @@ cp .env.example .env.local
 
 # Start the development server
 npm run dev
-\`\`\`
+```
 
 Open [http://localhost:3000](http://localhost:3000) to see the app.
 
@@ -76,7 +76,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 Seq uses a modular architecture designed for maintainability and extensibility. Each feature is self-contained with its own components, hooks, and utilities.
 
-\`\`\`plaintext
+```plaintext
 seq/
 ├── app/                              # Next.js App Router
 │   ├── api/seq/                      # Namespaced API routes
@@ -130,7 +130,7 @@ seq/
 │   └── ui/                           # Base UI primitives
 │
 └── hooks/                            # Global hooks
-\`\`\`
+```
 
 ### Module Structure
 

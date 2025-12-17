@@ -4,7 +4,7 @@ A professional, browser-based non-linear video editor (NLE) built with React and
 
 ## Architecture Overview
 
-\`\`\`
+```
 editor/
 ├── components/          # React components
 │   ├── automator/       # AI generation components
@@ -21,7 +21,7 @@ editor/
 ├── utils/               # Utility functions
 ├── constants.ts         # Shared constants
 └── types.ts             # TypeScript types
-\`\`\`
+```
 
 ## Core Components
 
@@ -55,51 +55,51 @@ AI-powered storyboard generation:
 
 ### `usePlayback`
 Manages playback state and media synchronization.
-\`\`\`typescript
+```typescript
 const { isPlaying, currentTime, setIsPlaying, seekTo } = usePlayback(...)
-\`\`\`
+```
 
 ### `useFFmpeg`
 Handles FFmpeg WASM loading and video export.
-\`\`\`typescript
+```typescript
 const { isExporting, exportProgress, startExport } = useFFmpeg()
-\`\`\`
+```
 
 ### `useTimelineState`
 Manages timeline clips, tracks, and history (undo/redo).
-\`\`\`typescript
+```typescript
 const { clips, tracks, addClip, deleteClip, undo, redo } = useTimelineState(...)
-\`\`\`
+```
 
 ### `useTimelineDrag`
 Handles clip dragging with constraints and snapping.
-\`\`\`typescript
+```typescript
 const { onDragStart, onDrag, onDragEnd } = useTimelineDrag(...)
-\`\`\`
+```
 
 ### `useTimelineSnap`
 Calculates snap points for magnetic snapping.
-\`\`\`typescript
+```typescript
 const { snapEnabled, getSnapPoint, snapPoints } = useTimelineSnap(...)
-\`\`\`
+```
 
 ### `useTimelineSelection`
 Manages clip selection including marquee selection.
-\`\`\`typescript
+```typescript
 const { selectedClipIds, onSelectionStart, selectionRect } = useTimelineSelection(...)
-\`\`\`
+```
 
 ### `useTimelineKeyboard`
 Keyboard navigation and shortcuts for timeline.
-\`\`\`typescript
+```typescript
 useTimelineKeyboard({ clips, selectedClipIds, onDelete, onDuplicate, ... })
-\`\`\`
+```
 
 ### `useVirtualizedClips`
 Performance optimization for large timelines.
-\`\`\`typescript
+```typescript
 const { visibleClips } = useVirtualizedClips(clips, scrollLeft, viewportWidth, zoom)
-\`\`\`
+```
 
 ## State Management
 
@@ -111,9 +111,9 @@ State is managed through a combination of:
 
 ### History (Undo/Redo)
 The timeline maintains a history stack for undo/redo:
-\`\`\`typescript
+```typescript
 const { undo, redo, canUndo, canRedo, pushHistory } = useTimelineState(...)
-\`\`\`
+```
 
 ## Performance Optimizations
 
@@ -166,15 +166,15 @@ Media thumbnails use Intersection Observer:
 3. **FFmpeg Encoding** - WebAssembly FFmpeg for final encode
 4. **Download** - Generated MP4 blob URL
 
-\`\`\`typescript
+```typescript
 startExport("1080p", "all") // Full timeline at 1080p
 startExport("720p", "selection") // Selection only at 720p
-\`\`\`
+```
 
 ## Types
 
 ### `TimelineClip`
-\`\`\`typescript
+```typescript
 interface TimelineClip {
   id: string           // Unique instance ID
   mediaId: string      // Reference to source media
@@ -185,10 +185,10 @@ interface TimelineClip {
   volume?: number      // 0-1
   transition?: { type: TransitionType; duration: number }
 }
-\`\`\`
+```
 
 ### `Track`
-\`\`\`typescript
+```typescript
 interface Track {
   id: string
   name: string
@@ -197,10 +197,10 @@ interface Track {
   isMuted?: boolean
   isLocked?: boolean
 }
-\`\`\`
+```
 
 ### `MediaItem`
-\`\`\`typescript
+```typescript
 interface MediaItem {
   id: string
   url: string
@@ -210,7 +210,7 @@ interface MediaItem {
   type: 'video' | 'audio' | 'image'
   status: 'generating' | 'ready' | 'error' | 'complete'
 }
-\`\`\`
+```
 
 ## Accessibility
 
@@ -223,11 +223,11 @@ interface MediaItem {
 ## Error Handling
 
 The editor uses an `ErrorBoundary` component:
-\`\`\`typescript
+```typescript
 <ErrorBoundary fallback={<ErrorFallback />}>
   <Editor />
 </ErrorBoundary>
-\`\`\`
+```
 
 ## Development
 

@@ -116,11 +116,11 @@ export const TimelineToolbar = memo(function TimelineToolbar({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="h-10 border-b border-white/[0.06] flex items-center justify-between px-4 bg-[#0a0a0a] shrink-0 z-30 overflow-x-auto min-w-0 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="h-10 border-b border-[var(--border-default)] flex items-center justify-between px-4 bg-[var(--surface-0)] shrink-0 z-30 overflow-x-auto min-w-0 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <div className="flex items-center gap-3 shrink-0">
           {onUndo && onRedo && (
             <>
-              <div className="flex items-center gap-0.5 bg-white/[0.04] rounded-md p-0.5 border border-white/[0.06]">
+              <div className="flex items-center gap-0.5 bg-[var(--hover-overlay)] rounded-md p-0.5 border border-[var(--border-default)]">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -156,11 +156,11 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                 </Tooltip>
               </div>
 
-              <div className="h-4 w-px bg-white/[0.06]" />
+              <div className="h-4 w-px bg-[var(--border-default)]" />
             </>
           )}
 
-          <div className="flex items-center gap-0.5 bg-white/[0.04] rounded-md p-0.5 border border-white/[0.06]">
+          <div className="flex items-center gap-0.5 bg-[var(--hover-overlay)] rounded-md p-0.5 border border-[var(--border-default)]">
             {/* Jump to Start */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -201,7 +201,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 text-white hover:bg-indigo-500/20 hover:text-indigo-300"
+                  className="h-7 w-7 text-white hover:bg-[var(--accent-bg-subtle)] hover:text-[var(--accent-text)]"
                   onClick={onPlayPause}
                 >
                   {isPlaying ? <PauseIcon className="h-3.5 w-3.5" /> : <PlayIcon className="h-3.5 w-3.5" />}
@@ -246,7 +246,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
               </TooltipContent>
             </Tooltip>
 
-            <div className="w-px h-4 bg-white/[0.06] mx-0.5" />
+            <div className="w-px h-4 bg-[var(--border-default)] mx-0.5" />
 
             {/* Loop Toggle */}
             <Tooltip>
@@ -254,10 +254,10 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`h-6 w-6 hover:bg-neutral-700 ${isLooping ? "text-indigo-400" : "text-neutral-400 hover:text-white"}`}
+                  className={`h-6 w-6 hover:bg-neutral-700 ${isLooping ? "text-[var(--accent-text)]" : "text-neutral-400 hover:text-white"}`}
                   onClick={onToggleLoop}
                 >
-                  <LoopIcon className="h-3 w-3" />
+                  <LoopIcon className="w-3 h-3" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top" className="text-xs">
@@ -268,19 +268,21 @@ export const TimelineToolbar = memo(function TimelineToolbar({
 
           {/* Timecode Display */}
           <div className="flex items-center gap-1.5 font-mono text-xs">
-            <span className="text-indigo-400 font-bold tabular-nums">{formatTimecode(currentTime, frameRate)}</span>
+            <span className="text-[var(--accent-text)] font-bold tabular-nums">
+              {formatTimecode(currentTime, frameRate)}
+            </span>
             <span className="text-neutral-600">/</span>
             <span className="text-neutral-500 tabular-nums">{formatTimecode(duration, frameRate)}</span>
           </div>
 
-          <div className="h-4 w-px bg-white/[0.06]" />
+          <div className="h-4 w-px bg-[var(--border-default)]" />
 
           {/* Tool Group */}
           <div className="flex items-center gap-1">
             <div
               className={`flex items-center gap-2 px-2 py-0.5 rounded border cursor-pointer select-none transition-all ${
                 tool === "razor"
-                  ? "border-indigo-500/30 bg-indigo-500/10 text-indigo-400"
+                  ? "border-[var(--accent-border)] bg-[var(--accent-bg-subtle)] text-[var(--accent-text)]"
                   : "border-transparent text-neutral-500 hover:text-neutral-300"
               }`}
               onClick={() => onToolChange(tool === "select" ? "razor" : "select")}
@@ -306,7 +308,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
             </div>
           </div>
 
-          <div className="h-4 w-px bg-white/[0.06]" />
+          <div className="h-4 w-px bg-[var(--border-default)]" />
 
           {/* Render Preview Controls */}
           {onRenderPreview && (
@@ -336,7 +338,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                           ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
                           : isPreviewStale
                             ? "border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
-                            : "border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20"
+                            : "border-[var(--accent-border)] bg-[var(--accent-bg-subtle)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)]"
                       }`}
                       title={
                         renderedPreviewUrl && !isPreviewStale
@@ -402,27 +404,29 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                   </div>
                 )}
               </div>
-              <div className="h-4 w-px bg-white/[0.06]" />
+              <div className="h-4 w-px bg-[var(--border-default)]" />
             </>
           )}
 
           {/* Snapping Controls */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center bg-white/[0.04] rounded-md p-0.5 border border-white/[0.06]">
+            <div className="flex items-center bg-[var(--hover-overlay)] rounded-md p-0.5 border border-[var(--border-default)]">
               <button
                 onClick={onToggleSnap}
                 className={`p-1 rounded transition-colors ${
-                  snapConfig.enabled ? "text-indigo-400 bg-indigo-500/10" : "text-neutral-500 hover:text-neutral-300"
+                  snapConfig.enabled
+                    ? "text-[var(--accent-text)] bg-[var(--accent-bg-subtle)]"
+                    : "text-neutral-500 hover:text-neutral-300"
                 }`}
                 title="Toggle Snapping (N)"
               >
                 <MagnetIcon className="w-3.5 h-3.5" />
               </button>
-              <div className="w-px h-3.5 bg-white/[0.06] mx-0.5" />
+              <div className="w-px h-3.5 bg-[var(--border-default)] mx-0.5" />
               <button
                 onClick={() => onSetShowSnapMenu(!showSnapMenu)}
-                className={`p-0.5 rounded hover:bg-white/[0.06] text-neutral-400 ${
-                  showSnapMenu ? "bg-white/[0.06] text-neutral-200" : ""
+                className={`p-0.5 rounded hover:bg-[var(--hover-overlay)] text-neutral-400 ${
+                  showSnapMenu ? "bg-[var(--hover-overlay)] text-neutral-200" : ""
                 }`}
               >
                 <ChevronDownIcon className="w-3 h-3" />
@@ -430,7 +434,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
             </div>
 
             {showSnapMenu && (
-              <div className="absolute top-full left-0 mt-1 w-48 bg-[#0a0a0a] border border-white/[0.06] rounded-lg shadow-xl py-2 z-50 flex flex-col gap-1">
+              <div className="absolute top-full left-0 mt-1 w-48 bg-[var(--surface-0)] border border-[var(--border-default)] rounded-lg shadow-xl py-2 z-50 flex flex-col gap-1">
                 <div className="px-3 py-1 text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
                   Snap Targets
                 </div>
@@ -441,25 +445,27 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                 ].map((opt) => (
                   <div
                     key={opt.key}
-                    className="px-3 py-1.5 hover:bg-white/[0.06] cursor-pointer flex items-center justify-between group"
+                    className="px-3 py-1.5 hover:bg-[var(--hover-overlay)] cursor-pointer flex items-center justify-between group"
                     onClick={() => onToggleSnapOption(opt.key)}
                   >
                     <span className="text-xs text-neutral-300">{opt.label}</span>
-                    {snapConfig[opt.key] && <CheckIcon className="w-3 h-3 text-indigo-400" />}
+                    {snapConfig[opt.key] && <CheckIcon className="w-3 h-3 text-[var(--accent-text)]" />}
                   </div>
                 ))}
-                <div className="h-px bg-white/[0.06] my-1" />
+                <div className="h-px bg-[var(--border-default)] my-1" />
                 <div className="px-3 py-1 text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
                   Grid Interval
                 </div>
                 {[0.1, 0.25, 0.5, 1.0].map((val) => (
                   <div
                     key={val}
-                    className="px-3 py-1.5 hover:bg-white/[0.06] cursor-pointer flex items-center justify-between"
+                    className="px-3 py-1.5 hover:bg-[var(--hover-overlay)] cursor-pointer flex items-center justify-between"
                     onClick={() => onSetGridInterval(val)}
                   >
                     <span className="text-xs text-neutral-300">{val}s</span>
-                    {snapConfig.gridInterval === val && <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />}
+                    {snapConfig.gridInterval === val && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)]" />
+                    )}
                   </div>
                 ))}
               </div>
@@ -468,7 +474,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
 
           {/* Selection Count Badge */}
           {selectedClipCount > 1 && (
-            <div className="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded text-[10px] font-medium border border-indigo-500/30">
+            <div className="px-2 py-0.5 bg-[var(--accent-bg-subtle)] text-[var(--accent-text)] rounded text-[10px] font-medium border border-[var(--accent-border)]">
               {selectedClipCount} Clips Selected
             </div>
           )}
@@ -509,7 +515,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
             </Tooltip>
           )}
 
-          <div className="flex items-center gap-2 bg-white/[0.04] rounded-md p-1 border border-white/[0.06]">
+          <div className="flex items-center gap-2 bg-[var(--hover-overlay)] rounded-md p-1 border border-[var(--border-default)]">
             <button
               onClick={() => onZoomChange(getPrevZoom(zoomLevel))}
               className="p-1 hover:text-white text-neutral-500 hover:bg-white/[0.06] rounded"
@@ -531,7 +537,7 @@ export const TimelineToolbar = memo(function TimelineToolbar({
                 </TooltipContent>
               </Tooltip>
             )}
-            <div className="w-20 px-2 flex items-center justify-center border-x border-white/[0.06]">
+            <div className="w-20 px-2 flex items-center justify-center border-x border-[var(--border-default)]">
               <span className="text-[10px] font-mono text-neutral-400">{Math.round(zoomLevel)}px/s</span>
             </div>
             <button

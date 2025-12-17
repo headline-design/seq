@@ -29,15 +29,15 @@ export function SidebarPanelWrapper({
 
   return (
     <div
-      className="flex flex-col border-r border-white/[0.06] bg-[#0a0a0a] shrink-0 relative"
+      className="flex flex-col border-r border-[var(--border-default)] bg-[var(--surface-0)] shrink-0 relative"
       style={{ width: sidebarWidth }}
     >
       {children}
       <div
-        className="absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize hover:bg-indigo-500/40 transition-colors group"
+        className="absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize hover:bg-[var(--accent-primary)]/40 transition-colors group"
         onMouseDown={onResizeStart}
       >
-        <div className="absolute right-0 top-0 bottom-0 w-px bg-white/[0.06] group-hover:bg-indigo-500/60" />
+        <div className="absolute right-0 top-0 bottom-0 w-px bg-[var(--border-default)] group-hover:bg-[var(--accent-primary)]/60" />
       </div>
     </div>
   )

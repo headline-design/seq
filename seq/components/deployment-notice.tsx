@@ -35,11 +35,11 @@ export function DeploymentNotice() {
       }`}
     >
       <div className="bg-zinc-900 border border-zinc-700 rounded-lg shadow-2xl overflow-hidden">
-        {/* Header */}
-        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 flex items-center justify-between">
+        {/* Header - use accent CSS variables */}
+        <div className="bg-[var(--accent-bg-subtle)] border-b border-[var(--accent-border)] px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-            <span className="text-amber-500 text-sm font-medium">Demo Instance</span>
+            <div className="w-2 h-2 rounded-full bg-[var(--accent-primary)] animate-pulse" />
+            <span className="text-[var(--accent-text)] text-sm font-medium">Demo Instance</span>
           </div>
           <button
             onClick={handleDismiss}
@@ -74,7 +74,7 @@ export function DeploymentNotice() {
           </div>
         </div>
 
-        {/* Footer */}
+        {/* Footer - use accent CSS variables */}
         <div className="px-4 py-3 bg-zinc-800/50 border-t border-zinc-700">
           <div className="flex items-center justify-between">
             <span className="text-xs text-zinc-500">One-click deploy:</span>
@@ -82,7 +82,7 @@ export function DeploymentNotice() {
               href="https://vercel.com/new/clone?repository-url=https://github.com/your-repo/seq"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-black text-xs font-medium rounded hover:bg-zinc-200 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--accent-gradient)] text-white text-xs font-medium rounded hover:opacity-90 transition-all shadow-lg shadow-[var(--accent-shadow)]"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 76 65" fill="currentColor">
                 <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" />

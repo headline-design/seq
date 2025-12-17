@@ -55,23 +55,117 @@ export const MEDIA_CONSTANTS = {
   THUMBNAIL_HEIGHT: 90,
 } as const
 
-// Colors (semantic)
+// Colors (semantic - static for visual distinction between track types)
 export const EDITOR_COLORS = {
+  // Track backgrounds - subtle, professional tints
   track: {
-    video: "bg-indigo-500/20",
-    audio: "bg-emerald-500/20",
-    effect: "bg-purple-500/20",
+    video: {
+      bg: "bg-sky-500/10",
+      border: "border-sky-500/20",
+      text: "text-sky-400",
+    },
+    audio: {
+      bg: "bg-emerald-500/10",
+      border: "border-emerald-500/20",
+      text: "text-emerald-400",
+    },
+    text: {
+      bg: "bg-amber-500/10",
+      border: "border-amber-500/20",
+      text: "text-amber-400",
+    },
+    effect: {
+      bg: "bg-violet-500/10",
+      border: "border-violet-500/20",
+      text: "text-violet-400",
+    },
   },
+  // Clip colors - more saturated for visibility on timeline
   clip: {
-    video: "bg-indigo-600",
-    image: "bg-blue-600",
-    audio: "bg-emerald-600",
-    effect: "bg-purple-600",
+    video: {
+      bg: "bg-sky-600",
+      hover: "hover:bg-sky-500",
+      border: "border-sky-400/30",
+    },
+    image: {
+      bg: "bg-blue-600",
+      hover: "hover:bg-blue-500",
+      border: "border-blue-400/30",
+    },
+    audio: {
+      bg: "bg-emerald-600",
+      hover: "hover:bg-emerald-500",
+      border: "border-emerald-400/30",
+    },
+    text: {
+      bg: "bg-amber-600",
+      hover: "hover:bg-amber-500",
+      border: "border-amber-400/30",
+    },
+    effect: {
+      bg: "bg-violet-600",
+      hover: "hover:bg-violet-500",
+      border: "border-violet-400/30",
+    },
   },
-  selection: "ring-2 ring-white",
-  playhead: "bg-red-500",
-  snapLine: "bg-yellow-400",
+  // Theme-based selection (uses CSS variables)
+  selection: {
+    ring: "ring-2 ring-[var(--accent-primary)]",
+    bg: "bg-[var(--accent-primary)]/20",
+    border: "border-[var(--accent-primary)]",
+  },
+  // Fixed UI elements - these should remain consistent
+  playhead: {
+    line: "bg-red-500",
+    handle: "bg-red-500 border-red-400",
+    shadow: "shadow-red-500/50",
+  },
+  snapLine: {
+    line: "bg-yellow-400",
+    glow: "shadow-yellow-400/50",
+  },
+  marker: {
+    default: "bg-orange-500",
+    hover: "bg-orange-400",
+  },
+  // Status colors - semantic, should not be themed
+  status: {
+    success: {
+      bg: "bg-emerald-500/15",
+      border: "border-emerald-500/25",
+      text: "text-emerald-400",
+      icon: "text-emerald-500",
+    },
+    warning: {
+      bg: "bg-amber-500/15",
+      border: "border-amber-500/25",
+      text: "text-amber-400",
+      icon: "text-amber-500",
+    },
+    error: {
+      bg: "bg-red-500/15",
+      border: "border-red-500/25",
+      text: "text-red-400",
+      icon: "text-red-500",
+    },
+    info: {
+      bg: "bg-sky-500/15",
+      border: "border-sky-500/25",
+      text: "text-sky-400",
+      icon: "text-sky-500",
+    },
+  },
 } as const
+
+// Helper function to get track colors by type
+export function getTrackColors(type: "video" | "audio" | "text" | "effect") {
+  return EDITOR_COLORS.track[type]
+}
+
+// Helper function to get clip colors by type
+export function getClipColors(type: "video" | "image" | "audio" | "text" | "effect") {
+  return EDITOR_COLORS.clip[type]
+}
 
 // Keyboard shortcuts
 export const KEYBOARD_SHORTCUTS = {

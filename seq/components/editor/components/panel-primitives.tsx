@@ -18,12 +18,12 @@ export const PanelHeader = memo(function PanelHeader({
   children?: React.ReactNode
 }) {
   return (
-    <div className="h-14 flex items-center px-4 justify-between shrink-0 border-b border-white/[0.06]">
+    <div className="h-14 flex items-center px-4 justify-between shrink-0 border-b border-[var(--border-default)]">
       <h2 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400">{title}</h2>
       <div className="flex items-center gap-2">
         {children}
         <button
-          className="p-1.5 rounded hover:bg-white/[0.06] cursor-pointer text-neutral-500 transition-colors"
+          className="p-1.5 rounded hover:bg-[var(--hover-overlay)] cursor-pointer text-neutral-500 transition-colors"
           onClick={onClose}
         >
           <PanelLeftClose className="w-4 h-4" />
@@ -52,10 +52,10 @@ export const PanelSectionBordered = memo(function PanelSectionBordered({
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
-    <div className="border border-white/[0.06] rounded-lg">
+    <div className="border border-[var(--border-default)] rounded-lg">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center gap-2 p-3 bg-white/[0.02] hover:bg-white/[0.04] transition-colors rounded-t-lg"
+        className="w-full flex items-center gap-2 p-3 bg-[var(--hover-overlay)] hover:bg-[var(--active-overlay)] transition-colors rounded-t-lg"
       >
         {isOpen ? (
           <ChevronDownIcon className="w-4 h-4 text-neutral-500" />
@@ -65,7 +65,7 @@ export const PanelSectionBordered = memo(function PanelSectionBordered({
         {icon}
         <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wide">{title}</span>
       </button>
-      {isOpen && <div className="p-4 space-y-4 border-t border-white/[0.06] rounded-b-lg">{children}</div>}
+      {isOpen && <div className="p-4 space-y-4 border-t border-[var(--border-default)] rounded-b-lg">{children}</div>}
     </div>
   )
 })
@@ -118,7 +118,7 @@ PanelSection.displayName = "PanelSection"
  * Panel Divider - horizontal line between sections
  */
 export const PanelDivider = memo(function PanelDivider() {
-  return <div className="h-px bg-white/[0.06]" />
+  return <div className="h-px bg-[var(--border-default)]" />
 })
 
 PanelDivider.displayName = "PanelDivider"
@@ -134,7 +134,9 @@ export const PanelContainer = memo(function PanelContainer({
   className?: string
 }) {
   return (
-    <div className={`w-full flex flex-col bg-[#0a0a0a] border-r border-white/[0.06] h-full ${className}`}>
+    <div
+      className={`w-full flex flex-col bg-[var(--surface-0)] border-r border-[var(--border-default)] h-full ${className}`}
+    >
       {children}
     </div>
   )
@@ -177,7 +179,9 @@ export const Toggle = memo(function Toggle({
     <label className="flex items-start gap-3 cursor-pointer group">
       <div className="relative mt-0.5">
         <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="sr-only" />
-        <div className={`w-9 h-5 rounded-full transition-colors ${checked ? "bg-indigo-500" : "bg-neutral-700"}`} />
+        <div
+          className={`w-9 h-5 rounded-full transition-colors ${checked ? "bg-[var(--accent-primary)]" : "bg-neutral-700"}`}
+        />
         <div
           className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
             checked ? "translate-x-4" : "translate-x-0"
@@ -185,7 +189,7 @@ export const Toggle = memo(function Toggle({
         />
       </div>
       <div className="flex-1">
-        <div className="text-sm text-neutral-200 group-hover:text-white transition-colors">{label}</div>
+        <div className="text-sm text-neutral-200 group-hover:text-accent-text-white transition-colors">{label}</div>
         {description && <div className="text-xs text-neutral-500 mt-0.5">{description}</div>}
       </div>
     </label>
@@ -214,7 +218,7 @@ export const Select = memo(function Select({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-[#0a0a0a] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer"
+        className="w-full bg-[var(--surface-0)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:border-[var(--accent-primary)] appearance-none cursor-pointer"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
@@ -259,7 +263,7 @@ export const NumberInput = memo(function NumberInput({
           step={step}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="flex-1 bg-[#0a0a0a] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:border-indigo-500"
+          className="flex-1 bg-[var(--surface-0)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:border-[var(--accent-primary)]"
         />
         {unit && <span className="text-xs text-neutral-500">{unit}</span>}
       </div>
@@ -292,10 +296,10 @@ export const ActionButton = memo(function ActionButton({
       disabled={disabled}
       className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-lg border transition-all ${
         disabled
-          ? "opacity-40 cursor-not-allowed border-white/[0.06] bg-white/[0.02]"
+          ? "opacity-40 cursor-not-allowed border-[var(--border-default)] bg-[var(--hover-overlay)]"
           : variant === "danger"
-            ? "border-white/[0.06] hover:border-red-500/30 hover:bg-red-500/10 text-neutral-400 hover:text-red-400"
-            : "border-white/[0.06] hover:border-white/[0.1] hover:bg-white/[0.04] text-neutral-400 hover:text-white"
+            ? "border-[var(--border-default)] hover:border-red-500/30 hover:bg-red-500/10 text-neutral-400 hover:text-red-400"
+            : "border-[var(--border-default)] hover:border-[var(--border-emphasis)] hover:bg-[var(--hover-overlay)] text-neutral-400 hover:text-white"
       }`}
     >
       {icon}
@@ -316,7 +320,11 @@ export const InfoCard = memo(function InfoCard({
   children: React.ReactNode
   className?: string
 }) {
-  return <div className={`bg-[#18181b] rounded-lg border border-white/[0.06] p-3 ${className}`}>{children}</div>
+  return (
+    <div className={`bg-[var(--surface-3)] rounded-lg border border-[var(--border-default)] p-3 ${className}`}>
+      {children}
+    </div>
+  )
 })
 
 InfoCard.displayName = "InfoCard"

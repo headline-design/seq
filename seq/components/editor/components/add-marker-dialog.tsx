@@ -87,7 +87,7 @@ export function AddMarkerDialog({ isOpen, onClose, onAdd, time }: AddMarkerDialo
           <Button variant="ghost" onClick={onClose} className="text-neutral-400">
             Cancel
           </Button>
-          <Button onClick={handleAdd} className="bg-indigo-600 hover:bg-indigo-700">
+          <Button onClick={handleAdd} className="bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)]">
             Add Marker
           </Button>
         </DialogFooter>

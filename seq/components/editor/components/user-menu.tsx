@@ -50,7 +50,7 @@ export function UserMenu({ user }: UserMenuProps) {
           side="bottom"
           sideOffset={-48}
           alignOffset={0}
-          className="w-[300px] bg-neutral-900/95 backdrop-blur-xl border border-neutral-800 rounded-2xl shadow-2xl z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-none"
+          className="w-[300px] bg-neutral-900/95 backdrop-blur-xl border border-[var(--border-default)] rounded-2xl shadow-2xl z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-none"
         >
           <div className="flex items-center gap-3 p-2">
             <Avatar className="size-8">
@@ -69,7 +69,7 @@ export function UserMenu({ user }: UserMenuProps) {
             </div>
           </div>
 
-          <div className="h-px bg-neutral-800 mx-3 my-1" />
+          <div className="h-px bg-[var(--border-default)] mx-3 my-1" />
 
           <div className="px-2 py-2">
             <MenuItem icon={<User className="size-4" />}>View Profile</MenuItem>
@@ -77,19 +77,19 @@ export function UserMenu({ user }: UserMenuProps) {
             <MenuItem icon={<RotateCcw className="size-4" />}>Manage Subscription</MenuItem>
 
             <div className="relative">
-              <button className="flex items-center gap-3 px-3 py-2.5 text-neutral-400 hover:text-white hover:bg-white/[0.06] rounded-lg cursor-pointer transition-colors outline-none w-full">
+              <button className="flex items-center gap-3 px-3 py-2.5 text-neutral-400 hover:text-white hover:bg-[var(--hover-overlay)] rounded-lg cursor-pointer transition-colors outline-none w-full">
                 <Palette className="size-4" />
                 <span className="text-sm flex-1 text-left">Theme</span>
                 <ChevronRight className="size-4 text-neutral-500" />
               </button>
             </div>
 
-            <div className="h-px bg-white/[0.06] my-2" />
+            <div className="h-px bg-[var(--border-default)] my-2" />
 
             <MenuItem icon={<LogOut className="size-4" />}>Sign Out</MenuItem>
           </div>
 
-          <div className="flex items-center justify-center gap-4 px-3 py-3 border-t border-neutral-800">
+          <div className="flex items-center justify-center gap-4 px-3 py-3 border-t border-[var(--border-default)]">
             <button className="text-neutral-500 hover:text-neutral-300 text-xs transition-colors">
               Terms of Service
             </button>
@@ -103,7 +103,7 @@ export function UserMenu({ user }: UserMenuProps) {
 
 function MenuItem({ icon, children }: { icon?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <button className="flex items-center gap-3 px-3 py-2.5 text-neutral-400 hover:text-white hover:bg-white/[0.06] rounded-lg cursor-pointer transition-colors outline-none w-full">
+    <button className="flex items-center gap-3 px-3 py-2.5 text-neutral-400 hover:text-white hover:bg-[var(--hover-overlay)] rounded-lg cursor-pointer transition-colors outline-none w-full">
       {icon}
       <span className="text-sm">{children}</span>
     </button>

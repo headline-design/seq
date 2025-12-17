@@ -59,7 +59,7 @@ const StepIndicator = memo(function StepIndicator({
                   isComplete
                     ? "bg-emerald-500 text-white"
                     : isActive
-                      ? "bg-indigo-500 text-white ring-4 ring-indigo-500/30"
+                      ? "bg-[var(--accent-primary)] text-accent-text-white ring-4 ring-[var(--accent-ring)]"
                       : "bg-neutral-800 text-neutral-500"
                 }
               `}
@@ -73,7 +73,7 @@ const StepIndicator = memo(function StepIndicator({
                 )}
               </div>
               <span
-                className={`text-[10px] mt-1.5 font-medium ${isActive ? "text-indigo-400" : isComplete ? "text-emerald-400" : "text-neutral-600"}`}
+                className={`text-[10px] mt-1.5 font-medium ${isActive ? "text-[var(--accent-text)]" : isComplete ? "text-emerald-400" : "text-neutral-600"}`}
               >
                 {stepLabels[step]}
               </span>
@@ -99,18 +99,22 @@ const ResolutionSelector = memo(function ResolutionSelector({
     <div className="grid grid-cols-2 gap-3">
       <button
         onClick={() => onSelect("1080p")}
-        className={`p-3 rounded-lg border text-left transition-all ${resolution === "1080p" ? "bg-indigo-500/10 border-indigo-500" : "bg-neutral-900 border-neutral-800 hover:border-neutral-700"}`}
+        className={`p-3 rounded-lg border text-left transition-all ${resolution === "1080p" ? "bg-[var(--accent-bg-subtle)] border-[var(--accent-primary)]" : "bg-neutral-900 border-neutral-800 hover:border-neutral-700"}`}
       >
-        <div className={`text-sm font-medium ${resolution === "1080p" ? "text-indigo-200" : "text-neutral-300"}`}>
+        <div
+          className={`text-sm font-medium ${resolution === "1080p" ? "text-[var(--accent-hover)]" : "text-neutral-300"}`}
+        >
           1080p High
         </div>
         <div className="text-[10px] text-neutral-500 mt-1">1920x1080 - Best quality</div>
       </button>
       <button
         onClick={() => onSelect("720p")}
-        className={`p-3 rounded-lg border text-left transition-all ${resolution === "720p" ? "bg-indigo-500/10 border-indigo-500" : "bg-neutral-900 border-neutral-800 hover:border-neutral-700"}`}
+        className={`p-3 rounded-lg border text-left transition-all ${resolution === "720p" ? "bg-[var(--accent-bg-subtle)] border-[var(--accent-primary)]" : "bg-neutral-900 border-neutral-800 hover:border-neutral-700"}`}
       >
-        <div className={`text-sm font-medium ${resolution === "720p" ? "text-indigo-200" : "text-neutral-300"}`}>
+        <div
+          className={`text-sm font-medium ${resolution === "720p" ? "text-[var(--accent-hover)]" : "text-neutral-300"}`}
+        >
           720p Fast
         </div>
         <div className="text-[10px] text-neutral-500 mt-1">
@@ -172,7 +176,7 @@ export const ExportModal = memo(function ExportModal({
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-[#18181b] border border-neutral-700 rounded-xl shadow-2xl w-[500px] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="h-14 px-6 flex items-center justify-between border-b border-neutral-800 bg-[#09090b]">
+        <div className="h-14 px-6 flex items-center justify-between border-b border-[var(--border-default)] bg-[var(--surface-0)]">
           <h3 className="text-sm font-bold text-white uppercase tracking-wider">Export Video</h3>
           <button
             onClick={onClose}
@@ -221,7 +225,7 @@ export const ExportModal = memo(function ExportModal({
                     setIsInitializing(true)
                     onStartExport(resolution)
                   }}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm transition-colors"
+                  className="px-4 py-2 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] text-white rounded-lg text-sm transition-colors"
                 >
                   Try Again
                 </button>
@@ -237,7 +241,7 @@ export const ExportModal = memo(function ExportModal({
               <a
                 href={downloadUrl}
                 download="project_export.mp4"
-                className="mt-2 w-full flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-all shadow-lg"
+                className="mt-2 w-full flex items-center justify-center gap-2 px-6 py-3 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] text-white rounded-lg font-medium transition-all shadow-lg"
               >
                 <DownloadIcon className="w-4 h-4" />
                 Download MP4
@@ -260,17 +264,17 @@ export const ExportModal = memo(function ExportModal({
               <div className="space-y-2">
                 <div className="h-2 w-full bg-neutral-800 rounded-full overflow-hidden">
                   {exportPhase === "init" ? (
-                    <div className="h-full bg-indigo-500/50 w-full animate-pulse" />
+                    <div className="h-full bg-[var(--accent-muted)] w-full animate-pulse" />
                   ) : (
                     <div
-                      className="h-full bg-indigo-500 transition-all duration-300"
+                      className="h-full bg-[var(--accent-primary)] transition-all duration-300"
                       style={{ width: `${exportProgress}%` }}
                     />
                   )}
                 </div>
                 {phaseInfo.showProgress && (
                   <div className="flex justify-end">
-                    <span className="text-xs text-indigo-400 font-medium">{Math.round(exportProgress)}%</span>
+                    <span className="text-xs text-[var(--accent-text)] font-medium">{Math.round(exportProgress)}%</span>
                   </div>
                 )}
               </div>

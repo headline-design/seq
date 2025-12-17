@@ -64,7 +64,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
           value={textOverlay.text}
           onChange={(e) => updateTextOverlay({ text: e.target.value })}
           placeholder="Enter text..."
-          className="h-20 text-sm bg-[#0a0a0a] border-white/[0.06] resize-none"
+          className="h-20 text-sm bg-[var(--surface-0)] border-[var(--border-default)] resize-none"
         />
       </div>
 
@@ -73,7 +73,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
         <div className="space-y-2">
           <Label className="text-xs text-neutral-500">Font Family</Label>
           <Select value={textOverlay.fontFamily} onValueChange={(value) => updateTextOverlay({ fontFamily: value })}>
-            <SelectTrigger className="h-8 text-xs bg-[#0a0a0a] border-white/[0.06]">
+            <SelectTrigger className="h-8 text-xs bg-[var(--surface-0)] border-[var(--border-default)]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -110,7 +110,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
             value={String(textOverlay.fontWeight)}
             onValueChange={(value) => updateTextOverlay({ fontWeight: Number(value) as 400 | 500 | 600 | 700 | 800 })}
           >
-            <SelectTrigger className="h-8 text-xs bg-[#0a0a0a] border-white/[0.06]">
+            <SelectTrigger className="h-8 text-xs bg-[var(--surface-0)] border-[var(--border-default)]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -144,7 +144,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
                 onClick={() => updateTextOverlay({ textAlign: align })}
                 className={`flex-1 h-8 ${
                   textOverlay.textAlign === align
-                    ? "bg-indigo-500/15 border-indigo-500/50 text-indigo-400"
+                    ? "bg-[var(--accent-bg-subtle)] border-[var(--accent-muted)] text-[var(--accent-text)]"
                     : "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.06]"
                 }`}
               >
@@ -164,12 +164,12 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
               type="color"
               value={textOverlay.color}
               onChange={(e) => updateTextOverlay({ color: e.target.value })}
-              className="w-8 h-8 rounded border border-neutral-700 cursor-pointer"
+              className="w-8 h-8 rounded border border-[var(--border-default)] cursor-pointer"
             />
             <Input
               value={textOverlay.color}
               onChange={(e) => updateTextOverlay({ color: e.target.value })}
-              className="h-8 text-xs bg-neutral-900 border-neutral-700 flex-1"
+              className="h-8 text-xs bg-[var(--surface-0)] border-[var(--border-default)] flex-1"
             />
           </div>
         </div>
@@ -181,12 +181,12 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
               type="color"
               value={textOverlay.backgroundColor}
               onChange={(e) => updateTextOverlay({ backgroundColor: e.target.value })}
-              className="w-8 h-8 rounded border border-neutral-700 cursor-pointer"
+              className="w-8 h-8 rounded border border-[var(--border-default)] cursor-pointer"
             />
             <Input
               value={textOverlay.backgroundColor}
               onChange={(e) => updateTextOverlay({ backgroundColor: e.target.value })}
-              className="h-8 text-xs bg-neutral-900 border-neutral-700 flex-1"
+              className="h-8 text-xs bg-[var(--surface-0)] border-[var(--border-default)] flex-1"
             />
           </div>
         </div>
@@ -219,8 +219,8 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
               size="sm"
               className={`text-[10px] h-7 ${
                 textOverlay.position.x === pos.x && textOverlay.position.y === pos.y
-                  ? "bg-purple-500/20 border-purple-500"
-                  : "bg-neutral-900 border-neutral-700"
+                  ? "bg-[var(--accent-bg-subtle)] border-[var(--accent-primary)]"
+                  : "bg-[var(--surface-0)] border-[var(--border-default)]"
               }`}
               onClick={() => updateTextOverlay({ position: { x: pos.x, y: pos.y } })}
             >
@@ -270,7 +270,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
           value={textOverlay.animation}
           onValueChange={(value) => updateTextOverlay({ animation: value as TextOverlayStyle["animation"] })}
         >
-          <SelectTrigger className="h-8 text-xs bg-[#0a0a0a] border-white/[0.06]">
+          <SelectTrigger className="h-8 text-xs bg-[var(--surface-0)] border-[var(--border-default)]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

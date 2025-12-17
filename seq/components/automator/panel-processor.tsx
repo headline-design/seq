@@ -31,10 +31,10 @@ export function PanelProcessor({ masterUrl, masterPrompt, panelCount, storageMod
     const position = `Row ${row}, Column ${col}`
 
     const extractionPrompt = `
-      Look at the provided storyboard grid. 
-      Extract strictly the single panel at position #${index + 1} (reading order: ${position}). 
+      Look at the provided storyboard grid.
+      Extract strictly the single panel at position #${index + 1} (reading order: ${position}).
       Generate a high-resolution, full-frame cinematic version of THIS SPECIFIC PANEL ONLY.
-      
+
       QC INSTRUCTIONS:
       - Remove any text, captions, numbers, or borders.
       - Fix any non-standard elements or distortions.
@@ -141,7 +141,7 @@ export function PanelProcessor({ masterUrl, masterPrompt, panelCount, storageMod
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold mb-2">Processing Storyboard</h2>
-        <p className="text-muted-foreground">
+        <p className="text-neutral-400">
           Using Nano Banana to extract, upscale, and QC {panelCount} panels from the master.
           {masterPrompt.includes("Ratatouille") && " (Demo Mode Active)"}
         </p>
@@ -149,7 +149,11 @@ export function PanelProcessor({ masterUrl, masterPrompt, panelCount, storageMod
 
       {status === "ready" && (
         <div className="flex justify-center gap-3 mb-8">
-          <Button size="lg" onClick={processPanels} className="bg-white text-black hover:bg-zinc-200 gap-2">
+          <Button
+            size="lg"
+            onClick={processPanels}
+            className="bg-[var(--accent-gradient)] hover:opacity-90 text-accent-text-white gap-2"
+          >
             <Play className="w-5 h-5" />
             Start Panel Extraction & Upscaling
           </Button>
@@ -157,7 +161,8 @@ export function PanelProcessor({ masterUrl, masterPrompt, panelCount, storageMod
             size="lg"
             variant="outline"
             onClick={loadDemoPanels}
-            className="border-zinc-700 bg-zinc-900 hover:bg-zinc-800 gap-2"
+            className="border gap-2 bg-transparent"
+            style={{ borderColor: "var(--border-default)", backgroundColor: "var(--surface-2)" }}
           >
             <Sparkles className="w-5 h-5" />
             Use Demo Extracted Panels
@@ -166,7 +171,10 @@ export function PanelProcessor({ masterUrl, masterPrompt, panelCount, storageMod
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-        <Card className="p-4 bg-zinc-900 border-zinc-800">
+        <Card
+          className="p-4 border"
+          style={{ backgroundColor: "var(--surface-2)", borderColor: "var(--border-default)" }}
+        >
           <div className="aspect-[3/2] relative rounded-lg overflow-hidden">
             <Image src={masterUrl || "/placeholder.svg"} alt="Master" fill className="object-cover" />
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center pointer-events-none">
@@ -180,14 +188,17 @@ export function PanelProcessor({ masterUrl, masterPrompt, panelCount, storageMod
         <div className="space-y-6">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Status</span>
-              <span className="text-white font-medium capitalize flex items-center gap-2">
+              <span className="text-neutral-400">Status</span>
+              <span className="text-neutral-200 font-medium capitalize flex items-center gap-2">
                 {status === "processing" && <Loader2 className="w-3 h-3 animate-spin" />}
                 {status === "processing" ? `Extracting Panel ${panels.length + 1}/${panelCount}...` : status}
               </span>
             </div>
-            <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
-              <div className="h-full bg-white transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
+            <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--surface-3)" }}>
+              <div
+                className="h-full bg-[var(--accent-gradient)] transition-all duration-500 ease-out"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
 
@@ -195,7 +206,8 @@ export function PanelProcessor({ masterUrl, masterPrompt, panelCount, storageMod
             {Array.from({ length: panelCount }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-video relative rounded bg-zinc-800 overflow-hidden border border-zinc-700 group"
+                className="aspect-video relative rounded overflow-hidden border group"
+                style={{ backgroundColor: "var(--surface-3)", borderColor: "var(--border-default)" }}
               >
                 {panels[i] ? (
                   <>

@@ -1,6 +1,6 @@
 "use client"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/seq/lib/utils"
 
 import type React from "react"
 import { memo } from "react"
@@ -50,7 +50,7 @@ function EditorSidebarInner({ activeView, isPanelOpen, onViewChange, onTogglePan
   const isCollapsed = state === "collapsed"
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-white/[0.06]">
+    <Sidebar collapsible="icon" className="border-r border-[var(--border-default)]">
       <SidebarHeader
         className={cn(
           "flex h-[88px] flex-row justify-start p-4 pt-8 ",
@@ -100,21 +100,17 @@ function EditorSidebarInner({ activeView, isPanelOpen, onViewChange, onTogglePan
                         >
                           <div
                             className={cn(
-                              "p-1.5 rounded-md group-hover/sidebar-item:bg-white/[0.06] transition-colors",
-                              isActive && "bg-indigo-500/15",
+                              "p-1.5 rounded-md group-hover/sidebar-item:bg-[var(--hover-overlay)] transition-colors",
+                              isActive && "bg-accent-muted",
                             )}
                           >
-                            <Icon
-                              className={cn("h-4 w-4 shrink-0", isActive ? "text-indigo-400" : "text-neutral-400")}
-                            />
+                            <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-accent" : "text-neutral-400")} />
                           </div>
                           {isCollapsed && (
-                            <span className={cn(isActive ? "text-indigo-400" : "text-neutral-400")}>{miniLabel}</span>
+                            <span className={cn(isActive ? "text-accent" : "text-neutral-400")}>{miniLabel}</span>
                           )}
                           {!isCollapsed && (
-                            <span
-                              className={cn("text-sm", isActive ? "text-indigo-400 font-medium" : "text-neutral-400")}
-                            >
+                            <span className={cn("text-sm", isActive ? "text-accent font-medium" : "text-neutral-400")}>
                               {label}
                             </span>
                           )}
@@ -135,7 +131,7 @@ function EditorSidebarInner({ activeView, isPanelOpen, onViewChange, onTogglePan
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="mt-auto border-t border-white/[0.06] p-3">
+      <SidebarFooter className="mt-auto border-t border-[var(--border-default)] p-3">
         {!isCollapsed && (
           <div className="text-xs text-neutral-500">
             <span className="font-medium text-white">∞</span> Credits

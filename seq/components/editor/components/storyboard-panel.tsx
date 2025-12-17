@@ -160,7 +160,7 @@ export const StoryboardPanel = memo<StoryboardPanelProps>(
     )
 
     return (
-      <div className="w-full flex flex-col bg-[#09090b] border-r border-neutral-800 h-full">
+      <div className="w-full flex flex-col bg-[var(--surface-0)] border-r border-[var(--border-default)] h-full">
         <StoryboardHeader
           onClose={onClose}
           masterDescription={masterDescription}

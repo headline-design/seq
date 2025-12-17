@@ -63,25 +63,29 @@ export const StoryboardPanelItem = memo<StoryboardPanelItemProps>(
     return (
       <div
         className={`rounded-lg border overflow-hidden shadow-sm group transition-all ${
-          isTransition ? "bg-[#13131f] border-indigo-500/20" : "bg-[#18181b] border-neutral-800"
+          isTransition
+            ? "bg-[#13131f] border-[var(--accent-muted)]"
+            : "bg-[var(--surface-2)] border-[var(--border-default)]"
         } ${hasError ? "border-red-500/50" : ""}`}
       >
         {/* Panel Header */}
         <div
           className={`px-3 py-2 border-b flex justify-between items-center ${
-            isTransition ? "bg-[#1a1a2e] border-indigo-900/30" : "bg-[#202024] border-neutral-800"
+            isTransition
+              ? "bg-[#1a1a2e] border-[var(--accent-muted)]"
+              : "bg-[var(--surface-3)] border-[var(--border-default)]"
           }`}
         >
           <div className="flex items-center gap-2">
             <div
               className={`w-4 h-4 rounded flex items-center justify-center text-[9px] font-bold ${
-                isTransition ? "bg-indigo-500/20 text-indigo-400" : "bg-white/10 text-white"
+                isTransition ? "bg-[var(--accent-bg-subtle)] text-[var(--accent-text)]" : "bg-white/10 text-white"
               }`}
             >
               {index + 1}
             </div>
             <span
-              className={`text-[10px] font-bold uppercase ${isTransition ? "text-indigo-400" : "text-neutral-500"}`}
+              className={`text-[10px] font-bold uppercase ${isTransition ? "text-[var(--accent-text)]" : "text-neutral-500"}`}
             >
               {isTransition ? `Keyframes` : `Shot`}
             </span>
@@ -105,7 +109,7 @@ export const StoryboardPanelItem = memo<StoryboardPanelItemProps>(
                   })
                 }}
                 className={`px-1.5 py-0.5 text-[8px] rounded ${
-                  isTransition ? "bg-indigo-600 text-white" : "text-neutral-500 hover:text-neutral-300"
+                  isTransition ? "bg-[var(--accent-primary)] text-accent-text-white" : "text-neutral-500 hover:text-neutral-300"
                 }`}
               >
                 Keyframes
@@ -114,8 +118,8 @@ export const StoryboardPanelItem = memo<StoryboardPanelItemProps>(
 
             {(isGeneratingImage || isGeneratingVideo || isEnhancing) && (
               <div className="flex items-center gap-1 ml-2">
-                <div className="animate-spin w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full" />
-                <span className="text-[8px] text-indigo-400">
+                <div className="animate-spin w-3 h-3 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full" />
+                <span className="text-[8px] text-[var(--accent-text)]">
                   {isGeneratingImage
                     ? "Generating image..."
                     : isGeneratingVideo
@@ -144,17 +148,17 @@ export const StoryboardPanelItem = memo<StoryboardPanelItemProps>(
                   ? "Describe the motion between keyframes (e.g. 'Morph smoothly')..."
                   : "Describe the shot..."
               }
-              className="w-full bg-[#0c0c0e] border border-neutral-700 rounded p-2 text-xs text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-indigo-500/50 min-h-[60px] resize-y pr-6"
+              className="w-full bg-[var(--surface-1)] border border-neutral-700 rounded p-2 text-xs text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-[var(--accent-muted)] min-h-[60px] resize-y pr-6"
               disabled={isGeneratingImage || isGeneratingVideo || isEnhancing}
             />
             <button
               onClick={() => onEnhancePrompt(panel.id, panel.prompt)}
               disabled={!panel.prompt || isGeneratingImage || isGeneratingVideo || isEnhancing}
-              className="absolute bottom-2 right-2 text-indigo-400 hover:text-indigo-300 disabled:opacity-30 transition-colors"
+              className="absolute bottom-2 right-2 text-[var(--accent-text)] hover:text-[var(--accent-primary)] disabled:opacity-30 transition-colors"
               title="Enhance Prompt using Master Context"
             >
               {isEnhancing ? (
-                <div className="animate-spin w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full" />
+                <div className="animate-spin w-3 h-3 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full" />
               ) : (
                 <Sparkles className="w-3.5 h-3.5" />
               )}
@@ -183,7 +187,7 @@ export const StoryboardPanelItem = memo<StoryboardPanelItemProps>(
             /* Transition Layout: Start -> End */
             <div className="flex gap-2 items-center">
               {/* Start Frame */}
-              <div className="relative flex-1 aspect-video bg-[#0c0c0e] rounded border border-neutral-800 overflow-hidden group/media">
+              <div className="relative flex-1 aspect-video bg-[var(--surface-1)] rounded border border-[var(--border-default)] overflow-hidden group/media">
                 {panel.imageUrl ? (
                   <>
                     <img src={panel.imageUrl || "/placeholder.svg"} className="w-full h-full object-cover" />
@@ -200,7 +204,7 @@ export const StoryboardPanelItem = memo<StoryboardPanelItemProps>(
                     {prevImage && (
                       <button
                         onClick={() => onUpdatePanel(panel.id, { imageUrl: prevImage })}
-                        className="text-[8px] text-indigo-400 hover:text-indigo-300"
+                        className="text-[8px] text-[var(--accent-text)] hover:text-[var(--accent-primary)]"
                       >
                         Use Previous
                       </button>
@@ -225,7 +229,7 @@ export const StoryboardPanelItem = memo<StoryboardPanelItemProps>(
               <div className="text-neutral-600 text-lg">→</div>
 
               {/* End Frame */}
-              <div className="relative flex-1 aspect-video bg-[#0c0c0e] rounded border border-neutral-800 overflow-hidden group/media">
+              <div className="relative flex-1 aspect-video bg-[var(--surface-1)] rounded border border-[var(--border-default)] overflow-hidden group/media">
                 {panel.linkedImageUrl ? (
                   <>
                     <img src={panel.linkedImageUrl || "/placeholder.svg"} className="w-full h-full object-cover" />
@@ -242,7 +246,7 @@ export const StoryboardPanelItem = memo<StoryboardPanelItemProps>(
                     {nextImage && (
                       <button
                         onClick={() => onUpdatePanel(panel.id, { linkedImageUrl: nextImage })}
-                        className="text-[8px] text-indigo-400 hover:text-indigo-300"
+                        className="text-[8px] text-[var(--accent-text)] hover:text-[var(--accent-primary)]"
                       >
                         Use Next
                       </button>
@@ -268,7 +272,7 @@ export const StoryboardPanelItem = memo<StoryboardPanelItemProps>(
             /* Scene Layout */
             <div className="grid grid-cols-2 gap-2">
               {/* Image Slot */}
-              <div className="relative aspect-video bg-[#0c0c0e] rounded border border-neutral-800 overflow-hidden group/media">
+              <div className="relative aspect-video bg-[var(--surface-1)] rounded border border-[var(--border-default)] overflow-hidden group/media">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -295,7 +299,7 @@ export const StoryboardPanelItem = memo<StoryboardPanelItemProps>(
                     {onUpscaleImage && (
                       <button
                         onClick={() => onUpscaleImage(panel.id, panel.imageUrl!)}
-                        className="absolute top-1 right-6 p-1 bg-black/60 rounded opacity-0 group-hover/media:opacity-100 text-indigo-400 hover:text-indigo-300"
+                        className="absolute top-1 right-6 p-1 bg-black/60 rounded opacity-0 group-hover/media:opacity-100 text-[var(--accent-text)] hover:text-[var(--accent-primary)]"
                       >
                         <ZoomInIcon className="w-2.5 h-2.5" />
                       </button>
@@ -339,7 +343,7 @@ export const StoryboardPanelItem = memo<StoryboardPanelItemProps>(
               </div>
 
               {/* Video Slot */}
-              <div className="relative aspect-video bg-[#0c0c0e] rounded border border-neutral-800 overflow-hidden">
+              <div className="relative aspect-video bg-[var(--surface-1)] rounded border border-[var(--border-default)] overflow-hidden">
                 {panel.videoUrl ? (
                   <>
                     <video src={panel.videoUrl} className="w-full h-full object-cover" controls muted />
@@ -351,8 +355,8 @@ export const StoryboardPanelItem = memo<StoryboardPanelItemProps>(
                   <div className="w-full h-full flex items-center justify-center">
                     {isGeneratingVideo ? (
                       <div className="flex flex-col items-center gap-1">
-                        <div className="animate-spin w-4 h-4 border-2 border-indigo-600 border-t-indigo-400 rounded-full" />
-                        <span className="text-[8px] text-indigo-400">Generating...</span>
+                        <div className="animate-spin w-4 h-4 border-2 border-[var(--accent-primary)] border-t-[var(--accent-text)] rounded-full" />
+                        <span className="text-[8px] text-[var(--accent-text)]">Generating...</span>
                       </div>
                     ) : (
                       <span className="text-[9px] text-neutral-700">No Video</span>
@@ -382,7 +386,7 @@ export const StoryboardPanelItem = memo<StoryboardPanelItemProps>(
                     )
                   }
                   disabled={!panel.prompt || (isTransition && (!panel.imageUrl || !panel.linkedImageUrl))}
-                  className="flex items-center gap-1.5 px-2 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 px-2 py-1 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] text-white text-[10px] font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FilmIcon className="w-3 h-3" />
                   {isTransition ? "Interpolate" : "Animate"}
@@ -392,7 +396,7 @@ export const StoryboardPanelItem = memo<StoryboardPanelItemProps>(
               {panel.videoUrl && (
                 <button
                   onClick={() => onAddToTimeline(panel)}
-                  className="flex items-center gap-1.5 px-2 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-[10px] font-medium rounded border border-indigo-500/30 transition-colors"
+                  className="flex items-center gap-1.5 px-2 py-1 bg-[var(--accent-bg-subtle)] hover:bg-[var(--accent-muted)] text-[var(--accent-text)] text-[10px] font-medium rounded border border-[var(--accent-border)] transition-colors"
                 >
                   <PlusIcon className="w-3 h-3" /> Timeline
                 </button>

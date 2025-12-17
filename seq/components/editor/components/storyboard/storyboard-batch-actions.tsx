@@ -43,10 +43,10 @@ export const StoryboardBatchActions = memo<StoryboardBatchActionsProps>(
             <button
               onClick={onGenerateAllVideos}
               disabled={isAnyGenerating || isGeneratingAll !== null}
-              className="py-2 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 text-[10px] font-bold flex items-center justify-center gap-1.5 transition-colors border border-indigo-600/30 disabled:opacity-50"
+              className="py-2 rounded-lg bg-[var(--accent-primary)]/20 hover:bg-[var(--accent-primary)]/30 text-[var(--accent-text)] text-[10px] font-bold flex items-center justify-center gap-1.5 transition-colors border border-[var(--accent-border)] disabled:opacity-50"
             >
               {isGeneratingAll === "videos" ? (
-                <div className="animate-spin w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full" />
+                <div className="animate-spin w-3 h-3 border-2 border-[var(--accent-text)] border-t-transparent rounded-full" />
               ) : (
                 <FilmIcon className="w-3.5 h-3.5" />
               )}
@@ -58,7 +58,7 @@ export const StoryboardBatchActions = memo<StoryboardBatchActionsProps>(
         {hasAnyVideos && (
           <button
             onClick={onAddAllToTimeline}
-            className="w-full py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors"
+            className="w-full py-2.5 rounded-lg bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] text-accent-text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors"
           >
             <PlusIcon className="w-4 h-4" />
             Add All to Timeline ({panelsWithVideos.length} clip{panelsWithVideos.length !== 1 ? "s" : ""})

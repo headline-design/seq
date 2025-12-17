@@ -103,7 +103,7 @@ export const TimelineMarkers = memo(function TimelineMarkers({
                     if (e.key === "Escape") setEditingMarkerId(null)
                   }}
                   autoFocus
-                  className="w-32 px-2 py-1 text-xs bg-neutral-900 border border-neutral-600 rounded text-white focus:outline-none focus:border-indigo-500"
+                  className="w-32 px-2 py-1 text-xs bg-neutral-900 border border-neutral-600 rounded text-white focus:outline-none focus:border-[var(--accent-primary)]"
                 />
               </div>
             ) : marker.label ? (

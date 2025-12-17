@@ -78,7 +78,7 @@ export const TimelineClipItem = memo(
         tabIndex={isLocked ? -1 : tabIndex}
         onKeyDown={onKeyDown}
         data-clip="true"
-        className={`clip-item absolute ${verticalPos} rounded-md overflow-visible ${cursorClass} flex flex-col ${borderClass} transition-colors select-none group/item ${selectedClass} ${lockedClass} focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-neutral-900 focus-visible:ring-indigo-500`}
+        className={`clip-item absolute ${verticalPos} rounded-md overflow-visible ${cursorClass} flex flex-col ${borderClass} transition-colors select-none group/item ${selectedClass} ${lockedClass} focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-neutral-900 focus-visible:ring-[var(--accent-primary)]`}
         style={{
           left: `${clip.start * zoomLevel}px`,
           width: `${clip.duration * zoomLevel}px`,

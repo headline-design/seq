@@ -189,10 +189,10 @@ export const ShortcutsModal = memo(function ShortcutsModal({ isOpen, onClose }: 
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-neutral-800 bg-[#09090b]">
+        <div className="px-6 py-4 border-b border-[var(--border-default)] bg-[var(--surface-0)]">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[var(--accent-muted)] text-[var(--accent-text)] flex items-center justify-center">
                 <KeyboardIcon className="w-5 h-5" />
               </div>
               <div>
@@ -228,7 +228,7 @@ export const ShortcutsModal = memo(function ShortcutsModal({ isOpen, onClose }: 
               placeholder="Search shortcuts..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-neutral-900 border border-neutral-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-neutral-200 placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full bg-neutral-900 border border-neutral-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-neutral-200 placeholder:text-neutral-600 focus:outline-none focus:border-[var(--accent-primary)] transition-colors"
             />
           </div>
         </div>
@@ -239,7 +239,7 @@ export const ShortcutsModal = memo(function ShortcutsModal({ isOpen, onClose }: 
             onClick={() => setActiveCategory(null)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
               activeCategory === null
-                ? "bg-indigo-500/20 text-indigo-300"
+                ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                 : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800"
             }`}
           >
@@ -251,7 +251,7 @@ export const ShortcutsModal = memo(function ShortcutsModal({ isOpen, onClose }: 
               onClick={() => setActiveCategory(cat.name)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
                 activeCategory === cat.name
-                  ? "bg-indigo-500/20 text-indigo-300"
+                  ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
                   : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800"
               }`}
             >
@@ -284,7 +284,7 @@ export const ShortcutsModal = memo(function ShortcutsModal({ isOpen, onClose }: 
                 .map((category) => (
                   <div key={category.name}>
                     <div className="flex items-center gap-2 mb-2 px-1">
-                      <span className="text-indigo-400">{category.icon}</span>
+                      <span className="text-[var(--accent-text)]">{category.icon}</span>
                       <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider">{category.name}</h4>
                       <div className="flex-1 h-px bg-neutral-800" />
                     </div>
@@ -300,7 +300,7 @@ export const ShortcutsModal = memo(function ShortcutsModal({ isOpen, onClose }: 
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 bg-[#09090b] border-t border-neutral-800 flex items-center justify-between">
+        <div className="px-4 py-3 bg-[var(--surface-0)] border-t border-[var(--border-default)] flex items-center justify-between">
           <p className="text-xs text-neutral-600">
             <span className="text-neutral-500">Tip:</span> Press <Kbd>?</Kbd> anytime to show shortcuts
           </p>

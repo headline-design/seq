@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import type { Generation } from "../types"
 
@@ -19,8 +18,6 @@ interface UseImageGenerationProps {
   onToast: (message: string, type?: "success" | "error") => void
   onImageUpload: (file: File, imageNumber: 1 | 2) => Promise<void>
   onApiKeyMissing?: () => void
-  outOfCredits?: boolean
-  onOutOfCredits?: () => void
 }
 
 interface GenerateImageOptions {
@@ -36,18 +33,13 @@ interface GenerateImageOptions {
 const playSuccessSound = () => {
   try {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
-
     const oscillator = audioContext.createOscillator()
     const gainNode = audioContext.createGain()
-
     oscillator.connect(gainNode)
     gainNode.connect(audioContext.destination)
-
     oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime)
-
     gainNode.gain.setValueAtTime(0.15, audioContext.currentTime)
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15)
-
     oscillator.start(audioContext.currentTime)
     oscillator.stop(audioContext.currentTime + 0.15)
   } catch (error) {
@@ -69,9 +61,8 @@ export function useImageGeneration({
   onToast,
   onImageUpload,
   onApiKeyMissing,
-  outOfCredits,
 }: UseImageGenerationProps) {
-  const [selectedGenerationId, setSelectedGenerationId] = useState<string | null>(null)
+  const [selectedGenerationId, setSelectedGenerationId] = useState<string | null | undefined>(null)
   const [imageLoaded, setImageLoaded] = useState(false)
 
   const cancelGeneration = (generationId: string) => {
@@ -79,7 +70,6 @@ export function useImageGeneration({
     if (generation?.abortController) {
       generation.abortController.abort()
     }
-
     setGenerations((prev) =>
       prev.map((gen) =>
         gen.id === generationId && gen.status === "loading"
@@ -115,142 +105,122 @@ export function useImageGeneration({
       return
     }
 
-    const numVariations = 1
-    const generationPromises: Promise<void>[] = []
+    const generationId = `gen-${Date.now()}-${Math.random().toString(36).substring(7)}`
+    const controller = new AbortController()
 
-    for (let i = 0; i < numVariations; i++) {
-      const generationId = `gen-${Date.now()}-${Math.random().toString(36).substring(7)}`
-      const controller = new AbortController()
-
-      const newGeneration: Generation = {
-        id: generationId,
-        status: "loading",
-        progress: 0,
-        imageUrl: null,
-        prompt: effectivePrompt,
-        timestamp: Date.now() + i,
-        createdAt: new Date().toISOString(),
-        abortController: controller,
-      }
-
-      setGenerations((prev) => [newGeneration, ...prev])
-
-      if (i === 0) {
-        setSelectedGenerationId(generationId)
-      }
-
-      const progressInterval = setInterval(() => {
-        setGenerations((prev) =>
-          prev.map((gen) => {
-            if (gen.id === generationId && gen.status === "loading") {
-              const next =
-                gen.progress >= 98
-                  ? 98
-                  : gen.progress >= 96
-                    ? gen.progress + 0.2
-                    : gen.progress >= 90
-                      ? gen.progress + 0.5
-                      : gen.progress >= 75
-                        ? gen.progress + 0.8
-                        : gen.progress >= 50
-                          ? gen.progress + 1
-                          : gen.progress >= 25
-                            ? gen.progress + 1.2
-                            : gen.progress + 1.5
-              return { ...gen, progress: Math.min(next, 98) }
-            }
-            return gen
-          }),
-        )
-      }, 100)
-
-      const generationPromise = (async () => {
-        try {
-          const formData = new FormData()
-          formData.append("mode", currentMode)
-          formData.append("prompt", effectivePrompt)
-          formData.append("aspectRatio", effectiveAspectRatio)
-
-          if (currentMode === "image-editing") {
-            if (effectiveUseUrls) {
-              formData.append("image1Url", effectiveImage1Url)
-              if (effectiveImage2Url) {
-                formData.append("image2Url", effectiveImage2Url)
-              }
-            } else {
-              if (effectiveImage1) {
-                formData.append("image1", effectiveImage1)
-              }
-              if (effectiveImage2) {
-                formData.append("image2", effectiveImage2)
-              }
-            }
-          }
-
-          const response = await fetch("/api/seq/generate-image", {
-            method: "POST",
-            body: formData,
-            signal: controller.signal,
-          })
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
-
-            if (errorData.error === "Configuration error" && errorData.details?.includes("AI_GATEWAY_API_KEY")) {
-              clearInterval(progressInterval)
-              setGenerations((prev) => prev.filter((gen) => gen.id !== generationId))
-              onApiKeyMissing?.()
-              return
-            }
-
-            throw new Error(`${errorData.error}${errorData.details ? `: ${errorData.details}` : ""}`)
-          }
-
-          const data = await response.json()
-
-          clearInterval(progressInterval)
-
-          if (data.url) {
-            const completedGeneration: Generation = {
-              id: generationId,
-              status: "complete",
-              progress: 100,
-              imageUrl: data.url,
-              prompt: effectivePrompt,
-              timestamp: Date.now(),
-              createdAt: new Date().toISOString(),
-            }
-
-            setGenerations((prev) => prev.filter((gen) => gen.id !== generationId))
-
-            await addGeneration(completedGeneration)
-          }
-
-          if (selectedGenerationId === generationId) {
-            setImageLoaded(true)
-          }
-
-          playSuccessSound()
-        } catch (error) {
-          console.error("Error in generation:", error)
-          clearInterval(progressInterval)
-
-          if (error instanceof Error && error.name === "AbortError") {
-            return
-          }
-
-          const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
-
-          setGenerations((prev) => prev.filter((gen) => gen.id !== generationId))
-
-          onToast(`Error generating image: ${errorMessage}`, "error")
-        }
-      })()
-
-      generationPromises.push(generationPromise)
+    const newGeneration: Generation = {
+      id: generationId,
+      status: "loading",
+      progress: 0,
+      imageUrl: null,
+      prompt: effectivePrompt,
+      timestamp: Date.now(),
+      createdAt: new Date().toISOString(),
+      abortController: controller,
     }
 
-    await Promise.all(generationPromises)
+    setGenerations((prev) => [newGeneration, ...prev])
+    setSelectedGenerationId(generationId)
+
+    const progressInterval = setInterval(() => {
+      setGenerations((prev) =>
+        prev.map((gen) => {
+          if (gen.id === generationId && gen.status === "loading") {
+            const next =
+              gen.progress >= 98
+                ? 98
+                : gen.progress >= 96
+                  ? gen.progress + 0.2
+                  : gen.progress >= 90
+                    ? gen.progress + 0.5
+                    : gen.progress >= 75
+                      ? gen.progress + 0.8
+                      : gen.progress >= 50
+                        ? gen.progress + 1
+                        : gen.progress >= 25
+                          ? gen.progress + 1.2
+                          : gen.progress + 1.5
+            return { ...gen, progress: Math.min(next, 98) }
+          }
+          return gen
+        }),
+      )
+    }, 100)
+
+    try {
+      const formData = new FormData()
+      formData.append("mode", currentMode)
+      formData.append("prompt", effectivePrompt)
+      formData.append("aspectRatio", effectiveAspectRatio)
+
+      if (currentMode === "image-editing") {
+        if (effectiveUseUrls) {
+          formData.append("image1Url", effectiveImage1Url)
+          if (effectiveImage2Url) {
+            formData.append("image2Url", effectiveImage2Url)
+          }
+        } else {
+          if (effectiveImage1) {
+            formData.append("image1", effectiveImage1)
+          }
+          if (effectiveImage2) {
+            formData.append("image2", effectiveImage2)
+          }
+        }
+      }
+
+      const response = await fetch("/api/seq/generate-image", {
+        method: "POST",
+        body: formData,
+        signal: controller.signal,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
+        if (errorData.error === "Configuration error" && errorData.details?.includes("AI_GATEWAY_API_KEY")) {
+          clearInterval(progressInterval)
+          setGenerations((prev) => prev.filter((gen) => gen.id !== generationId))
+          onApiKeyMissing?.()
+          return
+        }
+        throw new Error(`${errorData.error}${errorData.details ? `: ${errorData.details}` : ""}`)
+      }
+
+      const data = await response.json()
+      clearInterval(progressInterval)
+
+      if (data.url) {
+        const completedGeneration: Generation = {
+          id: generationId,
+          status: "complete",
+          progress: 100,
+          imageUrl: data.url,
+          prompt: effectivePrompt,
+          timestamp: Date.now(),
+          createdAt: new Date().toISOString(),
+          aspectRatio: effectiveAspectRatio,
+          mode: currentMode,
+        }
+        setGenerations((prev) => prev.filter((gen) => gen.id !== generationId))
+        await addGeneration(completedGeneration)
+      }
+
+      if (selectedGenerationId === generationId) {
+        setImageLoaded(true)
+      }
+      playSuccessSound()
+    } catch (error) {
+      console.error("Error in generation:", error)
+      clearInterval(progressInterval)
+
+      if (error instanceof Error && error.name === "AbortError") {
+        return
+      }
+
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+      setGenerations((prev) => prev.filter((gen) => gen.id !== generationId))
+      onToast(`Error generating image: ${errorMessage}`, "error")
+    }
   }
 
   const loadGeneratedAsInput = async () => {
@@ -261,7 +231,6 @@ export function useImageGeneration({
       const response = await fetch(selectedGeneration.imageUrl)
       const blob = await response.blob()
       const file = new File([blob], "generated-image.png", { type: "image/png" })
-
       await onImageUpload(file, 1)
       onToast("Image loaded into Input 1", "success")
     } catch (error) {

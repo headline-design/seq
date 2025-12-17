@@ -73,12 +73,12 @@ export const InspectorPanel = memo(function InspectorPanel({
       <PanelHeader title="Inspector" onClose={onClose} />
 
       {clip && media && media.type === "video" && !isTextClip && (
-        <div className="flex border-b border-white/[0.06]">
+        <div className="flex border-b border-[var(--border-default)]">
           <button
             onClick={() => setActiveTab("properties")}
             className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${
               activeTab === "properties"
-                ? "text-white border-b-2 border-indigo-500"
+                ? "text-white border-b-2 border-[var(--accent-primary)]"
                 : "text-neutral-500 hover:text-neutral-300"
             }`}
           >
@@ -88,13 +88,13 @@ export const InspectorPanel = memo(function InspectorPanel({
             onClick={() => setActiveTab("effects")}
             className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 ${
               activeTab === "effects"
-                ? "text-white border-b-2 border-indigo-500"
+                ? "text-white border-b-2 border-[var(--accent-primary)]"
                 : "text-neutral-500 hover:text-neutral-300"
             }`}
           >
             <Palette className="w-3 h-3" />
             Effects
-            {hasEffects && <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>}
+            {hasEffects && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)]"></span>}
           </button>
         </div>
       )}
@@ -108,9 +108,9 @@ export const InspectorPanel = memo(function InspectorPanel({
         ) : isTextClip ? (
           <>
             {/* Text Clip Header */}
-            <div className="flex items-center gap-3 pb-3 border-b border-white/[0.06]">
-              <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                <TypeIcon className="w-5 h-5 text-purple-400" />
+            <div className="flex items-center gap-3 pb-3 border-b border-[var(--border-default)]">
+              <div className="w-10 h-10 rounded-lg bg-[var(--accent-muted)] flex items-center justify-center">
+                <TypeIcon className="w-5 h-5 text-[var(--accent-text)]" />
               </div>
               <div className="flex flex-col">
                 <h3 className="text-sm font-semibold text-neutral-200">Text Overlay</h3>
@@ -172,7 +172,7 @@ export const InspectorPanel = memo(function InspectorPanel({
                       onChange={(e) => onUpdateClip(clip.id, { start: Number(e.target.value) })}
                       min={0}
                       step={0.01}
-                      className="w-full p-2 pr-6 bg-[#0a0a0a] rounded border border-white/[0.06] text-xs font-mono text-neutral-300 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20"
+                      className="w-full p-2 pr-6 bg-[var(--surface-0)] rounded border border-[var(--border-default)] text-xs font-mono text-neutral-300 focus:outline-none focus:border-[var(--accent-primary)]/50 focus:ring-1 focus:ring-[var(--focus-ring)]"
                     />
                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-neutral-600">s</span>
                   </div>
@@ -186,7 +186,7 @@ export const InspectorPanel = memo(function InspectorPanel({
                       onChange={(e) => onUpdateClip(clip.id, { duration: Number(e.target.value) })}
                       min={0.1}
                       step={0.01}
-                      className="w-full p-2 pr-6 bg-[#0a0a0a] rounded border border-white/[0.06] text-xs font-mono text-neutral-300 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20"
+                      className="w-full p-2 pr-6 bg-[var(--surface-0)] rounded border border-[var(--border-default)] text-xs font-mono text-neutral-300 focus:outline-none focus:border-[var(--accent-primary)]/50 focus:ring-1 focus:ring-[var(--focus-ring)]"
                     />
                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-neutral-600">s</span>
                   </div>
@@ -205,7 +205,7 @@ export const InspectorPanel = memo(function InspectorPanel({
           <>
             {/* Media Identity with Preview */}
             <div className="flex flex-col gap-3">
-              <div className="relative aspect-video bg-black rounded-lg border border-white/[0.06] overflow-hidden group">
+              <div className="relative aspect-video bg-black rounded-lg border border-[var(--border-default)] overflow-hidden group">
                 {media.type === "video" ? (
                   <>
                     <video
@@ -299,7 +299,7 @@ export const InspectorPanel = memo(function InspectorPanel({
               title="Speed"
               badge={
                 clip.speed !== 1 ? (
-                  <span className="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 text-[9px] font-bold rounded">
+                  <span className="px-1.5 py-0.5 bg-[var(--accent-muted)] text-[var(--accent-text)] text-[9px] font-bold rounded">
                     {clip.speed}x
                   </span>
                 ) : null
@@ -313,8 +313,8 @@ export const InspectorPanel = memo(function InspectorPanel({
                     onClick={() => handleSpeedChange(speed)}
                     className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
                       (clip.speed ?? 1) === speed
-                        ? "bg-indigo-500 text-white"
-                        : "bg-white/[0.04] text-neutral-500 hover:bg-white/[0.08] hover:text-white"
+                        ? "bg-[var(--accent-primary)] text-accent-text-white"
+                        : "bg-[var(--hover-overlay)] text-neutral-500 hover:bg-[var(--active-overlay)] hover:text-accent-text-white"
                     }`}
                   >
                     {speed}x
@@ -330,7 +330,7 @@ export const InspectorPanel = memo(function InspectorPanel({
                   step="0.1"
                   value={clip.speed ?? 1}
                   onChange={(e) => handleSpeedChange(Number.parseFloat(e.target.value))}
-                  className="flex-1 h-1 bg-neutral-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-indigo-500 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-lg"
+                  className="flex-1 h-1 bg-neutral-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[var(--accent-primary)] [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-lg"
                 />
                 <span className="text-xs font-mono text-neutral-400 w-10 text-right">
                   {(clip.speed ?? 1).toFixed(1)}x
@@ -368,7 +368,7 @@ export const InspectorPanel = memo(function InspectorPanel({
                       className={`flex-1 py-1 rounded text-[10px] font-medium transition-all ${
                         (clip.volume ?? 1) === vol
                           ? "bg-white text-black"
-                          : "bg-white/[0.04] text-neutral-500 hover:bg-white/[0.08] hover:text-white"
+                          : "bg-[var(--hover-overlay)] text-neutral-500 hover:bg-[var(--active-overlay)] hover:text-white"
                       }`}
                     >
                       {vol === 0 ? "Mute" : `${Math.round(vol * 100)}%`}
@@ -377,7 +377,7 @@ export const InspectorPanel = memo(function InspectorPanel({
                 </div>
 
                 {/* Fade In/Out Controls */}
-                <div className="pt-2 border-t border-white/[0.06] flex flex-col gap-2">
+                <div className="pt-2 border-t border-[var(--border-default)] flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-neutral-500">Fade In</span>
                     <div className="flex items-center gap-2">
@@ -421,7 +421,7 @@ export const InspectorPanel = memo(function InspectorPanel({
                         className={`flex-1 py-1 rounded text-[9px] font-medium transition-all ${
                           (clip.fadeIn ?? 0) === val && (clip.fadeOut ?? 0) === val
                             ? "bg-white text-black"
-                            : "bg-white/[0.04] text-neutral-500 hover:bg-white/[0.08] hover:text-white"
+                            : "bg-[var(--hover-overlay)] text-neutral-500 hover:bg-[var(--active-overlay)] hover:text-white"
                         }`}
                       >
                         {val === 0 ? "None" : `${val}s`}
@@ -439,15 +439,15 @@ export const InspectorPanel = memo(function InspectorPanel({
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1">
                   <label className="text-[9px] text-neutral-600 uppercase">Track</label>
-                  <div className="p-2 bg-[#18181b] rounded border border-white/[0.06] text-xs text-neutral-300">
+                  <div className="p-2 bg-[var(--surface-2)] rounded border border-[var(--border-default)] text-xs text-neutral-300">
                     {track?.name || clip.trackId}
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-[9px] text-neutral-600 uppercase">Type</label>
-                  <div className="p-2 bg-[#18181b] rounded border border-white/[0.06] text-xs text-neutral-300 flex items-center gap-2">
+                  <div className="p-2 bg-[var(--surface-2)] rounded border border-[var(--border-default)] text-xs text-neutral-300 flex items-center gap-2">
                     {media.type === "video" ? (
-                      <FilmIcon className="w-3 h-3 text-indigo-400" />
+                      <FilmIcon className="w-3 h-3 text-[var(--accent-text)]" />
                     ) : (
                       <MusicIcon className="w-3 h-3 text-emerald-400" />
                     )}
@@ -469,14 +469,14 @@ export const InspectorPanel = memo(function InspectorPanel({
               <>
                 <PanelDivider />
                 <PanelSection title="Transition">
-                  <div className="bg-indigo-900/10 rounded-lg border border-indigo-500/20 p-3 flex items-center justify-between">
+                  <div className="bg-[var(--accent-bg-subtle)] rounded-lg border border-[var(--accent-border)] p-3 flex items-center justify-between">
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-indigo-300 capitalize">
+                      <span className="text-xs font-medium text-[var(--accent-text)] capitalize">
                         {clip.transition.type.replace("-", " ")}
                       </span>
                       <span className="text-[10px] text-neutral-500">Applied to this clip</span>
                     </div>
-                    <div className="text-xs font-mono text-indigo-300/80">{clip.transition.duration}s</div>
+                    <div className="text-xs font-mono text-[var(--accent-text-muted)]">{clip.transition.duration}s</div>
                   </div>
                 </PanelSection>
               </>

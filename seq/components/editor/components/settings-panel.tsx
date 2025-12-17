@@ -128,14 +128,14 @@ export const SettingsPanel = memo(function SettingsPanel({
 
       <PanelContent>
         {/* Project Info Section */}
-        <PanelSectionBordered title="Project" icon={<SettingsIcon className="w-4 h-4 text-indigo-400" />}>
+        <PanelSectionBordered title="Project" icon={<SettingsIcon className="w-4 h-4 text-[var(--accent-text)]" />}>
           <div className="space-y-1.5">
             <label className="text-xs text-neutral-400">Project Name</label>
             <input
               type="text"
               value={settings.projectName}
               onChange={(e) => updateSetting("projectName", e.target.value)}
-              className="w-full bg-[#0a0a0a] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:border-indigo-500"
+              className="w-full bg-[var(--surface-0)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:border-[var(--accent-primary)]"
               placeholder="Enter project name..."
             />
           </div>
@@ -288,7 +288,7 @@ export const SettingsPanel = memo(function SettingsPanel({
             ].map((shortcut) => (
               <div key={shortcut.action} className="flex items-center justify-between py-1">
                 <span className="text-xs text-neutral-400">{shortcut.action}</span>
-                <kbd className="px-2 py-0.5 bg-white/[0.04] border border-white/[0.06] rounded text-[10px] text-neutral-300 font-mono">
+                <kbd className="px-2 py-0.5 bg-[var(--hover-overlay)] border border-[var(--border-default)] rounded text-[10px] text-neutral-300 font-mono">
                   {shortcut.keys}
                 </kbd>
               </div>
@@ -316,7 +316,7 @@ export const SettingsPanel = memo(function SettingsPanel({
               New Project (Clear All)
             </button>
 
-            <div className="border-t border-white/[0.06] pt-3 space-y-3">
+            <div className="border-t border-[var(--border-default)] pt-3 space-y-3">
               <button
                 onClick={handleClearTimeline}
                 className="w-full py-2.5 px-4 rounded-lg border border-red-900/30 bg-red-900/10 text-red-400 hover:bg-red-900/20 text-xs font-medium transition-colors"
@@ -342,7 +342,7 @@ export const SettingsPanel = memo(function SettingsPanel({
 
               <button
                 onClick={handleResetSettings}
-                className="w-full py-2.5 px-4 rounded-lg border border-white/[0.06] bg-white/[0.02] text-neutral-400 hover:bg-white/[0.06] text-xs font-medium transition-colors"
+                className="w-full py-2.5 px-4 rounded-lg border border-[var(--border-default)] bg-[var(--hover-overlay)] text-neutral-400 hover:bg-[var(--active-overlay)] text-xs font-medium transition-colors"
               >
                 Reset All Settings
               </button>
@@ -351,7 +351,7 @@ export const SettingsPanel = memo(function SettingsPanel({
         </PanelSectionBordered>
 
         {/* Footer */}
-        <div className="mt-auto pt-4 text-center border-t border-white/[0.06]">
+        <div className="mt-auto pt-4 text-center border-t border-[var(--border-default)]">
           <p className="text-[10px] text-neutral-600">Seq Video Editor v1.0.2</p>
           <p className="text-[10px] text-neutral-700 mt-1">Built with Next.js & FFmpeg</p>
         </div>

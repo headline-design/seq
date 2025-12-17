@@ -301,7 +301,7 @@ export const Timeline = memo(function Timeline({
 
   return (
     <div
-      className={`${className || ""} bg-[#0a0a0a] border-t border-white/[0.06] flex flex-col shrink-0 select-none relative z-10 transition-none overflow-hidden`}
+      className={`${className || ""} bg-[var(--surface-0)] border-t border-[var(--border-default)] flex flex-col shrink-0 select-none relative z-10 transition-none overflow-hidden`}
       style={style || { height: 320 }}
       role="region"
       aria-label="Video timeline"
@@ -362,7 +362,7 @@ export const Timeline = memo(function Timeline({
         {/* Track Headers */}
         <div
           ref={headerContainerRef}
-          className="w-32 bg-[#0a0a0a] border-r border-white/[0.06] shrink-0 z-20 flex flex-col pt-8 shadow-[4px_0_15px_-5px_rgba(0,0,0,0.5)] overflow-hidden"
+          className="w-32 bg-[var(--surface-0)] border-r border-[var(--border-default)] shrink-0 z-20 flex flex-col pt-8 shadow-[4px_0_15px_-5px_rgba(0,0,0,0.5)] overflow-hidden"
         >
           <TimelineTrackHeaders
             tracks={tracks}
@@ -445,7 +445,7 @@ export const Timeline = memo(function Timeline({
                   />
                   {/* Visual Line */}
                   <div
-                    className={`absolute left-0 w-px h-full bg-indigo-500 pointer-events-none ${
+                    className={`absolute left-0 w-px h-full bg-[var(--accent-primary)] pointer-events-none ${
                       isDraggingPlayhead ? "bg-white shadow-[0_0_8px_white]" : ""
                     }`}
                   />
@@ -454,7 +454,7 @@ export const Timeline = memo(function Timeline({
                     className={`absolute -left-[5.5px] top-0 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] pointer-events-none transition-colors ${
                       isDraggingPlayhead
                         ? "border-t-white"
-                        : "border-t-indigo-500 group-hover/playhead:border-t-indigo-400"
+                        : "border-t-[var(--accent-primary)] group-hover/playhead:border-t-[var(--accent-text)]"
                     }`}
                   />
                 </div>
@@ -470,7 +470,7 @@ export const Timeline = memo(function Timeline({
                 {/* Marquee Selection Box */}
                 {selectionBox && (
                   <div
-                    className="absolute z-[60] bg-indigo-500/20 border border-indigo-500/50 pointer-events-none"
+                    className="absolute z-[60] bg-[var(--accent-primary)]/20 border border-[var(--accent-muted)] pointer-events-none"
                     style={{
                       left: selectionBox.x,
                       top: selectionBox.y,
@@ -490,7 +490,7 @@ export const Timeline = memo(function Timeline({
                   return (
                     <div
                       key={track.id}
-                      className={`${trackHeight} border-b border-white/[0.04] relative group/track bg-[#080808]`}
+                      className={`${trackHeight} border-b border-[var(--border-subtle)] relative group/track bg-[#080808]`}
                       onDoubleClick={(e) => handleTrackDoubleClick(e, track)}
                     >
                       <div

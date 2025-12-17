@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { cn } from "@/seq/lib/utils"
 
 interface GlobalDropZoneProps {
@@ -11,7 +13,7 @@ interface GlobalDropZoneProps {
 export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: GlobalDropZoneProps) {
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center gap-8 px-8"
+      className="fixed inset-0 z-50 bg-[var(--surface-0)]/90 backdrop-blur-md flex items-center justify-center gap-8 px-8"
       onDrop={(e) => {
         e.preventDefault()
         onDrop(e, 1)
@@ -19,10 +21,10 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
     >
       <div
         className={cn(
-          "flex-1 max-w-md h-64 border-4 border-dashed p-8 text-center transition-all duration-200 cursor-pointer",
+          "flex-1 max-w-md h-64 border-4 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer",
           dropZoneHover === 1
-            ? "border-white bg-white/30 scale-110 shadow-2xl shadow-white/50"
-            : "border-white/50 bg-white/5 hover:bg-white/10 hover:border-white/70",
+            ? "border-[var(--accent-primary)] bg-[var(--accent-muted)] scale-105 shadow-2xl shadow-[var(--accent-shadow)]"
+            : "border-[var(--border-emphasis)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] hover:border-[var(--accent-border)]",
         )}
         onDragEnter={() => onSetDropZoneHover(1)}
         onDragLeave={() => onSetDropZoneHover(null)}
@@ -39,14 +41,14 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
         <div className="flex flex-col items-center justify-center h-full">
           <div
             className={cn(
-              "w-16 h-16 flex items-center justify-center mb-4 transition-all",
-              dropZoneHover === 1 ? "bg-white/40 scale-110" : "bg-white/10",
+              "w-16 h-16 rounded-xl flex items-center justify-center mb-4 transition-all",
+              dropZoneHover === 1 ? "bg-[var(--accent-muted)] scale-110" : "bg-[var(--surface-3)]",
             )}
           >
             <span
               className={cn(
                 "text-3xl font-bold transition-all",
-                dropZoneHover === 1 ? "text-white" : "text-white/80",
+                dropZoneHover === 1 ? "text-[var(--accent-primary)]" : "text-neutral-400",
               )}
             >
               1
@@ -55,7 +57,7 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
           <svg
             className={cn(
               "w-12 h-12 mx-auto mb-4 transition-all",
-              dropZoneHover === 1 ? "text-white scale-110" : "text-white/80",
+              dropZoneHover === 1 ? "text-[var(--accent-primary)] scale-110" : "text-neutral-400",
             )}
             fill="none"
             stroke="currentColor"
@@ -68,10 +70,14 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
               d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
             />
           </svg>
-          <p className={cn("text-xl font-bold transition-all", dropZoneHover === 1 ? "text-white" : "text-white/80")}>
+          <p
+            className={cn("text-xl font-bold transition-all", dropZoneHover === 1 ? "text-white" : "text-neutral-300")}
+          >
             Input 1
           </p>
-          <p className={cn("text-sm mt-2 transition-all", dropZoneHover === 1 ? "text-white/90" : "text-white/70")}>
+          <p
+            className={cn("text-sm mt-2 transition-all", dropZoneHover === 1 ? "text-neutral-300" : "text-neutral-500")}
+          >
             Drop here for first image
           </p>
         </div>
@@ -79,10 +85,10 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
 
       <div
         className={cn(
-          "flex-1 max-w-md h-64 border-4 border-dashed p-8 text-center transition-all duration-200 cursor-pointer",
+          "flex-1 max-w-md h-64 border-4 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer",
           dropZoneHover === 2
-            ? "border-white bg-white/30 scale-110 shadow-2xl shadow-white/50"
-            : "border-white/50 bg-white/5 hover:bg-white/10 hover:border-white/70",
+            ? "border-[var(--accent-primary)] bg-[var(--accent-muted)] scale-105 shadow-2xl shadow-[var(--accent-shadow)]"
+            : "border-[var(--border-emphasis)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] hover:border-[var(--accent-border)]",
         )}
         onDragEnter={() => onSetDropZoneHover(2)}
         onDragLeave={() => onSetDropZoneHover(null)}
@@ -99,14 +105,14 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
         <div className="flex flex-col items-center justify-center h-full">
           <div
             className={cn(
-              "w-16 h-16 flex items-center justify-center mb-4 transition-all",
-              dropZoneHover === 2 ? "bg-white/40 scale-110" : "bg-white/10",
+              "w-16 h-16 rounded-xl flex items-center justify-center mb-4 transition-all",
+              dropZoneHover === 2 ? "bg-[var(--accent-muted)] scale-110" : "bg-[var(--surface-3)]",
             )}
           >
             <span
               className={cn(
                 "text-3xl font-bold transition-all",
-                dropZoneHover === 2 ? "text-white" : "text-white/80",
+                dropZoneHover === 2 ? "text-[var(--accent-primary)]" : "text-neutral-400",
               )}
             >
               2
@@ -115,7 +121,7 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
           <svg
             className={cn(
               "w-12 h-12 mx-auto mb-4 transition-all",
-              dropZoneHover === 2 ? "text-white scale-110" : "text-white/80",
+              dropZoneHover === 2 ? "text-[var(--accent-primary)] scale-110" : "text-neutral-400",
             )}
             fill="none"
             stroke="currentColor"
@@ -128,10 +134,14 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
               d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
             />
           </svg>
-          <p className={cn("text-xl font-bold transition-all", dropZoneHover === 2 ? "text-white" : "text-white/80")}>
+          <p
+            className={cn("text-xl font-bold transition-all", dropZoneHover === 2 ? "text-white" : "text-neutral-300")}
+          >
             Input 2
           </p>
-          <p className={cn("text-sm mt-2 transition-all", dropZoneHover === 2 ? "text-white/90" : "text-white/70")}>
+          <p
+            className={cn("text-sm mt-2 transition-all", dropZoneHover === 2 ? "text-neutral-300" : "text-neutral-500")}
+          >
             Drop here for second image
           </p>
         </div>

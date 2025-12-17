@@ -4,14 +4,14 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #000000;
+  --background: #0a0a0a;
   --foreground: #ffffff;
-  --card: #09090b;
+  --card: #0c0c0e;
   --card-foreground: #ffffff;
-  --popover: #09090b;
+  --popover: #0c0c0e;
   --popover-foreground: #ffffff;
   --primary: #ffffff;
-  --primary-foreground: #000000;
+  --primary-foreground: #0a0a0a;
   --secondary: #18181b;
   --secondary-foreground: #ffffff;
   --muted: #27272a;
@@ -20,8 +20,9 @@
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #27272a;
+  --border: rgba(255, 255, 255, 0.06);
   --input: #18181b;
+  /* Updated default ring to neutral white */
   --ring: #ffffff;
   --radius: 0.5rem;
   --font-inter: "Inter", sans-serif;
@@ -31,37 +32,95 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  /* Updated sidebar tokens for dark theme */
+
+  /* Sidebar tokens - Updated to neutral defaults */
   --sidebar: #0a0a0a;
   --sidebar-foreground: #fafafa;
-  --sidebar-primary: #6366f1;
-  --sidebar-primary-foreground: #ffffff;
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: #0a0a0a;
   --sidebar-accent: rgba(255, 255, 255, 0.06);
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #6366f1;
+  --sidebar-ring: #ffffff;
+
+  /* Extended themeable accent system - neutral defaults (Vercel-style) */
+  --accent-primary: #ffffff;
+  --accent-hover: #e5e5e5;
+  --accent-muted: rgba(255, 255, 255, 0.1);
+  --accent-secondary: #a1a1aa;
+  /* Flat color instead of gradient for neutral theme */
+  --accent-gradient: #ffffff;
+  --accent-ring: rgba(255, 255, 255, 0.25);
+  --accent-text: #ffffff;
+  --accent-text-muted: #a1a1aa;
+  --accent-white: #fff;
+  --accent-border: rgba(255, 255, 255, 0.15);
+  --accent-bg-subtle: rgba(255, 255, 255, 0.05);
+  --accent-bg-emphasis: rgba(255, 255, 255, 0.1);
+  --accent-shadow: rgba(0, 0, 0, 0.25);
+
+  /* Legacy accent tokens (kept for backwards compatibility) */
+  --accent-pink: var(--accent-primary);
+  --accent-pink-hover: var(--accent-hover);
+  --accent-pink-muted: var(--accent-muted);
+  --accent-rose: var(--accent-secondary);
+
+  /* Surface elevation levels */
+  --surface-0: #0a0a0a;
+  --surface-1: #0c0c0e;
+  --surface-2: #111114;
+  --surface-3: #18181b;
+  --surface-4: #1f1f23;
+
+  /* Border variations */
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-default: rgba(255, 255, 255, 0.06);
+  --border-emphasis: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.12);
+
+  /* Interactive overlays */
+  --hover-overlay: rgba(255, 255, 255, 0.04);
+  --active-overlay: rgba(255, 255, 255, 0.08);
+  --focus-ring: var(--accent-ring);
+
+  /* Text hierarchy */
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --text-muted: #52525b;
+
+  /* Semantic colors */
+  --success: #22c55e;
+  --success-muted: rgba(34, 197, 94, 0.15);
+  --warning: #f59e0b;
+  --warning-muted: rgba(245, 158, 11, 0.15);
+  --error: #ef4444;
+  --error-muted: rgba(239, 68, 68, 0.15);
+  --info: #3b82f6;
+  --info-muted: rgba(59, 130, 246, 0.15);
 }
 
 .dark {
-  --background: #000000;
+  --background: #0a0a0a;
   --foreground: #ffffff;
-  --card: #09090b;
+  --card: #0c0c0e;
   --card-foreground: #ffffff;
-  --popover: #09090b;
+  --popover: #0c0c0e;
   --popover-foreground: #ffffff;
   --primary: #ffffff;
-  --primary-foreground: #000000;
+  --primary-foreground: #0a0a0a;
   --secondary: #18181b;
   --secondary-foreground: #ffffff;
   --muted: #27272a;
   --muted-foreground: #a1a1aa;
   --accent: #27272a;
   --accent-foreground: #ffffff;
+  --accent-white: #000;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #27272a;
+  --border: rgba(255, 255, 255, 0.06);
   --input: #18181b;
-  --ring: #ffffff;
+  --ring: var(--accent-primary);
   --font-inter: "Inter", sans-serif;
   --font-jetbrains-mono: "JetBrains Mono", monospace;
   --chart-1: oklch(0.488 0.243 264.376);
@@ -69,19 +128,75 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  /* Updated sidebar tokens for dark theme */
+
+  /* Sidebar tokens - Updated to neutral defaults */
   --sidebar: #0a0a0a;
   --sidebar-foreground: #fafafa;
-  --sidebar-primary: #6366f1;
-  --sidebar-primary-foreground: #ffffff;
+  --sidebar-primary: var(--accent-primary);
+  --sidebar-primary-foreground: #0a0a0a;
   --sidebar-accent: rgba(255, 255, 255, 0.06);
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #6366f1;
+  --sidebar-ring: var(--accent-primary);
+
+  /* Extended themeable accent system for dark mode - neutral defaults */
+  --accent-primary: #ffffff;
+  --accent-hover: #e5e5e5;
+  --accent-muted: rgba(255, 255, 255, 0.1);
+  --accent-secondary: #a1a1aa;
+  /* Flat color instead of gradient for neutral theme */
+  --accent-gradient: #ffffff;
+  --accent-ring: rgba(255, 255, 255, 0.25);
+  --accent-text: #ffffff;
+
+  --accent-text-muted: #a1a1aa;
+  --accent-border: rgba(255, 255, 255, 0.15);
+  --accent-bg-subtle: rgba(255, 255, 255, 0.05);
+  --accent-bg-emphasis: rgba(255, 255, 255, 0.1);
+  --accent-shadow: rgba(0, 0, 0, 0.25);
+
+  /* Legacy tokens */
+  --accent-pink: var(--accent-primary);
+  --accent-pink-hover: var(--accent-hover);
+  --accent-pink-muted: var(--accent-muted);
+  --accent-rose: var(--accent-secondary);
+
+  /* Surface elevation levels */
+  --surface-0: #0a0a0a;
+  --surface-1: #0c0c0e;
+  --surface-2: #111114;
+  --surface-3: #18181b;
+  --surface-4: #1f1f23;
+
+  /* Border variations */
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-default: rgba(255, 255, 255, 0.06);
+  --border-emphasis: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.12);
+
+  /* Interactive overlays */
+  --hover-overlay: rgba(255, 255, 255, 0.04);
+  --active-overlay: rgba(255, 255, 255, 0.08);
+  --focus-ring: var(--accent-ring);
+
+  /* Text hierarchy */
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --text-muted: #52525b;
+
+  /* Semantic colors */
+  --success: #22c55e;
+  --success-muted: rgba(34, 197, 94, 0.15);
+  --warning: #f59e0b;
+  --warning-muted: rgba(245, 158, 11, 0.15);
+  --error: #ef4444;
+  --error-muted: rgba(239, 68, 68, 0.15);
+  --info: #3b82f6;
+  --info-muted: rgba(59, 130, 246, 0.15);
 }
 
 @theme inline {
-  /* optional: --font-sans, --font-serif, --font-mono if they are applied in the layout.tsx */
   --font-sans: var(--font-inter);
   --font-mono: var(--font-jetbrains-mono);
   --color-background: var(--background);
@@ -128,12 +243,12 @@
   }
 
   html {
-    background-color: #000000 !important;
+    background-color: #0a0a0a !important;
   }
 
   body {
     @apply bg-background text-foreground;
-    background-color: #000000 !important;
+    background-color: #0a0a0a !important;
   }
 
   .shader-background {
@@ -172,23 +287,315 @@
     backface-visibility: hidden;
     perspective: 1000px;
   }
-}
 
+  /* Comprehensive themeable accent utilities */
+  .text-accent {
+    color: var(--accent-primary);
+  }
+
+   .text-accent-text-white {
+    color: var(--accent-text-white);
+  }
+
+  .text-accent-hover {
+    color: var(--accent-hover);
+  }
+
+  .text-accent-muted {
+    color: var(--accent-text-muted);
+  }
+
+  .bg-accent-theme {
+    background-color: var(--accent-primary);
+  }
+
+  .bg-accent-hover {
+    background-color: var(--accent-hover);
+  }
+
+  .bg-accent-muted {
+    background-color: var(--accent-muted);
+  }
+
+  .bg-accent-subtle {
+    background-color: var(--accent-bg-subtle);
+  }
+
+  .bg-accent-emphasis {
+    background-color: var(--accent-bg-emphasis);
+  }
+
+  .bg-accent-gradient {
+    background: var(--accent-gradient);
+  }
+
+  .border-accent {
+    border-color: var(--accent-primary);
+  }
+
+  .border-accent-muted {
+    border-color: var(--accent-border);
+  }
+
+  .ring-accent {
+    --tw-ring-color: var(--accent-primary);
+  }
+
+  .ring-accent-muted {
+    --tw-ring-color: var(--accent-ring);
+  }
+
+  .shadow-accent {
+    box-shadow: 0 4px 14px 0 var(--accent-shadow);
+  }
+
+  .shadow-accent-sm {
+    box-shadow: 0 2px 8px 0 var(--accent-shadow);
+  }
+
+  .shadow-accent-lg {
+    box-shadow: 0 8px 24px 0 var(--accent-shadow);
+  }
+
+  /* Focus states using accent */
+  .focus-accent:focus {
+    border-color: var(--accent-primary);
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent-ring);
+  }
+
+  /* Hover states */
+  .hover-accent:hover {
+    background-color: var(--accent-bg-subtle);
+  }
+
+  /* Active states */
+  .active-accent {
+    background-color: var(--accent-bg-emphasis);
+    border-color: var(--accent-primary);
+  }
+
+  /* Selection highlight */
+  .selection-accent::selection {
+    background-color: var(--accent-muted);
+  }
+
+  /* Slider thumb using accent */
+  .slider-accent::-webkit-slider-thumb {
+    background-color: var(--accent-primary);
+  }
+
+  .slider-accent::-moz-range-thumb {
+    background-color: var(--accent-primary);
+  }
+
+  /* Checkbox/Radio using accent */
+  .check-accent:checked {
+    background-color: var(--accent-primary);
+    border-color: var(--accent-primary);
+  }
+
+  /* Progress bar accent */
+  .progress-accent::-webkit-progress-value {
+    background-color: var(--accent-primary);
+  }
+
+  .progress-accent::-moz-progress-bar {
+    background-color: var(--accent-primary);
+  }
+
+  /* Spinner border using accent */
+  .spinner-accent {
+    border-color: var(--accent-primary);
+    border-top-color: transparent;
+  }
+
+  /* Button variants using accent */
+  .btn-accent {
+    background-color: var(--accent-primary);
+    color: white;
+  }
+
+  .btn-accent:hover {
+    background-color: var(--accent-hover);
+  }
+
+  .btn-accent-outline {
+    background-color: transparent;
+    border: 1px solid var(--accent-border);
+    color: var(--accent-text);
+  }
+
+  .btn-accent-outline:hover {
+    background-color: var(--accent-bg-subtle);
+  }
+
+  .btn-accent-ghost {
+    background-color: transparent;
+    color: var(--accent-text);
+  }
+
+  .btn-accent-ghost:hover {
+    background-color: var(--accent-bg-subtle);
+  }
+
+  /* Tab active state using accent */
+  .tab-accent-active {
+    border-bottom-color: var(--accent-primary);
+    color: white;
+  }
+
+  /* Badge using accent */
+  .badge-accent {
+    background-color: var(--accent-muted);
+    border: 1px solid var(--accent-border);
+    color: var(--accent-text);
+  }
+
+  /* Indicator dot using accent */
+  .dot-accent {
+    background-color: var(--accent-primary);
+  }
+
+  .dot-accent-pulse {
+    background-color: var(--accent-primary);
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Legacy accent utilities (kept for backwards compatibility) */
+  .text-accent-pink {
+    color: var(--accent-primary);
+  }
+
+  .bg-accent-pink {
+    background-color: var(--accent-primary);
+  }
+
+  .bg-accent-pink-muted {
+    background-color: var(--accent-muted);
+  }
+
+  /* Surface utilities */
+  .bg-surface-0 {
+    background-color: var(--surface-0);
+  }
+
+  .bg-surface-1 {
+    background-color: var(--surface-1);
+  }
+
+  .bg-surface-2 {
+    background-color: var(--surface-2);
+  }
+
+  .bg-surface-3 {
+    background-color: var(--surface-3);
+  }
+
+  /* Border utilities */
+  .border-subtle {
+    border-color: var(--border-subtle);
+  }
+
+  .border-emphasis {
+    border-color: var(--border-emphasis);
+  }
+
+  .border-strong {
+    border-color: var(--border-strong);
+  }
+
+  /* Typography Scale - Standardized */
+  .text-page-title {
+    @apply text-2xl font-semibold text-white;
+  }
+
+  .text-section-title {
+    @apply text-xl font-semibold text-white;
+  }
+
+  .text-subsection-title {
+    @apply text-base font-medium text-white;
+  }
+
+  .text-body {
+    @apply text-sm text-neutral-300;
+  }
+
+  .text-caption {
+    @apply text-xs text-neutral-400;
+  }
+
+  .text-label {
+    @apply text-xs font-medium text-neutral-300;
+  }
+
+  /* Standard Layout Classes */
+  .page-container {
+    @apply max-w-6xl mx-auto px-6 py-6;
+  }
+
+  .section-container {
+    @apply max-w-6xl mx-auto px-6;
+  }
+
+  /* Standard Spacing */
+  .section-spacing {
+    @apply py-8;
+  }
+
+  .content-spacing {
+    @apply space-y-6;
+  }
+
+  .item-spacing {
+    @apply space-y-4;
+  }
+
+  /* Badge variants - using themeable accent */
+  .badge-primary {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
+    background-color: var(--accent-muted);
+    border: 1px solid var(--accent-border);
+    color: var(--accent-hover);
+  }
+
+  .badge-secondary {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 500;
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgb(212, 212, 216);
+  }
+
+  .badge-success {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
+    background-color: rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: rgb(52, 211, 153);
+  }
+}
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 .custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  border: 2px solid transparent;
-  background-clip: content-box;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.25);
 }

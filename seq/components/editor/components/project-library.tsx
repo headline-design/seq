@@ -55,8 +55,8 @@ const LibraryItem = memo(function LibraryItem({
     <div
       className={`flex gap-3 p-2 rounded-lg group transition-all border relative cursor-pointer select-none ${
         isSelected
-          ? "bg-[#18181b] border-neutral-700 ring-1 ring-inset ring-neutral-700"
-          : "bg-transparent border-transparent hover:bg-[#18181b] hover:border-neutral-800"
+          ? "bg-[var(--surface-2)] border-neutral-700 ring-1 ring-inset ring-neutral-700"
+          : "bg-transparent border-transparent hover:bg-[var(--surface-2)] hover:border-[var(--border-default)]"
       }`}
       onClick={onSelect}
     >
@@ -82,7 +82,7 @@ const LibraryItem = memo(function LibraryItem({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-[9px] font-mono text-neutral-600">{item.duration.toFixed(1)}s</span>
-            <span className="text-[9px] text-neutral-600 border border-neutral-800 px-1 rounded bg-neutral-900 uppercase">
+            <span className="text-[9px] text-neutral-600 border border-[var(--border-default)] px-1 rounded bg-neutral-900 uppercase">
               {item.type}
             </span>
           </div>
@@ -96,7 +96,7 @@ const LibraryItem = memo(function LibraryItem({
               <TrashIcon className="w-3 h-3" />
             </button>
             <button
-              className="p-1.5 bg-neutral-800 hover:bg-indigo-600 hover:text-white rounded text-neutral-500 transition-all transform hover:scale-110"
+              className="p-1.5 bg-neutral-800 hover:bg-[var(--accent-primary)] hover:text-accent-text-white rounded text-neutral-500 transition-all transform hover:scale-110"
               title="Add to Timeline"
               onClick={handleAddToTimeline}
             >
@@ -167,28 +167,28 @@ export const ProjectLibrary = memo(function ProjectLibrary({
 
   return (
     <div
-      className={`flex flex-col h-full relative ${isDragOver ? "ring-2 ring-indigo-500 ring-inset" : ""}`}
+      className={`flex flex-col h-full relative ${isDragOver ? "ring-2 ring-[var(--accent-primary)] ring-inset" : ""}`}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
     >
-      <div className="p-3 border-b border-white/[0.06] flex items-center justify-between shrink-0">
+      <div className="p-3 border-b border-[var(--border-default)] flex items-center justify-between shrink-0">
         <span className="text-sm font-medium text-white">Project Media</span>
         <button
           onClick={onClose}
-          className="p-1.5 hover:bg-white/[0.06] rounded-lg text-neutral-500 hover:text-white transition-colors"
+          className="p-1.5 hover:bg-[var(--hover-overlay)] rounded-lg text-neutral-500 hover:text-white transition-colors"
         >
           <PanelLeftClose className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="flex gap-1.5 px-3 py-2.5 border-b border-white/[0.06] shrink-0">
+      <div className="flex gap-1.5 px-3 py-2.5 border-b border-[var(--border-default)] shrink-0">
         {(["all", "video", "image", "audio"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
             className={`px-3 py-1.5 text-[11px] rounded-full font-medium transition-all ${
-              filter === f ? "bg-white text-black" : "text-neutral-500 hover:text-white hover:bg-white/[0.06]"
+              filter === f ? "bg-white text-black" : "text-neutral-500 hover:text-white hover:bg-[var(--hover-overlay)]"
             }`}
           >
             {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -202,7 +202,7 @@ export const ProjectLibrary = memo(function ProjectLibrary({
             <p className="text-neutral-400">No media yet</p>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 bg-white/[0.06] hover:bg-white/[0.1] rounded-lg text-neutral-300 hover:text-white transition-colors font-medium"
+              className="px-4 py-2 bg-[var(--hover-overlay)] hover:bg-[var(--active-overlay)] rounded-lg text-neutral-300 hover:text-accent-text-white transition-colors font-medium"
             >
               Import Media
             </button>
@@ -228,11 +228,11 @@ export const ProjectLibrary = memo(function ProjectLibrary({
         )}
       </div>
 
-      <div className="p-2.5 border-t border-white/[0.06] flex items-center justify-between shrink-0">
+      <div className="p-2.5 border-t border-[var(--border-default)] flex items-center justify-between shrink-0">
         <input type="file" ref={fileInputRef} accept="video/*,audio/*,image/*" onChange={handleFileChange} hidden />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="text-[11px] text-neutral-400 hover:text-white px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.1] rounded-lg transition-colors font-medium"
+          className="text-[11px] text-neutral-400 hover:text-white px-3 py-1.5 bg-[var(--hover-overlay)] hover:bg-[var(--active-overlay)] rounded-lg transition-colors font-medium"
         >
           + Import
         </button>
@@ -242,12 +242,12 @@ export const ProjectLibrary = memo(function ProjectLibrary({
           max="120"
           value={thumbnailSize}
           onChange={(e) => setThumbnailSize(Number.parseInt(e.target.value))}
-          className="w-20 h-1 bg-neutral-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 [&::-webkit-slider-thumb]:cursor-pointer"
+          className="w-20 h-1 bg-neutral-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--accent-primary)] [&::-webkit-slider-thumb]:cursor-pointer"
         />
       </div>
 
       {isDragOver && (
-        <div className="absolute inset-0 bg-indigo-900/30 flex items-center justify-center pointer-events-none z-50 backdrop-blur-sm">
+        <div className="absolute inset-0 bg-[var(--accent-primary)]/20 flex items-center justify-center pointer-events-none z-50 backdrop-blur-sm">
           <p className="text-white font-medium">Drop to import</p>
         </div>
       )}

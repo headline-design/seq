@@ -242,7 +242,7 @@ export const MasterGenerator = memo(function MasterGenerator({ onGenerate, onLoa
             variant="outline"
             size="sm"
             onClick={handleLoadDemo}
-            className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300 bg-transparent"
+            className="border-[var(--accent-border)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)] hover:text-[var(--accent-text)] bg-transparent"
           >
             <Sparkles className="mr-2 h-4 w-4" />
             Load Demo (Ratatouille Example)
@@ -267,7 +267,7 @@ export const MasterGenerator = memo(function MasterGenerator({ onGenerate, onLoa
                     size="sm"
                     onClick={handleEnhancePrompt}
                     disabled={isEnhancing || !prompt.trim()}
-                    className="h-6 px-2 text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10"
+                    className="h-6 px-2 text-xs text-[var(--accent-text)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)]"
                   >
                     {isEnhancing ? (
                       <Loader2 className="w-3 h-3 animate-spin mr-1.5" />

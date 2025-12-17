@@ -1,34 +1,23 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useCallback, useRef, useEffect } from "react"
-import Link from "next/link"
-import { Film, Sparkles, Plus, Layers, ArrowUpRight } from "lucide-react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useMobile } from "@/seq/hooks/use-mobile"
-import { usePersistentHistory } from "./hooks/use-persistent-history"
 import { useImageUpload } from "./hooks/use-image-upload"
-import { useAspectRatio } from "./hooks/use-aspect-ratio"
 import { useImageGeneration } from "./hooks/use-image-generation"
-import { useToastContext } from "@/seq/components/ui/sonner"
-import { v4 as uuidv4 } from "uuid"
+import { useAspectRatio } from "./hooks/use-aspect-ratio"
+import { HowItWorksModal } from "./how-it-works-modal"
+import { usePersistentHistory } from "./hooks/use-persistent-history"
 import { InputSection } from "./input-section"
 import { OutputSection } from "./output-section"
-import { GenerationHistory } from "./generation-history"
 import { ToastNotification } from "./toast-notification"
+import { GenerationHistory } from "./generation-history"
 import { GlobalDropZone } from "./global-drop-zone"
-import { HowItWorksModal } from "./how-it-works-modal"
 import { FullscreenViewer } from "./fullscreen-viewer"
 import { ApiKeyWarning } from "./api-key-warning"
-import type { StoryboardPanelData } from "@/seq/components/storyboard/types"
-import { Button } from "@/seq/components/ui/button"
-import { SeqLogo } from "@/seq/components/ui/logo"
-
-type AspectRatioKey = "1:1" | "16:9" | "9:16" | "4:3" | "3:4"
 
 export function ImageCombiner() {
   const isMobile = useMobile()
-  const { toast: toastCtx } = useToastContext()
   const [prompt, setPrompt] = useState("A beautiful landscape with mountains and a lake at sunset")
   const [useUrls, setUseUrls] = useState(false)
   const [showFullscreen, setShowFullscreen] = useState(false)
@@ -38,15 +27,12 @@ export function ImageCombiner() {
   const [dragCounter, setDragCounter] = useState(0)
   const [dropZoneHover, setDropZoneHover] = useState<1 | 2 | null>(null)
   const [showHowItWorks, setShowHowItWorks] = useState(false)
+  const [logoLoaded, setLogoLoaded] = useState(false)
   const [apiKeyMissing, setApiKeyMissing] = useState(false)
-  const [showGenerator, setShowGenerator] = useState(false)
-
-  const [storyboardPanels, setStoryboardPanels] = useState<StoryboardPanelData[]>([])
 
   const [leftWidth, setLeftWidth] = useState(50)
   const [isResizing, setIsResizing] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const generatorRef = useRef<HTMLDivElement>(null)
 
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -70,7 +56,7 @@ export function ImageCombiner() {
     showToast: uploadShowToast,
   } = useImageUpload()
 
-  const { aspectRatio, setAspectRatio, availableAspectRatios } = useAspectRatio()
+  const { aspectRatio, setAspectRatio, availableAspectRatios, detectAspectRatio } = useAspectRatio()
 
   const {
     generations: persistedGenerations,
@@ -105,11 +91,11 @@ export function ImageCombiner() {
     addGeneration,
     onToast: showToast,
     onImageUpload: handleImageUpload,
-    onOutOfCredits: () => {},
     onApiKeyMissing: () => setApiKeyMissing(true),
   })
 
   const selectedGeneration = persistedGenerations.find((g) => g.id === selectedGenerationId) || persistedGenerations[0]
+  const isLoading = persistedGenerations.some((g) => g.status === "loading")
   const generatedImage =
     selectedGeneration?.status === "complete" && selectedGeneration.imageUrl
       ? { url: selectedGeneration.imageUrl, prompt: selectedGeneration.prompt }
@@ -144,13 +130,6 @@ export function ImageCombiner() {
     checkApiKey()
   }, [])
 
-  const scrollToGenerator = () => {
-    setShowGenerator(true)
-    setTimeout(() => {
-      generatorRef.current?.scrollIntoView({ behavior: "smooth" })
-    }, 100)
-  }
-
   const openFullscreen = useCallback(() => {
     if (generatedImage?.url) {
       setFullscreenImageUrl(generatedImage.url)
@@ -179,7 +158,7 @@ export function ImageCombiner() {
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.href = url
-      link.download = `seq-${currentMode}-result.png`
+      link.download = `nano-banana-pro-${currentMode}-result.png`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -212,6 +191,7 @@ export function ImageCombiner() {
         window.open(generatedImage.url, "_blank", "noopener,noreferrer")
       }
     } catch (error) {
+      console.error("Error opening image:", error)
       window.open(generatedImage.url, "_blank")
     }
   }, [generatedImage])
@@ -235,8 +215,11 @@ export function ImageCombiner() {
             ctx.drawImage(img, 0, 0)
             canvas.toBlob(
               (blob) => {
-                if (blob) resolve(blob)
-                else reject(new Error("Failed to convert to blob"))
+                if (blob) {
+                  resolve(blob)
+                } else {
+                  reject(new Error("Failed to convert to blob"))
+                }
               },
               "image/png",
               1.0,
@@ -248,9 +231,12 @@ export function ImageCombiner() {
       }
 
       setToast({ message: "Copying image...", type: "success" })
+      window.focus()
+
       const pngBlob = await convertToPngBlob(generatedImage.url)
       const clipboardItem = new ClipboardItem({ "image/png": pngBlob })
       await navigator.clipboard.write([clipboardItem])
+
       setToast({ message: "Image copied to clipboard!", type: "success" })
       setTimeout(() => setToast(null), 2000)
     } catch (error) {
@@ -264,7 +250,9 @@ export function ImageCombiner() {
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
         e.preventDefault()
-        if (canGenerate) runGeneration()
+        if (canGenerate) {
+          runGeneration()
+        }
       }
     },
     [canGenerate, runGeneration],
@@ -272,12 +260,60 @@ export function ImageCombiner() {
 
   const handleGlobalKeyboard = useCallback(
     (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      const activeElement = document.activeElement
+      const isTyping = activeElement?.tagName === "TEXTAREA" || activeElement?.tagName === "INPUT"
+
+      if ((e.metaKey || e.ctrlKey) && e.key === "c" && generatedImage && !e.shiftKey) {
+        if (!isTyping) {
+          e.preventDefault()
+          copyImageToClipboard()
+        }
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "d" && generatedImage) {
+        if (!isTyping) {
+          e.preventDefault()
+          downloadImage()
+        }
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "u" && generatedImage) {
+        if (!isTyping) {
+          e.preventDefault()
+          loadGeneratedAsInput()
+        }
+      }
+      if (e.key === "Escape" && showFullscreen) {
+        closeFullscreen()
+      }
+      if (showFullscreen && (e.key === "ArrowLeft" || e.key === "ArrowRight") && !isTyping) {
         e.preventDefault()
-        if (canGenerate) runGeneration()
+        const completedGenerations = persistedGenerations.filter((g) => g.status === "complete" && g.imageUrl)
+        if (completedGenerations.length <= 1) return
+
+        const currentIndex = completedGenerations.findIndex((g) => g.imageUrl === fullscreenImageUrl)
+        if (currentIndex === -1) return
+
+        if (e.key === "ArrowLeft") {
+          const prevIndex = currentIndex === 0 ? completedGenerations.length - 1 : currentIndex - 1
+          setFullscreenImageUrl(completedGenerations[prevIndex].imageUrl!)
+          setSelectedGenerationId(completedGenerations[prevIndex].id)
+        } else if (e.key === "ArrowRight") {
+          const nextIndex = currentIndex === completedGenerations.length - 1 ? 0 : currentIndex + 1
+          setFullscreenImageUrl(completedGenerations[nextIndex].imageUrl!)
+          setSelectedGenerationId(completedGenerations[nextIndex].id)
+        }
       }
     },
-    [canGenerate, runGeneration],
+    [
+      generatedImage,
+      showFullscreen,
+      copyImageToClipboard,
+      downloadImage,
+      loadGeneratedAsInput,
+      closeFullscreen,
+      persistedGenerations,
+      fullscreenImageUrl,
+      setSelectedGenerationId,
+    ],
   )
 
   const handleGlobalPaste = useCallback(
@@ -301,99 +337,104 @@ export function ImageCombiner() {
                   showToast("Image pasted to second slot", "success")
                 } else {
                   await handleImageUpload(file, 1)
-                  showToast("Image replaced in first slot", "success")
+                  showToast("Image replaced first slot", "success")
                 }
               }
-              break
+              return
             }
+          }
+        }
+
+        const pastedText = e.clipboardData?.getData("text")
+        if (!pastedText) return
+
+        const urlPattern = /https?:\/\/[^\s]+/i
+        const imagePattern = /\.(jpg|jpeg|png|gif|webp|bmp|svg)|format=(jpg|jpeg|png|gif|webp)/i
+
+        const match = pastedText.match(urlPattern)
+        if (match) {
+          const url = match[0]
+          if (imagePattern.test(url) || url.includes("/media/") || url.includes("/images/")) {
+            e.preventDefault()
+            const targetSlot = !image1Url ? 1 : !image2Url ? 2 : 1
+            setUseUrls(true)
+            setTimeout(() => {
+              handleUrlChange(url, targetSlot)
+              showToast(`Image URL pasted to ${targetSlot === 1 ? "first" : "second"} slot`, "success")
+            }, 150)
           }
         }
       }
     },
-    [image1, image2, handleImageUpload],
+    [image1, image2, image1Url, image2Url, handleImageUpload, handleUrlChange],
   )
 
   const handlePromptPaste = useCallback(
     async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-      const items = e.clipboardData?.items
-      if (items) {
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i]
-          if (item.type.startsWith("image/")) {
-            e.preventDefault()
-            const file = item.getAsFile()
-            if (file) {
-              setUseUrls(false)
-              if (!image1) {
-                await handleImageUpload(file, 1)
-                showToast("Image pasted successfully", "success")
-              } else if (!image2) {
-                await handleImageUpload(file, 2)
-                showToast("Image pasted to second slot", "success")
-              } else {
-                await handleImageUpload(file, 1)
-                showToast("Image replaced in first slot", "success")
-              }
-            }
-            return
+      const pastedText = e.clipboardData.getData("text")
+      const urlPattern = /https?:\/\/[^\s]+/i
+      const imagePattern = /\.(jpg|jpeg|png|gif|webp|bmp|svg)|format=(jpg|jpeg|png|gif|webp)/i
+
+      const match = pastedText.match(urlPattern)
+      if (match) {
+        const url = match[0]
+        if (imagePattern.test(url) || url.includes("/media/") || url.includes("/images/")) {
+          e.preventDefault()
+          if (!useUrls) {
+            setUseUrls(true)
+          }
+          if (!image1Url) {
+            handleUrlChange(url, 1)
+            showToast("Image URL loaded into first slot", "success")
+          } else if (!image2Url) {
+            handleUrlChange(url, 2)
+            showToast("Image URL loaded into second slot", "success")
+          } else {
+            handleUrlChange(url, 1)
+            showToast("Image URL replaced first slot", "success")
           }
         }
       }
     },
-    [image1, image2, handleImageUpload],
+    [useUrls, image1Url, image2Url, handleUrlChange],
   )
+
+  const handleGlobalDragEnter = useCallback((e: DragEvent) => {
+    e.preventDefault()
+    setDragCounter((prev) => prev + 1)
+    const items = e.dataTransfer?.items
+    if (items) {
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].kind === "file" && items[i].type.startsWith("image/")) {
+          setIsDraggingOver(true)
+          break
+        }
+      }
+    }
+  }, [])
 
   const handleGlobalDragOver = useCallback((e: DragEvent) => {
     e.preventDefault()
-    e.stopPropagation()
     if (e.dataTransfer) {
       e.dataTransfer.dropEffect = "copy"
     }
   }, [])
 
-  const handleGlobalDragEnter = useCallback(
-    (e: DragEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setDragCounter((prev) => {
-        const newCount = prev + 1
-        if (newCount === 1) {
-          const items = e.dataTransfer?.items
-          if (items) {
-            for (let i = 0; i < items.length; i++) {
-              if (items[i].kind === "file" && items[i].type.startsWith("image/")) {
-                setIsDraggingOver(true)
-                break
-              }
-            }
-          }
-        }
-        return newCount
-      })
-    },
-    [setIsDraggingOver],
-  )
-
-  const handleGlobalDragLeave = useCallback(
-    (e: DragEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setDragCounter((prev) => {
-        const newCount = prev - 1
-        if (newCount === 0) {
-          setIsDraggingOver(false)
-          setDropZoneHover(null)
-        }
-        return newCount
-      })
-    },
-    [setIsDraggingOver],
-  )
+  const handleGlobalDragLeave = useCallback((e: DragEvent) => {
+    e.preventDefault()
+    setDragCounter((prev) => {
+      const newCount = prev - 1
+      if (newCount <= 0) {
+        setIsDraggingOver(false)
+        return 0
+      }
+      return newCount
+    })
+  }, [])
 
   const handleGlobalDrop = useCallback(
-    async (e: React.DragEvent, targetSlot?: 1 | 2) => {
+    async (e: DragEvent | React.DragEvent, slot?: 1 | 2) => {
       e.preventDefault()
-      e.stopPropagation()
       setIsDraggingOver(false)
       setDragCounter(0)
       setDropZoneHover(null)
@@ -401,10 +442,11 @@ export function ImageCombiner() {
       const files = e.dataTransfer?.files
       if (files && files.length > 0) {
         const file = files[0]
-        if (file.type.startsWith("image/") || file.name.toLowerCase().endsWith(".heic")) {
+        if (file.type.startsWith("image/")) {
           setUseUrls(false)
-          await handleImageUpload(file, targetSlot ?? 1)
-          showToast(`Image added to slot ${targetSlot}`, "success")
+          const targetSlot = slot || 1
+          await handleImageUpload(file, targetSlot)
+          showToast(`Image dropped to ${targetSlot === 1 ? "first" : "second"} slot`, "success")
         }
       }
     },
@@ -417,7 +459,6 @@ export function ImageCombiner() {
     document.addEventListener("dragover", handleGlobalDragOver)
     document.addEventListener("dragleave", handleGlobalDragLeave)
     document.addEventListener("dragenter", handleGlobalDragEnter)
-
     return () => {
       document.removeEventListener("keydown", handleGlobalKeyboard)
       document.removeEventListener("paste", handleGlobalPaste)
@@ -428,9 +469,12 @@ export function ImageCombiner() {
   }, [handleGlobalKeyboard, handleGlobalPaste, handleGlobalDragOver, handleGlobalDragLeave, handleGlobalDragEnter])
 
   const clearAll = useCallback(() => {
+    setPrompt("")
     clearImage(1)
     clearImage(2)
-    setPrompt("")
+    setTimeout(() => {
+      promptTextareaRef.current?.focus()
+    }, 0)
   }, [clearImage])
 
   const handleFullscreenNavigate = useCallback(
@@ -438,12 +482,14 @@ export function ImageCombiner() {
       const completedGenerations = persistedGenerations.filter((g) => g.status === "complete" && g.imageUrl)
       const currentIndex = completedGenerations.findIndex((g) => g.imageUrl === fullscreenImageUrl)
       if (currentIndex === -1) return
+
       let newIndex: number
       if (direction === "prev") {
         newIndex = currentIndex === 0 ? completedGenerations.length - 1 : currentIndex - 1
       } else {
         newIndex = currentIndex === completedGenerations.length - 1 ? 0 : currentIndex + 1
       }
+
       setFullscreenImageUrl(completedGenerations[newIndex].imageUrl!)
       setSelectedGenerationId(completedGenerations[newIndex].id)
     },
@@ -482,6 +528,7 @@ export function ImageCombiner() {
       document.addEventListener("mouseup", handleMouseUp)
       document.body.style.cursor = "col-resize"
       document.body.style.userSelect = "none"
+
       return () => {
         document.removeEventListener("mousemove", handleMouseMove)
         document.removeEventListener("mouseup", handleMouseUp)
@@ -491,303 +538,136 @@ export function ImageCombiner() {
     }
   }, [isResizing, handleMouseMove, handleMouseUp])
 
-  const handleAddToStoryboard = useCallback(
-    (url: string) => {
-      if (storyboardPanels.length >= 6) {
-        toastCtx.error("Storyboard is full (max 6 panels)")
-        return
-      }
-      const newPanel: StoryboardPanelData = {
-        id: uuidv4(),
-        imageUrl: url,
-        prompt: "",
-        isGenerating: false,
-        duration: 3
-      }
-      setStoryboardPanels((prev) => [...prev, newPanel])
-      toastCtx.success("Added to storyboard!")
-      setTimeout(() => {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })
-      }, 100)
-    },
-    [storyboardPanels.length, toastCtx],
-  )
-
   return (
-    <div className="bg-background min-h-screen select-none">
+    <div className="min-h-screen bg-[var(--surface-0)]">
       {toast && <ToastNotification message={toast.message} type={toast.type} />}
 
       {isDraggingOver && (
         <GlobalDropZone dropZoneHover={dropZoneHover} onSetDropZoneHover={setDropZoneHover} onDrop={handleGlobalDrop} />
       )}
 
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2">
-              <SeqLogo className="w-7 h-7 text-foreground" />
-              <span className="text-foreground font-semibold text-lg tracking-tight">Seq</span>
-            </Link>
-            <div className="hidden md:flex items-center gap-6">
-              <Link
-                href="/storyboard"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Storyboard
-              </Link>
-              <Link href="/timeline" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Timeline
-              </Link>
-              <button
-                onClick={() => setShowHowItWorks(true)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                How it works
-              </button>
-            </div>
-          </div>
-          <Button
-            onClick={scrollToGenerator}
-            size="sm"
-            className="bg-foreground text-background hover:bg-foreground/90 rounded-full px-4"
-          >
-            Get Started
-          </Button>
+      <div className="max-w-6xl mx-auto px-6 py-6">
+        <div className="mb-6">
+          <h1 className="text-page-title mb-2">Image Playground</h1>
+          <p className="text-sm text-neutral-400">
+            Create stunning images from text prompts or edit existing images with AI
+          </p>
         </div>
-      </nav>
 
-      {/* Choose Your Adventure Section */}
-      <section className="pt-24 pb-12 px-6">
-        <div className="max-w-5xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary border border-border text-sm text-muted-foreground mb-4">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Veo 3.1, Wan2.1 & Wan2.5</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-3 tracking-tight">
-              What do you want to create?
-            </h1>
-            <p className="text-muted-foreground max-w-lg mx-auto">
-              Choose your starting point and we'll guide you from there.
-            </p>
-          </div>
+        {apiKeyMissing && <ApiKeyWarning />}
 
-          {/* Adventure Cards */}
-          <div className="grid md:grid-cols-2 gap-4 mb-8">
-            {/* Storyboard Path */}
-            <Link
-              href="/storyboard"
-              className="group relative bg-card border border-border rounded-2xl p-6 hover:border-foreground/20 hover:bg-card/80 transition-all duration-200"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
-                  <Film className="w-6 h-6 text-foreground" />
-                </div>
-                <ArrowUpRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-              </div>
-              <h2 className="text-xl font-semibold text-foreground mb-2">Start with Storyboard</h2>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                Plan your sequence visually. Generate AI panels, arrange shots, add transitions, then convert to video.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-2 py-1 rounded-md bg-secondary text-xs text-muted-foreground">AI Generation</span>
-                <span className="px-2 py-1 rounded-md bg-secondary text-xs text-muted-foreground">Shot Planning</span>
-                <span className="px-2 py-1 rounded-md bg-secondary text-xs text-muted-foreground">Transitions</span>
-              </div>
-            </Link>
-
-            {/* Timeline Path */}
-            <Link
-              href="/timeline"
-              className="group relative bg-card border border-border rounded-2xl p-6 hover:border-foreground/20 hover:bg-card/80 transition-all duration-200"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
-                  <Layers className="w-6 h-6 text-foreground" />
-                </div>
-                <ArrowUpRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-              </div>
-              <h2 className="text-xl font-semibold text-foreground mb-2">Jump to Timeline</h2>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                Already have clips? Drop them on the magnetic timeline to arrange, trim, and export your final sequence.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-2 py-1 rounded-md bg-secondary text-xs text-muted-foreground">Drag & Drop</span>
-                <span className="px-2 py-1 rounded-md bg-secondary text-xs text-muted-foreground">Magnetic Snap</span>
-                <span className="px-2 py-1 rounded-md bg-secondary text-xs text-muted-foreground">Export</span>
-              </div>
-            </Link>
-          </div>
-
-          {/* Quick Action - Generate Panel */}
-          <button
-            onClick={scrollToGenerator}
-            className="w-full group bg-secondary/50 border border-dashed border-border rounded-xl p-4 hover:border-foreground/30 hover:bg-secondary transition-all duration-200 flex items-center justify-center gap-3"
+        <div
+          ref={containerRef}
+          className="relative flex gap-4 h-[calc(100vh-180px)] min-h-[600px]"
+          style={{ userSelect: isResizing ? "none" : "auto" }}
+        >
+          {/* Left Panel */}
+          <div
+            className="flex flex-col overflow-hidden bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg"
+            style={{ width: `${leftWidth}%`, minWidth: "300px" }}
           >
-            <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center group-hover:bg-background transition-colors">
-              <Plus className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+            <div className="flex-1 overflow-y-auto p-6">
+              <InputSection
+                prompt={prompt}
+                setPrompt={setPrompt}
+                aspectRatio={aspectRatio}
+                setAspectRatio={setAspectRatio}
+                availableAspectRatios={availableAspectRatios}
+                useUrls={useUrls}
+                setUseUrls={setUseUrls}
+                image1Preview={image1Preview}
+                image2Preview={image2Preview}
+                image1Url={image1Url}
+                image2Url={image2Url}
+                isConvertingHeic={isConvertingHeic}
+                canGenerate={canGenerate as boolean}
+                hasImages={hasImages as any}
+                onGenerate={runGeneration}
+                onClearAll={clearAll}
+                onImageUpload={handleImageUpload}
+                onUrlChange={handleUrlChange}
+                onClearImage={clearImage}
+                onKeyDown={handleKeyDown}
+                onPromptPaste={handlePromptPaste}
+                onImageFullscreen={openImageFullscreen}
+                promptTextareaRef={promptTextareaRef}
+                isAuthenticated={true}
+                remaining={100}
+                decrementOptimistic={() => { }}
+                usageLoading={false}
+                onShowAuthModal={() => { }}
+                generations={persistedGenerations}
+                selectedGenerationId={selectedGenerationId}
+                onSelectGeneration={setSelectedGenerationId}
+                onCancelGeneration={cancelGeneration}
+                onDeleteGeneration={deleteGeneration}
+                historyLoading={historyLoading}
+                hasMore={hasMore}
+                onLoadMore={loadMore}
+                isLoadingMore={isLoadingMore}
+              />
             </div>
-            <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-              Or generate a quick image below
-            </span>
-          </button>
-        </div>
-      </section>
+          </div>
 
-      {/* Generator Section */}
-      <section ref={generatorRef} className="relative px-4 py-16 border-t border-border">
-        <div className="max-w-[98vw] lg:max-w-[96vw] 2xl:max-w-[94vw] mx-auto">
-          <div className="bg-card border border-border rounded-2xl p-4 md:p-6 lg:p-8">
-            {/* Section Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-semibold text-foreground mb-1">Generate Images with Nano Banana</h2>
-                <p className="text-sm text-muted-foreground">Create AI-generated images</p>
-              </div>
-              <div className="hidden sm:flex items-center gap-3">
-                <Link
-                  href="/storyboard"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
-                >
-                  <Film className="w-4 h-4" />
-                  Storyboard Editor
-                </Link>
+          {/* Resize Handle */}
+          <div
+            className="relative w-1 cursor-col-resize group flex-shrink-0"
+            onMouseDown={handleMouseDown}
+            onDoubleClick={handleDoubleClick}
+          >
+            <div className="absolute inset-y-0 -left-1 -right-1 hover:bg-[var(--accent-primary)]/20 transition-colors rounded-full bg-[var(--accent-primary)]/10" />
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 h-12 bg-[var(--border-default)] group-hover:bg-[var(--accent-primary)]/50 rounded-full transition-colors" />
+          </div>
+
+          {/* Right Panel */}
+          <div
+            className="flex-1 flex flex-col overflow-hidden bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg"
+            style={{ minWidth: "300px" }}
+          >
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-6 flex flex-col h-full">
+                <OutputSection
+                  selectedGeneration={selectedGeneration}
+                  generations={persistedGenerations}
+                  selectedGenerationId={selectedGenerationId}
+                  setSelectedGenerationId={setSelectedGenerationId}
+                  isConvertingHeic={isConvertingHeic}
+                  heicProgress={heicProgress}
+                  imageLoaded={imageLoaded}
+                  setImageLoaded={setImageLoaded}
+                  onCancelGeneration={cancelGeneration}
+                  onDeleteGeneration={deleteGeneration}
+                  onOpenFullscreen={openFullscreen}
+                  onLoadAsInput={loadGeneratedAsInput}
+                  onCopy={copyImageToClipboard}
+                  onDownload={downloadImage}
+                  onOpenInNewTab={openImageInNewTab}
+                />
               </div>
             </div>
 
-            {apiKeyMissing && <ApiKeyWarning />}
+            {/* History Panel */}
+            {persistedGenerations.length > 0 && (
+              <div className="border-t border-[var(--border-default)] bg-[var(--surface-1)]">
 
-            {/* Generator Content */}
-            <div className="flex flex-col gap-4 xl:gap-0">
-              <div
-                ref={containerRef}
-                className="flex flex-col xl:flex-row gap-4 xl:gap-0 xl:min-h-[60vh] 2xl:min-h-[62vh]"
-              >
-                <div
-                  className="flex flex-col xl:pr-4 xl:border-r xl:border-border shrink-0 xl:overflow-y-auto xl:max-h-[85vh] 2xl:max-h-[80vh]"
-                  style={{ width: isMobile ? "100%" : `${leftWidth}%` }}
-                >
-                  <InputSection
-                    prompt={prompt}
-                    setPrompt={setPrompt}
-                    aspectRatio={aspectRatio}
-                    setAspectRatio={setAspectRatio}
-                    availableAspectRatios={availableAspectRatios}
-                    useUrls={useUrls}
-                    setUseUrls={setUseUrls}
-                    image1Preview={image1Preview}
-                    image2Preview={image2Preview}
-                    image1Url={image1Url}
-                    image2Url={image2Url}
-                    isConvertingHeic={isConvertingHeic}
-                    canGenerate={!!canGenerate}
-                    hasImages={!!hasImages}
-                    onGenerate={runGeneration}
-                    onClearAll={clearAll}
-                    onImageUpload={handleImageUpload}
-                    onUrlChange={handleUrlChange}
-                    onClearImage={clearImage}
-                    onKeyDown={handleKeyDown}
-                    onPromptPaste={handlePromptPaste}
-                    onImageFullscreen={openImageFullscreen}
-                    promptTextareaRef={promptTextareaRef}
-                    generations={persistedGenerations}
-                    selectedGenerationId={selectedGenerationId}
-                    onSelectGeneration={setSelectedGenerationId}
-                    onCancelGeneration={cancelGeneration}
-                    onDeleteGeneration={deleteGeneration}
-                    historyLoading={historyLoading}
-                    hasMore={hasMore}
-                    onLoadMore={loadMore}
-                    isLoadingMore={isLoadingMore}
-                    isAuthenticated={false}
-                    remaining={0}
-                    decrementOptimistic={() => { } }
-                    usageLoading={false}
-                    onShowAuthModal={() => { }}
-                    />
-
-                  <div className="hidden xl:block mt-3 shrink-0">
-                    <GenerationHistory
-                      generations={persistedGenerations}
-                      selectedId={selectedGenerationId ?? undefined}
-                      onSelect={setSelectedGenerationId}
-                      onCancel={cancelGeneration}
-                      onDelete={deleteGeneration}
-                      isLoading={historyLoading}
-                      hasMore={hasMore}
-                      onLoadMore={loadMore}
-                      isLoadingMore={isLoadingMore}
-                    />
-                  </div>
-                </div>
-
-                <div
-                  className="hidden xl:flex items-center justify-center cursor-col-resize hover:bg-secondary/50 transition-colors relative group"
-                  style={{ width: "8px", flexShrink: 0 }}
-                  onMouseDown={handleMouseDown}
-                  onDoubleClick={handleDoubleClick}
-                >
-                  <div className="w-0.5 h-8 bg-border group-hover:bg-muted-foreground transition-colors rounded-full" />
-                </div>
-
-                <div
-                  className="flex flex-col xl:pl-4 h-[400px] sm:h-[500px] md:h-[600px] xl:h-auto shrink-0"
-                  style={{ width: isMobile ? "100%" : `${100 - leftWidth}%` }}
-                >
-                  <OutputSection
-                    selectedGeneration={selectedGeneration}
-                    generations={persistedGenerations}
-                    selectedGenerationId={selectedGenerationId}
-                    setSelectedGenerationId={setSelectedGenerationId}
-                    isConvertingHeic={isConvertingHeic}
-                    heicProgress={heicProgress}
-                    imageLoaded={imageLoaded}
-                    setImageLoaded={setImageLoaded}
-                    onCancelGeneration={cancelGeneration}
-                    onDeleteGeneration={deleteGeneration}
-                    onOpenFullscreen={openFullscreen}
-                    onLoadAsInput={loadGeneratedAsInput}
-                    onCopy={copyImageToClipboard}
-                    onDownload={downloadImage}
-                    onOpenInNewTab={openImageInNewTab}
-                    onAddToStoryboard={handleAddToStoryboard}
-                  />
-                </div>
-              </div>
-
-              <div className="xl:hidden shrink-0">
                 <GenerationHistory
                   generations={persistedGenerations}
-                  selectedId={selectedGenerationId ?? undefined}
+                  selectedId={selectedGenerationId}
                   onSelect={setSelectedGenerationId}
-                  onCancel={cancelGeneration}
                   onDelete={deleteGeneration}
+                  onClear={clearHistory}
                   isLoading={historyLoading}
                   hasMore={hasMore}
                   onLoadMore={loadMore}
                   isLoadingMore={isLoadingMore}
+                  onImageFullscreen={openImageFullscreen}
+                  onCancel={cancelGeneration}
                 />
               </div>
-            </div>
+            )}
           </div>
         </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border py-6 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <SeqLogo className="w-5 h-5 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Seq</span>
-          </div>
-          <p className="text-xs text-muted-foreground">Powered by fal.ai</p>
-        </div>
-      </footer>
-
-      <HowItWorksModal open={showHowItWorks} onOpenChange={setShowHowItWorks} />
+      </div>
 
       {showFullscreen && fullscreenImageUrl && (
         <FullscreenViewer
@@ -797,8 +677,9 @@ export function ImageCombiner() {
           onNavigate={handleFullscreenNavigate}
         />
       )}
+
+      {showHowItWorks &&
+        <HowItWorksModal open={showHowItWorks} onOpenChange={setShowHowItWorks} />}
     </div>
   )
 }
-
-export default ImageCombiner

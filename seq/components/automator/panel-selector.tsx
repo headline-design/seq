@@ -533,7 +533,7 @@ export function PanelSelector({
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
-                    className="h-7 text-xs text-violet-400 border-violet-400/30 bg-transparent hover:bg-violet-950/50"
+                    className="h-7 text-xs text-[var(--accent-text)] border-[var(--accent-border)] bg-transparent hover:bg-[var(--accent-bg-subtle)]"
                   >
                     {isUploading ? (
                       <>
@@ -554,7 +554,7 @@ export function PanelSelector({
                     {customImages.map((url, i) => (
                       <div
                         key={`custom-${i}`}
-                        className="group relative aspect-video rounded-lg overflow-hidden transition-all duration-200 cursor-pointer hover:ring-2 hover:ring-violet-400"
+                        className="group relative aspect-video rounded-lg overflow-hidden transition-all duration-200 cursor-pointer hover:ring-2 hover:ring-[var(--accent-primary)]"
                         onClick={() => {
                           if (selectingFor) {
                             setTransitionFrame(selectingFor.panelId, selectingFor.slot, url)
@@ -593,8 +593,8 @@ export function PanelSelector({
                     className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-violet-800/40 rounded-lg gap-2 cursor-pointer hover:border-violet-600/60 hover:bg-violet-950/20 transition-colors"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <ImagePlus className="w-6 h-6 text-violet-500/60" />
-                    <p className="text-violet-400/60 text-xs">Click to upload custom images</p>
+                    <ImagePlus className="w-6 h-6 text-[var(--accent-text-muted)]" />
+                    <p className="text-[var(--accent-text-muted)] text-xs">Click to upload custom images</p>
                   </div>
                 )}
               </div>

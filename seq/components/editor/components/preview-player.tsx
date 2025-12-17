@@ -297,7 +297,7 @@ export const PreviewPlayer = memo(function PreviewPlayer({
             </button>
             <button
               onClick={onToggleSafeGuides}
-              className={`p-1.5 rounded transition-colors ${isSafeGuidesVisible ? "text-indigo-400 bg-indigo-500/10" : "text-neutral-400 hover:text-white hover:bg-white/10"}`}
+              className={`p-1.5 rounded transition-colors ${isSafeGuidesVisible ? "text-[var(--accent-text)] bg-[var(--accent-muted)]" : "text-neutral-400 hover:text-white hover:bg-white/10"}`}
             >
               <Grid3x3Icon className="w-3.5 h-3.5" />
             </button>
@@ -392,7 +392,7 @@ export const PreviewPlayer = memo(function PreviewPlayer({
 
           {isRendering && (
             <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none bg-black/80 backdrop-blur-sm">
-              <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+              <div className="w-10 h-10 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin mb-3"></div>
               <p className="text-sm font-medium">Rendering Preview...</p>
               <p className="text-xs text-neutral-400 mt-1">{Math.round(renderProgress)}%</p>
             </div>

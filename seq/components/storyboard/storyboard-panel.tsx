@@ -74,21 +74,19 @@ export function StoryboardPanel({
 
   return (
     <Card className="flex flex-col overflow-hidden bg-black/40 border-white/10 group relative">
-
-
       {/* Header */}
       <div className="flex items-center justify-between p-2 border-b border-white/5 bg-black/20">
-      <div className="flex items-center gap-2">
-        <Badge variant="outline" className="text-xs bg-white/5 border-white/10 text-white/70">
-          Panel {index + 1}
-        </Badge>
-         {isTransitionPanel && (
-       <Badge variant="secondary" className="text-xs bg-white/5 border-white/10 text-white/70">
-          <Link2 className="w-3 h-3" />
-          First-Last
-        </Badge>
-      )}
-      </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-xs bg-white/5 border-white/10 text-white/70">
+            Panel {index + 1}
+          </Badge>
+          {isTransitionPanel && (
+            <Badge variant="secondary" className="text-xs bg-white/5 border-white/10 text-white/70">
+              <Link2 className="w-3 h-3" />
+              First-Last
+            </Badge>
+          )}
+        </div>
         <Button
           variant="ghost"
           size="icon"
@@ -193,10 +191,7 @@ export function StoryboardPanel({
       <div className="p-3 flex flex-col gap-3 bg-black/20">
         <div className="space-y-1.5">
           <label className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Video Model</label>
-          <Select
-            defaultValue="veo3.1-fast"
-            onValueChange={(val) => onUpdate(panel.id, { model: val as any })}
-          >
+          <Select defaultValue="veo3.1-fast" onValueChange={(val) => onUpdate(panel.id, { model: val as any })}>
             <SelectTrigger className="h-7 text-xs bg-white/5 border-white/10 text-white">
               <SelectValue placeholder="veo3.1-fast" />
             </SelectTrigger>
@@ -225,15 +220,13 @@ export function StoryboardPanel({
 
         <div className="space-y-1.5 flex-1">
           <div className="flex items-center justify-between">
-            <label className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">
-              Video Prompt
-            </label>
+            <label className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Video Prompt</label>
             <div className="flex items-center gap-2">
               {/* Enhance Button */}
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-5 px-2 text-[10px] text-purple-400 hover:text-purple-300 hover:bg-purple-500/10"
+                className="h-5 px-2 text-[10px] text-[var(--accent-secondary)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-secondary)]/10"
                 onClick={handleEnhance}
                 disabled={isEnhancing || (!masterDescription.trim() && !panel.prompt.trim())}
               >
@@ -288,7 +281,7 @@ export function StoryboardPanel({
             </Button>
           ) : (
             <Button
-              className="w-full text-xs h-8 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white border-0"
+              className="w-full text-xs h-8 bg-accent-gradient hover:opacity-90 text-accent-text-white border-0"
               onClick={() => onGenerate(panel.id)}
               disabled={panel.isGenerating || !panel.prompt.trim()}
             >

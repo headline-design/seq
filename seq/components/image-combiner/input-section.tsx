@@ -7,7 +7,8 @@ import { Trash2 } from "lucide-react"
 import { ImageUploadBox } from "./image-upload-box"
 import { cn } from "@/seq/lib/utils"
 
-const btnClassName = "w-full h-10 md:h-12 text-sm md:base font-semibold bg-white text-black hover:bg-gray-200"
+const btnClassName = "w-full h-10 md:h-12 text-sm md:base font-semibold bg-accent-gradient text-accent-text-white shadow-accent"
+
 
 interface InputSectionProps {
   prompt: string
@@ -39,7 +40,7 @@ interface InputSectionProps {
   usageLoading: boolean
   onShowAuthModal: () => void
   generations: any[]
-  selectedGenerationId: string | null
+  selectedGenerationId: string | null | undefined
   onSelectGeneration: (id: string) => void
   onCancelGeneration: (id: string) => void
   onDeleteGeneration: (id: string) => Promise<void>
@@ -48,6 +49,7 @@ interface InputSectionProps {
   onLoadMore: () => void
   isLoadingMore: boolean
 }
+
 
 export function InputSection({
   prompt,
@@ -80,16 +82,20 @@ export function InputSection({
         <div className="space-y-3 md:space-y-4 flex flex-col">
           <div className="flex items-center justify-between mb-3 md:mb-6 select-none">
             <div className="flex flex-col gap-1">
-              <label className="text-sm md:text-base font-medium text-gray-300">Prompt</label>
+              <label className="text-sm md:text-base font-medium text-neutral-300">Prompt</label>
             </div>
             <div className="flex items-center gap-2">
               <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                <SelectTrigger className="w-24 sm:w-28 md:w-32 !h-7 md:!h-10 px-3 !py-0 bg-black/50 border border-gray-600 text-white text-xs md:text-sm focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:ring-0 data-[state=open]:ring-offset-0">
+                <SelectTrigger className="w-24 sm:w-28 md:w-32 !h-7 md:!h-10 px-3 !py-0 bg-[var(--surface-2)] border border-[var(--border-default)] text-white text-xs md:text-sm focus:ring-1 focus:ring-[var(--accent-ring)] focus:border-[var(--accent-primary)] focus:ring-offset-0 data-[state=open]:ring-1 data-[state=open]:ring-[var(--accent-ring)] data-[state=open]:border-[var(--accent-primary)]">
                   <SelectValue placeholder="1:1" />
                 </SelectTrigger>
-                <SelectContent className="bg-black/95 border-gray-600 text-white">
+                <SelectContent className="bg-[var(--surface-2)] border-[var(--border-default)] text-white">
                   {availableAspectRatios.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className="text-xs md:text-sm">
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="text-xs md:text-sm focus:bg-[var(--accent-muted)] focus:text-white"
+                    >
                       <div className="flex items-center gap-2">
                         {option.icon}
                         <span>{option.label}</span>
@@ -102,7 +108,7 @@ export function InputSection({
                 onClick={onClearAll}
                 disabled={!prompt.trim() && !hasImages}
                 variant="outline"
-                className="h-7 md:h-10 px-3 py-0 text-xs md:text-sm bg-transparent border border-gray-600 text-white hover:bg-gray-700 disabled:opacity-50"
+                className="h-7 md:h-10 px-3 py-0 text-xs md:text-sm bg-transparent border border-[var(--border-default)] text-neutral-300 hover:bg-[var(--hover-overlay)] hover:text-white hover:border-[var(--border-emphasis)] disabled:opacity-50"
               >
                 <Trash2 className="size-4 md:hidden" />
                 <span className="hidden md:inline">Clear</span>
@@ -117,7 +123,7 @@ export function InputSection({
             onPaste={onPromptPaste}
             placeholder=""
             autoFocus
-            className="w-full flex-1 min-h-[100px] max-h-[140px] lg:min-h-[12vh] lg:max-h-[18vh] xl:min-h-[14vh] xl:max-h-[20vh] p-2 md:p-4 bg-black/50 border-2 border-gray-600 resize-none focus:outline-none focus:border-white text-white text-xs md:text-base select-text"
+            className="w-full flex-1 min-h-[100px] max-h-[140px] lg:min-h-[12vh] lg:max-h-[18vh] xl:min-h-[14vh] xl:max-h-[20vh] p-2 md:p-4 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg resize-none focus:outline-none focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-ring)] text-white text-xs md:text-base select-text placeholder:text-neutral-600 transition-colors"
             style={{
               fontSize: "16px",
               WebkitUserSelect: "text",
@@ -130,14 +136,16 @@ export function InputSection({
           <div>
             <div className="flex items-center justify-between mb-2 md:mb-3 select-none">
               <div className="flex flex-col gap-1">
-                <label className="text-sm md:text-base font-medium text-gray-300">Images (optional)</label>
+                <label className="text-sm md:text-base font-medium text-neutral-300">Images (optional)</label>
               </div>
-              <div className="inline-flex bg-black/50 border border-gray-600">
+              <div className="inline-flex bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg overflow-hidden">
                 <button
                   onClick={() => setUseUrls(false)}
                   className={cn(
                     "px-2 py-1 md:px-4 md:py-2 text-xs md:text-sm font-medium transition-all",
-                    !useUrls ? "bg-white text-black" : "text-gray-300 hover:text-white",
+                    !useUrls
+                      ? "bg-accent-theme text-accent-text-white"
+                      : "text-neutral-400 hover:text-accent-text-white hover:bg-[var(--hover-overlay)]",
                   )}
                 >
                   Files
@@ -146,7 +154,9 @@ export function InputSection({
                   onClick={() => setUseUrls(true)}
                   className={cn(
                     "px-2 py-1 md:px-4 md:py-2 text-xs md:text-sm font-medium transition-all",
-                    useUrls ? "bg-white text-black" : "text-gray-300 hover:text-white",
+                    useUrls
+                      ? "bg-accent-theme text-accent-text-white"
+                      : "text-neutral-400 hover:text-accent-text-white hover:bg-[var(--hover-overlay)]",
                   )}
                 >
                   URLs
@@ -162,12 +172,12 @@ export function InputSection({
                     value={image1Url}
                     onChange={(e) => onUrlChange(e.target.value, 1)}
                     placeholder="First image URL"
-                    className="w-full p-2 md:p-3 pr-8 bg-black/50 border border-gray-600 text-white text-xs focus:outline-none focus:ring-2 focus:ring-white select-text"
+                    className="w-full p-2 md:p-3 pr-8 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg text-white text-xs focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] focus:border-[var(--accent-primary)] select-text placeholder:text-neutral-600 transition-colors"
                   />
                   {image1Url && (
                     <button
                       onClick={() => onClearImage(1)}
-                      className="absolute right-1 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-neutral-500 hover:text-white transition-colors"
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <line x1="18" y1="6" x2="6" y2="18" />
@@ -182,12 +192,12 @@ export function InputSection({
                     value={image2Url}
                     onChange={(e) => onUrlChange(e.target.value, 2)}
                     placeholder="Second image URL"
-                    className="w-full p-2 md:p-3 pr-8 bg-black/50 border border-gray-600 text-white text-xs focus:outline-none focus:ring-2 focus:ring-white select-text"
+                    className="w-full p-2 md:p-3 pr-8 bg-[var(--surface-2)] border border-[var(--border-default)] rounded-lg text-white text-xs focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] focus:border-[var(--accent-primary)] select-text placeholder:text-neutral-600 transition-colors"
                   />
                   {image2Url && (
                     <button
                       onClick={() => onClearImage(2)}
-                      className="absolute right-1 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-neutral-500 hover:text-white transition-colors"
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <line x1="18" y1="6" x2="6" y2="18" />
@@ -273,7 +283,7 @@ export function InputSection({
 
         <div className="pt-0">
           <Button onClick={onGenerate} disabled={!canGenerate || isConvertingHeic} className={btnClassName}>
-            {isConvertingHeic ? "Converting HEIC..." : "Run"}
+            {isConvertingHeic ? "Converting HEIC..." : "Generate"}
           </Button>
         </div>
       </div>

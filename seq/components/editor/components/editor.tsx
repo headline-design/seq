@@ -488,7 +488,6 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
     addGeneration,
     onToast: showToast,
     onImageUpload: handleImageUpload,
-    onOutOfCredits: () => { },
     onApiKeyMissing: () => setApiKeyMissing(true),
   })
 
@@ -719,7 +718,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
               const arrayBuffer = await response.arrayBuffer()
               const audioBuffer = await offlineCtx.decodeAudioData(arrayBuffer)
               audioBufferMap.set(mid, audioBuffer)
-            } catch (e) {}
+            } catch (e) { }
           }
         }
 
@@ -860,14 +859,14 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
         // Cleanup
         try {
           await ffmpegInstance.deleteFile("audio.wav")
-        } catch (e) {}
+        } catch (e) { }
         try {
           await ffmpegInstance.deleteFile("output.mp4")
-        } catch (e) {}
+        } catch (e) { }
         for (let i = 0; i < frameCount; i++) {
           try {
             await ffmpegInstance.deleteFile(`frame${i.toString().padStart(4, "0")}.jpg`)
-          } catch (e) {}
+          } catch (e) { }
         }
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : ""
@@ -951,7 +950,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
             const response = await fetch(item.url)
             const arrayBuffer = await response.arrayBuffer()
             audioBufferMap.set(mid, await offlineCtx.decodeAudioData(arrayBuffer))
-          } catch (e) {}
+          } catch (e) { }
         }
       }
 
@@ -1064,14 +1063,14 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
       // Cleanup
       try {
         await ffmpegInstance.deleteFile("preview_audio.wav")
-      } catch (e) {}
+      } catch (e) { }
       try {
         await ffmpegInstance.deleteFile("preview.mp4")
-      } catch (e) {}
+      } catch (e) { }
       for (let i = 0; i < frameCount; i++) {
         try {
           await ffmpegInstance.deleteFile(`pframe${i.toString().padStart(4, "0")}.jpg`)
-        } catch (e) {}
+        } catch (e) { }
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : ""
@@ -1163,7 +1162,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
     onLoadProject: handleLoadProject,
     onAddMarker: () => setShowAddMarkerDialog(true),
     onZoomToFit: handleZoomToFit,
-    onSaveFrame: () => {},
+    onSaveFrame: () => { },
     currentTime: playback.currentTime,
     previewVideoRef: playback.previewVideoRef as React.RefObject<HTMLVideoElement>,
     videoRefA: playback.videoRefA as React.RefObject<HTMLVideoElement>,
@@ -1175,7 +1174,8 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
   useEffect(() => {
     if (hasAutosave() && !initialMedia?.length && !initialClips?.length) {
       const loadAutosavedProject = async () => {
-        const confirmed = window.confirm("An autosaved project was found. Would you like to restore it?")
+        //const confirmed = window.confirm("An autosaved project was found. Would you like to restore it?")
+        const confirmed = true // Auto-restore without prompt
         if (confirmed) {
           const autosaveData = loadAutosave()
           if (autosaveData) {
@@ -1313,7 +1313,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#09090b] text-neutral-200 font-sans selection:bg-indigo-500/30">
+      <div className="flex flex-col h-screen w-screen overflow-hidden bg-[var(--surface-0)] text-neutral-200 font-sans selection:bg-[var(--accent-muted)]">
         {/* Main editor row */}
         <div className="flex flex-1 min-h-0">
           {/* Modals */}
@@ -1485,10 +1485,10 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                       )}
                     </ErrorBoundary>
 
-
                     {/* Sidebar resize handle */}
+                    {/* Updated resize handle hover color from indigo to pink */}
                     <div
-                      className="absolute right-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-indigo-500/50 transition-colors"
+                      className="absolute right-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-[var(--accent-hover)] transition-colors"
                       onMouseDown={(e) => {
                         setIsResizingSidebar(true)
                         sidebarResizeRef.current = { startX: e.clientX, startWidth: sidebarWidth }
@@ -1498,7 +1498,7 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                 )}
               </SidebarPanelWrapper>
               {/* Main preview area */}
-              <div className="flex-1 flex flex-col bg-[#09090b] min-w-0">
+              <div className="flex-1 flex flex-col bg-[var(--surface-0)] min-w-0">
                 {/* Preview Player - Wrap in PanelErrorBoundary */}
                 <PanelErrorBoundary fallbackTitle="Preview Error">
                   <PreviewPlayer
@@ -1555,8 +1555,9 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                       style={{ height: timelineHeight }}
                     >
                       {/* Resize handle */}
+                      {/* Updated timeline resize handle hover from indigo to pink */}
                       <div
-                        className="h-1 min-h-1 cursor-ns-resize hover:bg-indigo-500/50 transition-colors"
+                        className="h-1 min-h-1 cursor-ns-resize hover:bg-[var(--accent-hover)] transition-colors"
                         onMouseDown={(e) => {
                           setIsResizingTimeline(true)
                           resizeRef.current = { startY: e.clientY, startHeight: timelineHeight }

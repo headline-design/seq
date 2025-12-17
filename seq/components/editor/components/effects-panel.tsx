@@ -42,7 +42,7 @@ const EffectSlider = memo(function EffectSlider({
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
         <span className="text-[10px] text-neutral-500 uppercase font-medium">{label}</span>
-        <span className={`text-[10px] font-mono ${isModified ? "text-indigo-400" : "text-neutral-600"}`}>
+        <span className={`text-[10px] font-mono ${isModified ? "text-[var(--accent-text)]" : "text-neutral-600"}`}>
           {value > 0 && min < 0 ? "+" : ""}
           {value}
           {unit}
@@ -55,7 +55,7 @@ const EffectSlider = memo(function EffectSlider({
           max={max}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full h-1.5 bg-white/[0.06] rounded-full appearance-none cursor-pointer
+          className="w-full h-1.5 bg-[var(--border-default)] rounded-full appearance-none cursor-pointer
             [&::-webkit-slider-thumb]:appearance-none 
             [&::-webkit-slider-thumb]:w-3 
             [&::-webkit-slider-thumb]:h-3 
@@ -64,16 +64,16 @@ const EffectSlider = memo(function EffectSlider({
             [&::-webkit-slider-thumb]:shadow-lg
             [&::-webkit-slider-thumb]:cursor-grab
             [&::-webkit-slider-thumb]:active:cursor-grabbing
-            [&::-webkit-slider-thumb]:hover:bg-indigo-400
+            [&::-webkit-slider-thumb]:hover:bg-[var(--accent-text)]
             [&::-webkit-slider-thumb]:transition-colors"
           style={{
-            background: `linear-gradient(to right, #6366f1 0%, #6366f1 ${percentage}%, rgba(255,255,255,0.06) ${percentage}%, rgba(255,255,255,0.06) 100%)`,
+            background: `linear-gradient(to right, var(--accent-primary) 0%, var(--accent-primary) ${percentage}%, rgba(255,255,255,0.06) ${percentage}%, rgba(255,255,255,0.06) 100%)`,
           }}
         />
         {/* Center marker for bipolar sliders */}
         {min < 0 && (
           <div
-            className="absolute top-1/2 -translate-y-1/2 w-0.5 h-3 bg-white/[0.15] pointer-events-none"
+            className="absolute top-1/2 -translate-y-1/2 w-0.5 h-3 bg-[var(--border-emphasis)] pointer-events-none"
             style={{ left: `${((0 - min) / (max - min)) * 100}%` }}
           />
         )}
@@ -127,7 +127,7 @@ export const EffectsPanel = memo<EffectsPanelProps>(function EffectsPanel({ clip
               <TooltipTrigger asChild>
                 <button
                   onClick={resetEffects}
-                  className="p-1.5 rounded hover:bg-white/[0.06] text-neutral-500 hover:text-white transition-colors"
+                  className="p-1.5 rounded hover:bg-[var(--hover-overlay)] text-neutral-500 hover:text-white transition-colors"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                 </button>
@@ -140,7 +140,7 @@ export const EffectsPanel = memo<EffectsPanelProps>(function EffectsPanel({ clip
         </div>
 
         {/* Color Adjustments */}
-        <div className="bg-[#18181b] rounded-lg border border-white/[0.06] p-3 flex flex-col gap-4">
+        <div className="bg-[var(--surface-3)] rounded-lg border border-[var(--border-default)] p-3 flex flex-col gap-4">
           <span className="text-[9px] text-neutral-600 uppercase font-bold">Color</span>
 
           <EffectSlider
@@ -182,7 +182,7 @@ export const EffectsPanel = memo<EffectsPanelProps>(function EffectsPanel({ clip
         </div>
 
         {/* Effects */}
-        <div className="bg-[#18181b] rounded-lg border border-white/[0.06] p-3 flex flex-col gap-4">
+        <div className="bg-[var(--surface-3)] rounded-lg border border-[var(--border-default)] p-3 flex flex-col gap-4">
           <span className="text-[9px] text-neutral-600 uppercase font-bold">Effects</span>
 
           <EffectSlider
@@ -229,7 +229,7 @@ export const EffectsPanel = memo<EffectsPanelProps>(function EffectsPanel({ clip
                     },
                   })
                 }}
-                className="py-2 px-3 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[10px] font-medium text-neutral-400 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.1] transition-all"
+                className="py-2 px-3 rounded-lg bg-[var(--hover-overlay)] border border-[var(--border-default)] text-[10px] font-medium text-neutral-400 hover:text-white hover:bg-[var(--active-overlay)] hover:border-[var(--border-strong)] transition-all"
               >
                 {preset.name}
               </button>

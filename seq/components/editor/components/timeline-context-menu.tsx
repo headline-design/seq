@@ -63,11 +63,11 @@ export const TimelineContextMenu = memo(function TimelineContextMenu({
 
   return (
     <div
-      className="fixed z-[100] bg-[#18181b] border border-neutral-700 rounded-lg shadow-2xl py-1 w-48 animate-in fade-in zoom-in-95 duration-75"
+      className="fixed z-[100] bg-[var(--surface-2)] border border-neutral-700 rounded-lg shadow-2xl py-1 w-48 animate-in fade-in zoom-in-95 duration-75"
       style={{ left: x, top: y }}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="px-3 py-1.5 border-b border-neutral-800 text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1">
+      <div className="px-3 py-1.5 border-b border-[var(--border-default)] text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1">
         Clip Actions
       </div>
 
@@ -116,7 +116,7 @@ export const TimelineContextMenu = memo(function TimelineContextMenu({
         </button>
       )}
 
-      <div className="h-px bg-neutral-800 my-1" />
+      <div className="h-px bg-[var(--border-default)] my-1" />
 
       <button
         onClick={() => {

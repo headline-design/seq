@@ -260,7 +260,7 @@ export function StoryboardContainer({
           </Button>
           <Button
             size="sm"
-            className="h-7 text-xs bg-indigo-600/80 hover:bg-indigo-600 text-white border-0"
+            className="h-7 text-xs bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] text-white border-0"
             onClick={generateAll}
           >
             <Wand2 className="mr-1.5 h-3 w-3" />
@@ -305,7 +305,7 @@ export function StoryboardContainer({
               size="sm"
               onClick={handleEnhanceMaster}
               disabled={isEnhancingMaster || !masterDescription.trim()}
-              className="h-5 px-2 text-[10px] text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10"
+              className="h-5 px-2 text-[10px] text-[var(--accent-text)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)]"
             >
               {isEnhancingMaster ? (
                 <Loader2 className="w-3 h-3 animate-spin mr-1.5" />
@@ -319,7 +319,7 @@ export function StoryboardContainer({
             value={masterDescription}
             onChange={(e) => setMasterDescription(e.target.value)}
             placeholder="Describe the overall scene, style, or story context (e.g. 'A flashback scene in Ratatouille, warm cinematic lighting, emotional tone'). This will be used to enhance individual shot prompts."
-            className="min-h-[60px] text-xs resize-none bg-white/5 border-white/10 focus:border-white/20 text-white/90 placeholder:text-white/20"
+            className="min-h-[60px] text-xs resize-none bg-white/5 border-white/10 focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-primary)] text-white/90 placeholder:text-white/20"
           />
         </div>
 

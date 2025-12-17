@@ -1,4 +1,5 @@
 import type React from "react"
+
 export interface GeneratedImage {
   url: string
   prompt: string
@@ -10,10 +11,12 @@ export interface Generation {
   status: "loading" | "complete" | "error"
   progress: number
   imageUrl: string | null
-  createdAt: string
   prompt: string
   error?: string
   timestamp: number
+  createdAt?: string
+  aspectRatio?: string
+  mode?: string
   abortController?: AbortController
   thumbnailLoaded?: boolean
 }

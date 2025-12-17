@@ -50,7 +50,7 @@ export default function DemoPage() {
       <main className="max-w-5xl mx-auto px-6 py-12">
         {/* Hero Section */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-xs font-medium text-indigo-300 mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-bg-subtle)] border border-[var(--accent-border)] text-xs font-medium text-[var(--accent-text)] mb-6">
             <Play className="w-3 h-3" />
             Demo Showcase
           </div>
@@ -63,9 +63,14 @@ export default function DemoPage() {
 
         {/* Video Player */}
         <div className="relative mb-12 group">
-          <div className="absolute -inset-1 bg-gradient-to-b from-indigo-500/20 to-transparent rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity duration-500" />
-          <div className="relative bg-[#09090b] border border-white/10 rounded-xl shadow-2xl overflow-hidden">
-            <video src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/git-blob/prj_y6denQY7uSeu9lM3GpnpQCz5KYdE/fbU5DYKN4uclkGtJg_2gXP/public/demo.mp4" controls className="w-full aspect-video bg-black" poster="/demo-poster.png" />
+          <div className="absolute -inset-1 bg-gradient-to-b from-[var(--accent-primary)]/20 to-transparent rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity duration-500" />
+          <div className="relative bg-[var(--surface-0)] border border-[var(--border-default)] rounded-xl shadow-2xl overflow-hidden">
+            <video
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/git-blob/prj_y6denQY7uSeu9lM3GpnpQCz5KYdE/fbU5DYKN4uclkGtJg_2gXP/public/demo.mp4"
+              controls
+              className="w-full aspect-video bg-black"
+              poster="/demo-poster.png"
+            />
           </div>
         </div>
 
@@ -78,9 +83,9 @@ export default function DemoPage() {
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Storyboard Tool */}
-            <div className="p-6 rounded-xl bg-secondary/50 border border-border hover:border-indigo-500/30 transition-colors group">
+            <div className="p-6 rounded-xl bg-secondary/50 border border-border hover:border-[var(--accent-border)] transition-colors group">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center text-indigo-400 shrink-0 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 bg-[var(--accent-bg-subtle)] rounded-lg flex items-center justify-center text-[var(--accent-text)] shrink-0 group-hover:scale-110 transition-transform">
                   <Layers className="w-6 h-6" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -94,7 +99,7 @@ export default function DemoPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 px-2 text-xs text-indigo-400 hover:text-indigo-300"
+                      className="h-7 px-2 text-xs text-[var(--accent-text)] hover:text-[var(--accent-primary)]"
                     >
                       Try Storyboard
                       <ArrowRight className="w-3 h-3 ml-1" />
@@ -105,9 +110,9 @@ export default function DemoPage() {
             </div>
 
             {/* Timeline Editor */}
-            <div className="p-6 rounded-xl bg-secondary/50 border border-border hover:border-purple-500/30 transition-colors group">
+            <div className="p-6 rounded-xl bg-secondary/50 border border-border hover:border-[var(--accent-border)] transition-colors group">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-purple-400 shrink-0 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 bg-[var(--accent-secondary)]/20 rounded-lg flex items-center justify-center text-[var(--accent-secondary)] shrink-0 group-hover:scale-110 transition-transform">
                   <Film className="w-6 h-6" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -121,7 +126,7 @@ export default function DemoPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 px-2 text-xs text-purple-400 hover:text-purple-300"
+                      className="h-7 px-2 text-xs text-[var(--accent-secondary)] hover:text-[var(--accent-primary)]"
                     >
                       Open Editor
                       <ArrowRight className="w-3 h-3 ml-1" />
@@ -137,11 +142,11 @@ export default function DemoPage() {
             <p className="text-xs text-muted-foreground mb-3">Powered by</p>
             <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                <span className="w-2 h-2 rounded-full bg-[var(--accent-primary)]" />
                 Gemini 3 Pro
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-purple-500" />
+                <span className="w-2 h-2 rounded-full bg-[var(--accent-secondary)]" />
                 Veo 3.1
               </span>
               <span className="flex items-center gap-1.5">
