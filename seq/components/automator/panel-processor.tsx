@@ -13,7 +13,7 @@ interface PanelProcessorProps {
   masterUrl: string
   masterPrompt: string
   panelCount: number
-  storageMode: "persistent" | "temporal" // Add storageMode prop
+  storageMode: "persistent" | "temporal"
   onComplete: (panels: string[]) => void
 }
 
@@ -140,8 +140,8 @@ export function PanelProcessor({ masterUrl, masterPrompt, panelCount, storageMod
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold mb-2">Processing Storyboard</h2>
-        <p className="text-neutral-400">
+        <h2 className="text-2xl font-bold mb-2 text-[var(--text-primary)]">Processing Storyboard</h2>
+        <p className="text-[var(--text-secondary)]">
           Using Nano Banana to extract, upscale, and QC {panelCount} panels from the master.
           {masterPrompt.includes("Ratatouille") && " (Demo Mode Active)"}
         </p>
@@ -152,7 +152,7 @@ export function PanelProcessor({ masterUrl, masterPrompt, panelCount, storageMod
           <Button
             size="lg"
             onClick={processPanels}
-            className="bg-[var(--accent-gradient)] hover:opacity-90 text-accent-text-white gap-2"
+            className="bg-[var(--tertiary)] hover:bg-[var(--tertiary-hover)] text-white gap-2"
           >
             <Play className="w-5 h-5" />
             Start Panel Extraction & Upscaling
@@ -161,8 +161,7 @@ export function PanelProcessor({ masterUrl, masterPrompt, panelCount, storageMod
             size="lg"
             variant="outline"
             onClick={loadDemoPanels}
-            className="border gap-2 bg-transparent"
-            style={{ borderColor: "var(--border-default)", backgroundColor: "var(--surface-2)" }}
+            className="border-[var(--border-default)] bg-[var(--surface-2)] hover:bg-[var(--hover-overlay)] gap-2"
           >
             <Sparkles className="w-5 h-5" />
             Use Demo Extracted Panels
@@ -171,10 +170,7 @@ export function PanelProcessor({ masterUrl, masterPrompt, panelCount, storageMod
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-        <Card
-          className="p-4 border"
-          style={{ backgroundColor: "var(--surface-2)", borderColor: "var(--border-default)" }}
-        >
+        <Card className="p-4 bg-[var(--surface-2)] border-[var(--border-default)]">
           <div className="aspect-[3/2] relative rounded-lg overflow-hidden">
             <Image src={masterUrl || "/placeholder.svg"} alt="Master" fill className="object-cover" />
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center pointer-events-none">
@@ -188,15 +184,15 @@ export function PanelProcessor({ masterUrl, masterPrompt, panelCount, storageMod
         <div className="space-y-6">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-neutral-400">Status</span>
-              <span className="text-neutral-200 font-medium capitalize flex items-center gap-2">
+              <span className="text-[var(--text-secondary)]">Status</span>
+              <span className="text-[var(--text-primary)] font-medium capitalize flex items-center gap-2">
                 {status === "processing" && <Loader2 className="w-3 h-3 animate-spin" />}
                 {status === "processing" ? `Extracting Panel ${panels.length + 1}/${panelCount}...` : status}
               </span>
             </div>
-            <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--surface-3)" }}>
+            <div className="h-2 rounded-full overflow-hidden bg-[var(--surface-3)]">
               <div
-                className="h-full bg-[var(--accent-gradient)] transition-all duration-500 ease-out"
+                className="h-full bg-[var(--tertiary)] transition-all duration-500 ease-out"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -206,8 +202,7 @@ export function PanelProcessor({ masterUrl, masterPrompt, panelCount, storageMod
             {Array.from({ length: panelCount }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-video relative rounded overflow-hidden border group"
-                style={{ backgroundColor: "var(--surface-3)", borderColor: "var(--border-default)" }}
+                className="aspect-video relative rounded overflow-hidden border bg-[var(--surface-3)] border-[var(--border-default)] group"
               >
                 {panels[i] ? (
                   <>
@@ -230,12 +225,12 @@ export function PanelProcessor({ masterUrl, masterPrompt, panelCount, storageMod
                       </div>
                     )}
                     <div className="absolute top-1 right-1">
-                      <CheckCircle2 className="w-4 h-4 text-green-500 bg-black rounded-full" />
+                      <CheckCircle2 className="w-4 h-4 text-[var(--success)] bg-black rounded-full" />
                     </div>
                   </>
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xs text-zinc-500">Panel {i + 1}</span>
+                    <span className="text-xs text-[var(--text-muted)]">Panel {i + 1}</span>
                   </div>
                 )}
 

@@ -13,7 +13,7 @@ interface GlobalDropZoneProps {
 export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: GlobalDropZoneProps) {
   return (
     <div
-      className="fixed inset-0 z-50 bg-[var(--surface-0)]/90 backdrop-blur-md flex items-center justify-center gap-8 px-8"
+      className="fixed inset-0 z-50 bg-background/90 backdrop-blur-md flex items-center justify-center gap-8 px-8"
       onDrop={(e) => {
         e.preventDefault()
         onDrop(e, 1)
@@ -23,8 +23,8 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
         className={cn(
           "flex-1 max-w-md h-64 border-4 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer",
           dropZoneHover === 1
-            ? "border-[var(--accent-primary)] bg-[var(--accent-muted)] scale-105 shadow-2xl shadow-[var(--accent-shadow)]"
-            : "border-[var(--border-emphasis)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] hover:border-[var(--accent-border)]",
+            ? "border-accent bg-accent/10 scale-105 shadow-2xl shadow-accent/20"
+            : "border-border bg-card hover:bg-muted hover:border-accent/50",
         )}
         onDragEnter={() => onSetDropZoneHover(1)}
         onDragLeave={() => onSetDropZoneHover(null)}
@@ -42,13 +42,13 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
           <div
             className={cn(
               "w-16 h-16 rounded-xl flex items-center justify-center mb-4 transition-all",
-              dropZoneHover === 1 ? "bg-[var(--accent-muted)] scale-110" : "bg-[var(--surface-3)]",
+              dropZoneHover === 1 ? "bg-accent/20 scale-110" : "bg-muted",
             )}
           >
             <span
               className={cn(
                 "text-3xl font-bold transition-all",
-                dropZoneHover === 1 ? "text-[var(--accent-primary)]" : "text-neutral-400",
+                dropZoneHover === 1 ? "text-accent" : "text-muted-foreground",
               )}
             >
               1
@@ -57,7 +57,7 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
           <svg
             className={cn(
               "w-12 h-12 mx-auto mb-4 transition-all",
-              dropZoneHover === 1 ? "text-[var(--accent-primary)] scale-110" : "text-neutral-400",
+              dropZoneHover === 1 ? "text-accent scale-110" : "text-muted-foreground",
             )}
             fill="none"
             stroke="currentColor"
@@ -71,12 +71,18 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
             />
           </svg>
           <p
-            className={cn("text-xl font-bold transition-all", dropZoneHover === 1 ? "text-white" : "text-neutral-300")}
+            className={cn(
+              "text-xl font-bold transition-all",
+              dropZoneHover === 1 ? "text-foreground" : "text-muted-foreground",
+            )}
           >
             Input 1
           </p>
           <p
-            className={cn("text-sm mt-2 transition-all", dropZoneHover === 1 ? "text-neutral-300" : "text-neutral-500")}
+            className={cn(
+              "text-sm mt-2 transition-all",
+              dropZoneHover === 1 ? "text-muted-foreground" : "text-muted-foreground/70",
+            )}
           >
             Drop here for first image
           </p>
@@ -87,8 +93,8 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
         className={cn(
           "flex-1 max-w-md h-64 border-4 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer",
           dropZoneHover === 2
-            ? "border-[var(--accent-primary)] bg-[var(--accent-muted)] scale-105 shadow-2xl shadow-[var(--accent-shadow)]"
-            : "border-[var(--border-emphasis)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] hover:border-[var(--accent-border)]",
+            ? "border-accent bg-accent/10 scale-105 shadow-2xl shadow-accent/20"
+            : "border-border bg-card hover:bg-muted hover:border-accent/50",
         )}
         onDragEnter={() => onSetDropZoneHover(2)}
         onDragLeave={() => onSetDropZoneHover(null)}
@@ -106,13 +112,13 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
           <div
             className={cn(
               "w-16 h-16 rounded-xl flex items-center justify-center mb-4 transition-all",
-              dropZoneHover === 2 ? "bg-[var(--accent-muted)] scale-110" : "bg-[var(--surface-3)]",
+              dropZoneHover === 2 ? "bg-accent/20 scale-110" : "bg-muted",
             )}
           >
             <span
               className={cn(
                 "text-3xl font-bold transition-all",
-                dropZoneHover === 2 ? "text-[var(--accent-primary)]" : "text-neutral-400",
+                dropZoneHover === 2 ? "text-accent" : "text-muted-foreground",
               )}
             >
               2
@@ -121,7 +127,7 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
           <svg
             className={cn(
               "w-12 h-12 mx-auto mb-4 transition-all",
-              dropZoneHover === 2 ? "text-[var(--accent-primary)] scale-110" : "text-neutral-400",
+              dropZoneHover === 2 ? "text-accent scale-110" : "text-muted-foreground",
             )}
             fill="none"
             stroke="currentColor"
@@ -135,12 +141,18 @@ export function GlobalDropZone({ dropZoneHover, onSetDropZoneHover, onDrop }: Gl
             />
           </svg>
           <p
-            className={cn("text-xl font-bold transition-all", dropZoneHover === 2 ? "text-white" : "text-neutral-300")}
+            className={cn(
+              "text-xl font-bold transition-all",
+              dropZoneHover === 2 ? "text-foreground" : "text-muted-foreground",
+            )}
           >
             Input 2
           </p>
           <p
-            className={cn("text-sm mt-2 transition-all", dropZoneHover === 2 ? "text-neutral-300" : "text-neutral-500")}
+            className={cn(
+              "text-sm mt-2 transition-all",
+              dropZoneHover === 2 ? "text-muted-foreground" : "text-muted-foreground/70",
+            )}
           >
             Drop here for second image
           </p>

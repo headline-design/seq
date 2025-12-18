@@ -178,7 +178,7 @@ export default function StoryboardPage() {
 
   return (
     <AppShell>
-      <div className="min-h-screen bg-[var(--surface-0)] text-white">
+      <div className="min-h-screen bg-background text-foreground">
         <DevPanel
           currentStep={step}
           masterData={masterData}
@@ -189,23 +189,25 @@ export default function StoryboardPage() {
           transitionPanels={transitionPanels}
         />
 
-        <header className="sticky top-0 z-40 border-b border-[var(--border-default)] bg-[var(--surface-0)]/95 backdrop-blur-xl">
+        <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-xl">
           <div className="px-6">
             {/* Top bar */}
             <div className="flex items-center justify-between h-14">
               <div className="flex items-center gap-3">
                 <h1 className="text-page-title">Storyboard</h1>
-                <span className="text-xs text-neutral-500 hidden sm:inline">Video Sequence Editor</span>
+                <span className="text-xs text-muted-foreground hidden sm:inline">Video Sequence Editor</span>
               </div>
 
               <div className="flex items-center gap-2">
                 {/* Storage mode */}
-                <div className="flex p-0.5 rounded-lg bg-[var(--hover-overlay)]">
+                <div className="flex p-0.5 rounded-lg bg-muted/50">
                   <button
                     onClick={() => handleStorageModeChange("temporal")}
                     className={cn(
                       "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
-                      storageMode === "temporal" ? "bg-[var(--active-overlay)] text-white" : "text-neutral-500",
+                      storageMode === "temporal"
+                        ? "bg-muted text-foreground"
+                        : "text-muted-foreground hover:text-foreground",
                     )}
                   >
                     Temp
@@ -214,7 +216,9 @@ export default function StoryboardPage() {
                     onClick={() => handleStorageModeChange("persistent")}
                     className={cn(
                       "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
-                      storageMode === "persistent" ? "bg-[var(--active-overlay)] text-white" : "text-neutral-500",
+                      storageMode === "persistent"
+                        ? "bg-muted text-foreground"
+                        : "text-muted-foreground hover:text-foreground",
                     )}
                   >
                     Persist
@@ -223,12 +227,7 @@ export default function StoryboardPage() {
 
                 {step !== "prompt" && (
                   <>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleSaveProgress}
-                      className="h-8 px-3 text-xs text-neutral-400 hover:text-white"
-                    >
+                    <Button variant="ghost" size="sm" onClick={handleSaveProgress} className="h-8 px-3 text-xs">
                       <Save className="w-3.5 h-3.5 mr-1.5" />
                       Save
                     </Button>
@@ -236,7 +235,7 @@ export default function StoryboardPage() {
                       variant="ghost"
                       size="sm"
                       onClick={handleClearSession}
-                      className="h-8 w-8 p-0 text-neutral-500 hover:text-red-400"
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
@@ -267,10 +266,10 @@ export default function StoryboardPage() {
                           className={cn(
                             "w-9 h-9 rounded-xl flex items-center justify-center transition-all",
                             isActive
-                              ? "bg-accent-gradient text-accent-text-white shadow-lg shadow-[var(--accent-shadow)]"
+                              ? "bg-primary text-primary-foreground shadow-lg"
                               : isCompleted
-                                ? "bg-[var(--accent-bg-subtle)] text-[var(--accent-text)] border border-[var(--accent-border)]"
-                                : "bg-[var(--hover-overlay)] text-neutral-500 border border-[var(--border-default)] group-hover:border-[var(--border-strong)]",
+                                ? "bg-primary/10 text-primary border border-primary/20"
+                                : "bg-muted text-muted-foreground border border-border hover:border-border-emphasis",
                           )}
                         >
                           {isCompleted ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
@@ -278,7 +277,7 @@ export default function StoryboardPage() {
                         <span
                           className={cn(
                             "text-[10px] font-medium transition-colors",
-                            isActive ? "text-white" : isCompleted ? "text-[var(--accent-text)]" : "text-neutral-500",
+                            isActive ? "text-foreground" : isCompleted ? "text-primary" : "text-muted-foreground",
                           )}
                         >
                           {s.label}
@@ -289,7 +288,7 @@ export default function StoryboardPage() {
                           <div
                             className={cn(
                               "flex-1 h-px transition-colors",
-                              i < currentStepIndex ? "bg-[var(--accent-muted)]" : "bg-[var(--border-default)]",
+                              i < currentStepIndex ? "bg-primary/50" : "bg-border",
                             )}
                           />
                         </div>
@@ -304,24 +303,31 @@ export default function StoryboardPage() {
 
         <main className="px-6 py-6 max-w-6xl mx-auto">
           {storageMode === "temporal" && step !== "prompt" && !dismissedBanners.has("temporal") && (
-            <div className="mb-6 flex items-center gap-3 px-4 py-3 bg-[var(--warning-muted)] border border-amber-500/20 rounded-xl text-sm">
+            <div className="mb-6 flex items-center gap-3 px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-sm">
               <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-              <p className="text-neutral-300 flex-1">
+              <p className="text-foreground/80 flex-1">
                 <span className="font-medium text-amber-400">Temporary mode</span> — Save before leaving.
               </p>
-              <button onClick={() => dismissBanner("temporal")} className="p-1 text-neutral-500 hover:text-white">
+              <button
+                onClick={() => dismissBanner("temporal")}
+                className="p-1 text-muted-foreground hover:text-foreground"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
           )}
 
           {hasLoadedSession && step !== "prompt" && !dismissedBanners.has("session") && (
-            <div className="mb-6 flex items-center gap-3 px-4 py-3 bg-[var(--surface-1)] border border-[var(--border-default)] rounded-xl text-sm">
-              <Info className="w-4 h-4 text-neutral-400 flex-shrink-0" />
-              <p className="text-neutral-400 flex-1">
-                <span className="font-medium text-white">Session restored</span> — Continue or clear to start fresh.
+            <div className="mb-6 flex items-center gap-3 px-4 py-3 bg-muted border border-border rounded-xl text-sm">
+              <Info className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <p className="text-muted-foreground flex-1">
+                <span className="font-medium text-foreground">Session restored</span> — Continue or clear to start
+                fresh.
               </p>
-              <button onClick={() => dismissBanner("session")} className="p-1 text-neutral-500 hover:text-white">
+              <button
+                onClick={() => dismissBanner("session")}
+                className="p-1 text-muted-foreground hover:text-foreground"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -367,15 +373,17 @@ export default function StoryboardPage() {
           {step === "result" && (
             <div className="space-y-6 animate-in fade-in duration-500">
               <div className="text-center">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--accent-bg-subtle)] border border-[var(--accent-border)] text-xs font-medium text-[var(--accent-text)] mb-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary mb-3">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-text)] opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent-primary)]" />
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
                   </span>
                   Ready to produce
                 </div>
                 <h2 className="text-xl font-semibold mb-2">Storyboard Complete</h2>
-                <p className="text-sm text-neutral-400">Generate videos for each panel, then export your sequence.</p>
+                <p className="text-sm text-muted-foreground">
+                  Generate videos for each panel, then export your sequence.
+                </p>
               </div>
 
               <StoryboardContainer

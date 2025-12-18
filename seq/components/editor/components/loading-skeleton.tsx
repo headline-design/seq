@@ -9,16 +9,16 @@ interface SkeletonProps {
 
 // Base skeleton with pulse animation
 export const Skeleton = memo(function Skeleton({ className }: SkeletonProps) {
-  return <div className={cn("animate-pulse rounded bg-white/10", className)} />
+  return <div className={cn("animate-pulse rounded bg-[var(--surface-3)]", className)} />
 })
 Skeleton.displayName = "Skeleton"
 
 // Timeline skeleton
 export const TimelineSkeleton = memo(function TimelineSkeleton() {
   return (
-    <div className="flex h-full flex-col bg-[#1a1a2e]">
+    <div className="flex h-full flex-col bg-[var(--surface-1)]">
       {/* Toolbar skeleton */}
-      <div className="flex h-10 items-center gap-2 border-b border-white/10 px-3">
+      <div className="flex h-10 items-center gap-2 border-b border-[var(--border-default)] px-3">
         <Skeleton className="h-6 w-20" />
         <Skeleton className="h-6 w-6" />
         <Skeleton className="h-6 w-6" />
@@ -29,7 +29,7 @@ export const TimelineSkeleton = memo(function TimelineSkeleton() {
       {/* Timeline content skeleton */}
       <div className="flex flex-1 overflow-hidden">
         {/* Track headers */}
-        <div className="flex w-32 flex-col border-r border-white/10 bg-[#0d0d1a]">
+        <div className="flex w-32 flex-col border-r border-[var(--border-default)] bg-[var(--surface-0)]">
           <Skeleton className="m-2 h-12" />
           <Skeleton className="m-2 h-12" />
           <Skeleton className="m-2 h-12" />
@@ -38,7 +38,7 @@ export const TimelineSkeleton = memo(function TimelineSkeleton() {
         {/* Timeline tracks */}
         <div className="flex-1 overflow-hidden">
           {/* Ruler */}
-          <div className="flex h-6 items-center gap-8 border-b border-white/10 px-4">
+          <div className="flex h-6 items-center gap-8 border-b border-[var(--border-default)] px-4">
             {Array.from({ length: 10 }).map((_, i) => (
               <Skeleton key={i} className="h-3 w-8" />
             ))}
@@ -46,17 +46,17 @@ export const TimelineSkeleton = memo(function TimelineSkeleton() {
 
           {/* Tracks with clips */}
           <div className="flex flex-col">
-            <div className="flex h-16 items-center gap-2 border-b border-white/5 px-4">
+            <div className="flex h-16 items-center gap-2 border-b border-[var(--border-subtle)] px-4">
               <Skeleton className="h-12 w-32 rounded" />
               <Skeleton className="h-12 w-48 rounded" />
               <Skeleton className="h-12 w-24 rounded" />
             </div>
-            <div className="flex h-16 items-center gap-2 border-b border-white/5 px-4">
+            <div className="flex h-16 items-center gap-2 border-b border-[var(--border-subtle)] px-4">
               <div className="w-20" />
               <Skeleton className="h-12 w-40 rounded" />
             </div>
-            <div className="flex h-16 items-center gap-2 border-b border-white/5 px-4">
-              <Skeleton className="h-8 w-64 rounded bg-green-500/20" />
+            <div className="flex h-16 items-center gap-2 border-b border-[var(--border-subtle)] px-4">
+              <Skeleton className="h-8 w-64 rounded bg-[var(--success-muted)]" />
             </div>
           </div>
         </div>
@@ -116,7 +116,7 @@ export const StoryboardSkeleton = memo(function StoryboardSkeleton() {
 
       {/* Panels */}
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="flex flex-col gap-2 rounded-lg border border-white/10 p-3">
+        <div key={i} className="flex flex-col gap-2 rounded-lg border border-[var(--border-default)] p-3">
           <div className="flex items-center gap-2">
             <Skeleton className="h-5 w-16" />
             <Skeleton className="h-5 flex-1" />
@@ -165,9 +165,9 @@ InspectorSkeleton.displayName = "InspectorSkeleton"
 // Full editor loading state
 export const EditorLoadingSkeleton = memo(function EditorLoadingSkeleton() {
   return (
-    <div className="flex h-screen w-full flex-col bg-[#0d0d1a]">
+    <div className="flex h-screen w-full flex-col bg-[var(--surface-0)]">
       {/* Header */}
-      <div className="flex h-12 items-center justify-between border-b border-white/10 px-4">
+      <div className="flex h-12 items-center justify-between border-b border-[var(--border-default)] px-4">
         <div className="flex items-center gap-2">
           <Skeleton className="h-6 w-6" />
           <Skeleton className="h-5 w-20" />
@@ -182,7 +182,7 @@ export const EditorLoadingSkeleton = memo(function EditorLoadingSkeleton() {
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <div className="flex w-12 flex-col items-center gap-2 border-r border-white/10 bg-[#0d0d1a] py-3">
+        <div className="flex w-12 flex-col items-center gap-2 border-r border-[var(--border-default)] bg-[var(--surface-0)] py-3">
           <Skeleton className="h-8 w-8" />
           <Skeleton className="h-8 w-8" />
           <Skeleton className="h-8 w-8" />
@@ -190,7 +190,7 @@ export const EditorLoadingSkeleton = memo(function EditorLoadingSkeleton() {
         </div>
 
         {/* Panel */}
-        <div className="w-72 border-r border-white/10">
+        <div className="w-72 border-r border-[var(--border-default)]">
           <LibrarySkeleton />
         </div>
 
@@ -200,13 +200,13 @@ export const EditorLoadingSkeleton = memo(function EditorLoadingSkeleton() {
         </div>
 
         {/* Inspector */}
-        <div className="w-72 border-l border-white/10">
+        <div className="w-72 border-l border-[var(--border-default)]">
           <InspectorSkeleton />
         </div>
       </div>
 
       {/* Timeline */}
-      <div className="h-64 border-t border-white/10">
+      <div className="h-64 border-t border-[var(--border-default)]">
         <TimelineSkeleton />
       </div>
     </div>
@@ -230,7 +230,7 @@ export const LoadingSpinner = memo(function LoadingSpinner({
 
   return (
     <svg
-      className={cn("animate-spin text-white/50", sizeClasses[size], className)}
+      className={cn("animate-spin text-[var(--text-muted)]", sizeClasses[size], className)}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -258,10 +258,10 @@ export const ProgressBar = memo(function ProgressBar({
 }) {
   return (
     <div className={cn("flex flex-col gap-1", className)}>
-      {label && <span className="text-xs text-white/60">{label}</span>}
-      <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+      {label && <span className="text-xs text-[var(--text-tertiary)]">{label}</span>}
+      <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--surface-3)]">
         <div
-          className="h-full rounded-full bg-[var(--accent-primary)] transition-all duration-300 ease-out"
+          className="h-full rounded-full bg-[var(--tertiary)] transition-all duration-300 ease-out"
           style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
         />
       </div>

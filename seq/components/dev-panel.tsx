@@ -65,7 +65,7 @@ export function DevPanel({
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 z-50 p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg transition-all"
+        className="fixed bottom-4 right-4 z-50 p-3 bg-tertiary hover:bg-tertiary-hover text-white rounded-full shadow-lg transition-all"
         title="Dev Panel (Ctrl+Shift+D)"
       >
         <Bug className="w-5 h-5" />
@@ -74,84 +74,93 @@ export function DevPanel({
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-[500px] max-h-[80vh] bg-zinc-900 border border-zinc-700 rounded-lg shadow-2xl overflow-hidden flex flex-col">
-      <div className="flex items-center justify-between p-3 bg-purple-600 text-white border-b border-purple-700">
+    <div className="fixed bottom-4 right-4 z-50 w-[500px] max-h-[80vh] bg-[var(--surface-1)] border border-[var(--border-default)] rounded-lg shadow-2xl overflow-hidden flex flex-col">
+      <div className="flex items-center justify-between p-3 bg-tertiary text-white border-b border-[var(--tertiary-hover)]">
         <div className="flex items-center gap-2">
           <Bug className="w-4 h-4" />
           <span className="font-semibold text-sm">Development Panel</span>
         </div>
-        <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-purple-700" onClick={() => setIsOpen(false)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 hover:bg-[var(--tertiary-hover)]"
+          onClick={() => setIsOpen(false)}
+        >
           <X className="w-4 h-4" />
         </Button>
       </div>
 
       <div className="overflow-y-auto flex-1 text-xs">
         {/* Workflow State */}
-        <div className="border-b border-zinc-800">
+        <div className="border-b border-[var(--border-subtle)]">
           <button
             onClick={() => toggleSection("workflow")}
-            className="w-full flex items-center justify-between p-3 hover:bg-zinc-800 transition-colors"
+            className="w-full flex items-center justify-between p-3 hover:bg-[var(--hover-overlay)] transition-colors"
           >
-            <span className="font-semibold text-white">Workflow State</span>
+            <span className="font-semibold text-[var(--text-primary)]">Workflow State</span>
             {sections.workflow ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
           {sections.workflow && (
-            <div className="p-3 space-y-2 bg-zinc-950">
+            <div className="p-3 space-y-2 bg-[var(--surface-0)]">
               <div className="flex justify-between">
-                <span className="text-zinc-400">Current Step:</span>
-                <span className="text-emerald-400 font-mono">{currentStep || "unknown"}</span>
+                <span className="text-[var(--text-secondary)]">Current Step:</span>
+                <span className="text-[var(--success)] font-mono">{currentStep || "unknown"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-400">Master Generated:</span>
-                <span className={masterData ? "text-emerald-400" : "text-red-400"}>
+                <span className="text-[var(--text-secondary)]">Master Generated:</span>
+                <span className={masterData ? "text-[var(--success)]" : "text-[var(--error)]"}>
                   {masterData ? "✓ Yes" : "✗ No"}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-400">Panel Count:</span>
-                <span className="text-white font-mono">{masterData?.panelCount || 0}</span>
+                <span className="text-[var(--text-secondary)]">Panel Count:</span>
+                <span className="text-[var(--text-primary)] font-mono">{masterData?.panelCount || 0}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-400">Processed Panels:</span>
-                <span className="text-white font-mono">{processedPanels.length}</span>
+                <span className="text-[var(--text-secondary)]">Processed Panels:</span>
+                <span className="text-[var(--text-primary)] font-mono">{processedPanels.length}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-400">Final Panels:</span>
-                <span className="text-white font-mono">{finalPanels.length}</span>
+                <span className="text-[var(--text-secondary)]">Final Panels:</span>
+                <span className="text-[var(--text-primary)] font-mono">{finalPanels.length}</span>
               </div>
             </div>
           )}
         </div>
 
         {/* Storage Info */}
-        <div className="border-b border-zinc-800">
+        <div className="border-b border-[var(--border-subtle)]">
           <button
             onClick={() => toggleSection("storage")}
-            className="w-full flex items-center justify-between p-3 hover:bg-zinc-800 transition-colors"
+            className="w-full flex items-center justify-between p-3 hover:bg-[var(--hover-overlay)] transition-colors"
           >
-            <span className="font-semibold text-white">Storage</span>
+            <span className="font-semibold text-[var(--text-primary)]">Storage</span>
             {sections.storage ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
           {sections.storage && (
-            <div className="p-3 space-y-2 bg-zinc-950">
+            <div className="p-3 space-y-2 bg-[var(--surface-0)]">
               <div className="flex justify-between">
-                <span className="text-zinc-400">Mode:</span>
-                <span className={`font-mono ${storageMode === "persistent" ? "text-emerald-400" : "text-amber-400"}`}>
+                <span className="text-[var(--text-secondary)]">Mode:</span>
+                <span
+                  className={`font-mono ${storageMode === "persistent" ? "text-[var(--success)]" : "text-[var(--warning)]"}`}
+                >
                   {storageMode || "temporal"}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-400">Session Saved:</span>
-                <span className={session ? "text-emerald-400" : "text-red-400"}>{session ? "✓ Yes" : "✗ No"}</span>
+                <span className="text-[var(--text-secondary)]">Session Saved:</span>
+                <span className={session ? "text-[var(--success)]" : "text-[var(--error)]"}>
+                  {session ? "✓ Yes" : "✗ No"}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-400">LocalStorage Size:</span>
-                <span className="text-white font-mono">{getLocalStorageSize()}</span>
+                <span className="text-[var(--text-secondary)]">LocalStorage Size:</span>
+                <span className="text-[var(--text-primary)] font-mono">{getLocalStorageSize()}</span>
               </div>
               {session && (
                 <div className="flex justify-between">
-                  <span className="text-zinc-400">Session Age:</span>
-                  <span className="text-white font-mono">
+                  <span className="text-[var(--text-secondary)]">Session Age:</span>
+                  <span className="text-[var(--text-primary)] font-mono">
                     {Math.floor((Date.now() - session.timestamp) / 1000 / 60)}m ago
                   </span>
                 </div>
@@ -161,28 +170,28 @@ export function DevPanel({
         </div>
 
         {/* Image URLs */}
-        <div className="border-b border-zinc-800">
+        <div className="border-b border-[var(--border-subtle)]">
           <button
             onClick={() => toggleSection("images")}
-            className="w-full flex items-center justify-between p-3 hover:bg-zinc-800 transition-colors"
+            className="w-full flex items-center justify-between p-3 hover:bg-[var(--hover-overlay)] transition-colors"
           >
-            <span className="font-semibold text-white">Image URLs</span>
+            <span className="font-semibold text-[var(--text-primary)]">Image URLs</span>
             {sections.images ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
           {sections.images && (
-            <div className="p-3 space-y-3 bg-zinc-950 max-h-64 overflow-y-auto">
+            <div className="p-3 space-y-3 bg-[var(--surface-0)] max-h-64 overflow-y-auto">
               {masterData?.url && (
                 <div>
-                  <div className="text-zinc-400 mb-1">Master:</div>
-                  <div className="p-2 bg-zinc-900 rounded font-mono text-[10px] break-all text-zinc-300">
+                  <div className="text-[var(--text-secondary)] mb-1">Master:</div>
+                  <div className="p-2 bg-[var(--surface-2)] rounded font-mono text-[10px] break-all text-[var(--text-secondary)]">
                     {masterData.url.startsWith("data:") ? (
-                      <span className="text-amber-400">⚠️ Data URI ({masterData.url.length} chars)</span>
+                      <span className="text-[var(--warning)]">⚠️ Data URI ({masterData.url.length} chars)</span>
                     ) : (
                       <a
                         href={masterData.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-400 hover:underline"
+                        className="text-[var(--tertiary)] hover:underline"
                       >
                         {masterData.url.substring(0, 80)}...
                       </a>
@@ -192,11 +201,14 @@ export function DevPanel({
               )}
               {processedPanels.length > 0 && (
                 <div>
-                  <div className="text-zinc-400 mb-1">Processed Panels ({processedPanels.length}):</div>
+                  <div className="text-[var(--text-secondary)] mb-1">Processed Panels ({processedPanels.length}):</div>
                   {processedPanels.slice(0, 3).map((url, i) => (
-                    <div key={i} className="p-2 bg-zinc-900 rounded font-mono text-[10px] break-all text-zinc-300 mb-1">
+                    <div
+                      key={i}
+                      className="p-2 bg-[var(--surface-2)] rounded font-mono text-[10px] break-all text-[var(--text-secondary)] mb-1"
+                    >
                       {url.startsWith("data:") ? (
-                        <span className="text-amber-400">
+                        <span className="text-[var(--warning)]">
                           ⚠️ Panel {i + 1}: Data URI ({url.length} chars)
                         </span>
                       ) : (
@@ -204,7 +216,7 @@ export function DevPanel({
                           href={url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-400 hover:underline"
+                          className="text-[var(--tertiary)] hover:underline"
                         >
                           Panel {i + 1}: {url.substring(0, 60)}...
                         </a>
@@ -212,7 +224,7 @@ export function DevPanel({
                     </div>
                   ))}
                   {processedPanels.length > 3 && (
-                    <div className="text-zinc-500 text-center">...and {processedPanels.length - 3} more</div>
+                    <div className="text-[var(--text-muted)] text-center">...and {processedPanels.length - 3} more</div>
                   )}
                 </div>
               )}
@@ -224,18 +236,18 @@ export function DevPanel({
         <div>
           <button
             onClick={() => toggleSection("localStorage")}
-            className="w-full flex items-center justify-between p-3 hover:bg-zinc-800 transition-colors"
+            className="w-full flex items-center justify-between p-3 hover:bg-[var(--hover-overlay)] transition-colors"
           >
-            <span className="font-semibold text-white">LocalStorage Keys</span>
+            <span className="font-semibold text-[var(--text-primary)]">LocalStorage Keys</span>
             {sections.localStorage ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
           {sections.localStorage && (
-            <div className="p-3 space-y-1 bg-zinc-950 max-h-48 overflow-y-auto">
+            <div className="p-3 space-y-1 bg-[var(--surface-0)] max-h-48 overflow-y-auto">
               {typeof window !== "undefined" &&
                 Object.keys(localStorage).map((key) => (
-                  <div key={key} className="flex justify-between p-2 bg-zinc-900 rounded">
-                    <span className="text-zinc-300 font-mono text-[10px] truncate">{key}</span>
-                    <span className="text-zinc-500 font-mono text-[10px]">
+                  <div key={key} className="flex justify-between p-2 bg-[var(--surface-2)] rounded">
+                    <span className="text-[var(--text-secondary)] font-mono text-[10px] truncate">{key}</span>
+                    <span className="text-[var(--text-muted)] font-mono text-[10px]">
                       {(localStorage[key].length / 1024).toFixed(2)} KB
                     </span>
                   </div>
@@ -245,8 +257,8 @@ export function DevPanel({
         </div>
       </div>
 
-      <div className="p-2 bg-zinc-950 border-t border-zinc-800 text-center text-[10px] text-zinc-600">
-        Press <kbd className="px-1 py-0.5 bg-zinc-800 rounded">Ctrl+Shift+D</kbd> to toggle
+      <div className="p-2 bg-[var(--surface-0)] border-t border-[var(--border-subtle)] text-center text-[10px] text-[var(--text-muted)]">
+        Press <kbd className="px-1 py-0.5 bg-[var(--surface-3)] rounded">Ctrl+Shift+D</kbd> to toggle
       </div>
     </div>
   )

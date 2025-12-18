@@ -43,10 +43,10 @@ export class PanelErrorBoundary extends Component<Props, State> {
           <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
             <AlertTriangle className="w-6 h-6 text-red-500" />
           </div>
-          <h3 className="text-sm font-medium text-neutral-200 mb-2">
+          <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-2">
             {this.props.fallbackTitle || "Something went wrong"}
           </h3>
-          <p className="text-xs text-neutral-500 mb-4 max-w-[200px]">
+          <p className="text-xs text-[var(--text-muted)] mb-4 max-w-[200px]">
             {this.state.error?.message || "An unexpected error occurred in this panel."}
           </p>
           <Button variant="outline" size="sm" onClick={this.handleReset} className="gap-2 bg-transparent">

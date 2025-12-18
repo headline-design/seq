@@ -30,7 +30,7 @@ const HERO_SLIDES = [
     ctaLink: "/storyboard",
     gradient: "from-rose-600 via-pink-600 to-orange-500",
     badgeColor: "bg-rose-500",
-    buttonColor: "bg-rose-500 hover:bg-rose-600",
+    buttonColor: "bg-white hover:bg-white/90",
   },
   {
     title: "AI Storyboard Generator",
@@ -40,7 +40,7 @@ const HERO_SLIDES = [
     ctaLink: "/storyboard",
     gradient: "from-violet-600 via-purple-600 to-fuchsia-500",
     badgeColor: "bg-violet-500",
-    buttonColor: "bg-violet-500 hover:bg-violet-600",
+    buttonColor: "bg-white hover:bg-white/90",
   },
   {
     title: "Image Playground",
@@ -50,7 +50,7 @@ const HERO_SLIDES = [
     ctaLink: "/image-playground",
     gradient: "from-cyan-600 via-teal-500 to-emerald-500",
     badgeColor: "bg-cyan-500",
-    buttonColor: "bg-cyan-500 hover:bg-cyan-600",
+    buttonColor: "bg-white hover:bg-white/90",
   },
 ]
 
@@ -211,7 +211,7 @@ export const LandingPage: React.FC = () => {
                       <p className="text-neutral-300 text-sm md:text-base mb-6 max-w-md">{slide.description}</p>
                       <Link
                         href={slide.ctaLink}
-                        className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full ${slide.buttonColor} text-white font-semibold text-sm transition-all`}
+                        className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full ${slide.buttonColor} text-black font-semibold text-sm transition-all`}
                       >
                         {slide.cta}
                       </Link>

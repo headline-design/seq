@@ -42,8 +42,12 @@ export const TimelineClipItem = memo(
       }
     }
 
-    const baseColor = isText ? "bg-purple-900/40" : isAudio ? "bg-emerald-900/40" : "bg-[#18181b]"
-    const hoverColor = isText ? "hover:bg-purple-900/60" : isAudio ? "hover:bg-emerald-900/60" : "hover:bg-[#202023]"
+    const baseColor = isText ? "bg-purple-900/40" : isAudio ? "bg-emerald-900/40" : "bg-[var(--surface-2)]"
+    const hoverColor = isText
+      ? "hover:bg-purple-900/60"
+      : isAudio
+        ? "hover:bg-emerald-900/60"
+        : "hover:bg-[var(--surface-3)]"
     const cursorClass = isLocked ? "cursor-not-allowed" : tool === "razor" ? "cursor-crosshair" : "cursor-pointer"
 
     const selectedClass = isSelected
@@ -51,8 +55,8 @@ export const TimelineClipItem = memo(
         ? "bg-purple-900/60 border-purple-400 z-20 ring-1 ring-purple-400 shadow-md"
         : isAudio
           ? "bg-emerald-900/60 border-emerald-400 z-20 ring-1 ring-emerald-400 shadow-md"
-          : "bg-[#1e1e24] border-[#6366f1] z-20 ring-1 ring-[#6366f1] shadow-md"
-      : `${baseColor} ${hoverColor} border-transparent hover:border-neutral-600 z-10`
+          : "bg-[var(--surface-3)] border-[var(--tertiary)] z-20 ring-1 ring-[var(--tertiary)] shadow-md"
+      : `${baseColor} ${hoverColor} border-transparent hover:border-[var(--border-emphasis)] z-10`
 
     const lockedClass = isLocked ? "opacity-60 grayscale-[30%]" : ""
 
@@ -78,7 +82,7 @@ export const TimelineClipItem = memo(
         tabIndex={isLocked ? -1 : tabIndex}
         onKeyDown={onKeyDown}
         data-clip="true"
-        className={`clip-item absolute ${verticalPos} rounded-md overflow-visible ${cursorClass} flex flex-col ${borderClass} transition-colors select-none group/item ${selectedClass} ${lockedClass} focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-neutral-900 focus-visible:ring-[var(--accent-primary)]`}
+        className={`clip-item absolute ${verticalPos} rounded-md overflow-visible ${cursorClass} flex flex-col ${borderClass} transition-colors select-none group/item ${selectedClass} ${lockedClass} focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface-0)] focus-visible:ring-[var(--tertiary)]`}
         style={{
           left: `${clip.start * zoomLevel}px`,
           width: `${clip.duration * zoomLevel}px`,
@@ -89,7 +93,7 @@ export const TimelineClipItem = memo(
       >
         {isLocked && (
           <div className="absolute top-1 right-1 z-40 bg-black/60 rounded p-0.5" title="Clip is locked">
-            <LockIcon className="w-3 h-3 text-neutral-400" />
+            <LockIcon className="w-3 h-3 text-[var(--text-muted)]" />
           </div>
         )}
 
@@ -173,7 +177,10 @@ export const TimelineClipItem = memo(
               clip.duration * zoomLevel > 60 && (
                 <div className="absolute inset-0 flex opacity-20 pointer-events-none">
                   {[...Array(Math.floor((clip.duration * zoomLevel) / 60))].map((_, i) => (
-                    <div key={i} className="w-[60px] h-full border-r border-white/10 overflow-hidden relative">
+                    <div
+                      key={i}
+                      className="w-[60px] h-full border-r border-[var(--border-subtle)] overflow-hidden relative"
+                    >
                       <video src={media.url} className="w-full h-full object-cover" />
                     </div>
                   ))}
@@ -188,7 +195,7 @@ export const TimelineClipItem = memo(
           {!isText && (
             <div className="relative z-10 flex items-center gap-2">
               <span
-                className={`text-[10px] font-medium truncate drop-shadow-md ${isAudio ? "text-emerald-100" : "text-white"}`}
+                className={`text-[10px] font-medium truncate drop-shadow-md ${isAudio ? "text-emerald-100" : "text-[var(--text-primary)]"}`}
               >
                 {media?.prompt || "Media"}
               </span>

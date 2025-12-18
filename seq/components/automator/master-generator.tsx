@@ -144,7 +144,7 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
             variant="outline"
             size="sm"
             onClick={handleLoadDemo}
-            className="border-[var(--accent-border)] text-[var(--accent-text)] hover:bg-[var(--accent-bg-subtle)] hover:text-[var(--accent-text-muted)] bg-transparent"
+            className="border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--hover-overlay)] hover:text-[var(--text-primary)] bg-transparent"
           >
             <Sparkles className="mr-2 h-4 w-4" />
             Load Demo (Ratatouille Example)
@@ -165,7 +165,7 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
                 <Label>Describe your scene</Label>
                 <Textarea
                   placeholder="E.g., A sci-fi sequence where a robot discovers a flower in a ruined city. 6 panels showing the approach, discovery, and reaction..."
-                  className="min-h-[120px] bg-black border-zinc-700 resize-none text-lg focus:ring-1 focus:ring-[var(--focus-ring)] focus:border-[var(--accent-primary)]"
+                  className="min-h-[120px] bg-[var(--surface-3)] border-[var(--border-default)] resize-none text-lg"
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                 />
@@ -174,7 +174,7 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
               <Button
                 onClick={handleGenerate}
                 disabled={!prompt.trim() || isGenerating}
-                className="w-full h-12 text-lg font-medium bg-[var(--accent-gradient)] hover:opacity-90 text-accent-text-white shadow-lg shadow-[var(--accent-shadow)]"
+                className="w-full h-12 text-lg font-medium bg-[var(--tertiary)] hover:bg-[var(--tertiary-hover)] text-white"
               >
                 {isGenerating ? (
                   <>
@@ -192,16 +192,16 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
 
             <TabsContent value="upload" className="space-y-6">
               <div
-                className="border-2 border-dashed border-[var(--border-emphasis)] rounded-xl p-10 text-center hover:border-[var(--accent-border)] hover:bg-[var(--accent-bg-subtle)] transition-all cursor-pointer"
+                className="border-2 border-dashed border-[var(--border-emphasis)] rounded-xl p-10 text-center hover:border-[var(--tertiary)] hover:bg-[var(--tertiary-muted)] transition-all cursor-pointer"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
                 <div className="flex flex-col items-center gap-2">
                   <div className="p-4 bg-[var(--surface-3)] rounded-full mb-2">
-                    <Upload className="h-8 w-8 text-neutral-400" />
+                    <Upload className="h-8 w-8 text-[var(--text-secondary)]" />
                   </div>
-                  <h3 className="font-medium text-lg">Click to upload master storyboard</h3>
-                  <p className="text-sm text-muted-foreground">Supports JPG, PNG, WEBP (rec. 3:2 ratio)</p>
+                  <h3 className="font-medium text-lg text-[var(--text-primary)]">Click to upload master storyboard</h3>
+                  <p className="text-sm text-[var(--text-secondary)]">Supports JPG, PNG, WEBP (rec. 3:2 ratio)</p>
                 </div>
               </div>
 
@@ -209,7 +209,7 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
                 <Label>Optional: Context/Prompt for Upscaling</Label>
                 <Input
                   placeholder="Describe the style or content for better upscaling context..."
-                  className="bg-[var(--surface-3)] border-[var(--border-default)] focus:ring-1 focus:ring-[var(--focus-ring)] focus:border-[var(--accent-primary)]"
+                  className="bg-[var(--surface-3)] border-[var(--border-default)]"
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                 />
@@ -228,7 +228,7 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
                   </>
                 ) : (
                   <>
-                    <Check className="w-3 h-3 text-[var(--accent-text)]" />
+                    <Check className="w-3 h-3 text-[var(--success)]" />
                     {isEditingCount ? (
                       <div className="flex items-center gap-2">
                         <Input
@@ -254,7 +254,7 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
                       </div>
                     ) : (
                       <div
-                        className="flex items-center gap-2 cursor-pointer hover:text-neutral-300"
+                        className="flex items-center gap-2 cursor-pointer hover:text-[var(--text-secondary)]"
                         onClick={() => setIsEditingCount(true)}
                       >
                         <span>{analyzedCount ? `${analyzedCount} Panels Detected` : "Preview Ready"}</span>
@@ -289,13 +289,13 @@ export function MasterGenerator({ onGenerate, onLoadDemo }: MasterGeneratorProps
               <Button
                 onClick={handleApprove}
                 disabled={isAnalyzing}
-                className="flex-1 h-12 text-lg bg-[var(--accent-gradient)] hover:opacity-90 text-accent-text-white shadow-lg shadow-[var(--accent-shadow)]"
+                className="flex-1 h-12 text-lg bg-[var(--tertiary)] hover:bg-[var(--tertiary-hover)] text-white"
               >
                 <Check className="mr-2 h-5 w-5" />
                 Approve & Process
               </Button>
             </div>
-            <p className="text-xs text-center text-neutral-500">
+            <p className="text-xs text-center text-[var(--text-muted)]">
               {analyzedCount
                 ? `Approving will slice this master into ${analyzedCount} individual panels based on AI analysis.`
                 : "Approving will automatically slice this master into panels and upscale them."}

@@ -85,18 +85,18 @@ export const MediaThumbnail = memo(function MediaThumbnail({
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-hidden bg-black rounded border border-neutral-800 ${className}`}
+      className={`relative overflow-hidden bg-black rounded border border-[var(--border-default)] ${className}`}
       style={{ width, height }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {item.type === "audio" ? (
-        <div className="w-full h-full flex items-center justify-center text-neutral-500 bg-neutral-900">
+        <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)] bg-[var(--surface-1)]">
           <MusicIcon className="w-6 h-6" />
         </div>
       ) : !isVisible ? (
         // Placeholder for lazy loading
-        <div className="w-full h-full bg-neutral-900" />
+        <div className="w-full h-full bg-[var(--surface-1)]" />
       ) : item.status === "ready" ? (
         <>
           {item.type === "video" ? (
@@ -127,15 +127,15 @@ export const MediaThumbnail = memo(function MediaThumbnail({
 
           {/* Loading placeholder */}
           {!hasLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center bg-neutral-900">
-              <div className="animate-spin h-3 w-3 border border-neutral-600 border-t-white rounded-full" />
+            <div className="absolute inset-0 flex items-center justify-center bg-[var(--surface-1)]">
+              <div className="animate-spin h-3 w-3 border border-[var(--border-emphasis)] border-t-white rounded-full" />
             </div>
           )}
         </>
       ) : (
         // Loading state
-        <div className="w-full h-full flex items-center justify-center bg-neutral-900">
-          <div className="animate-spin h-3 w-3 border border-neutral-600 border-t-white rounded-full" />
+        <div className="w-full h-full flex items-center justify-center bg-[var(--surface-1)]">
+          <div className="animate-spin h-3 w-3 border border-[var(--border-emphasis)] border-t-white rounded-full" />
         </div>
       )}
 

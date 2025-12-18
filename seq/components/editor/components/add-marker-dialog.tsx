@@ -46,29 +46,29 @@ export function AddMarkerDialog({ isOpen, onClose, onAdd, time }: AddMarkerDialo
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[400px] bg-neutral-900 border-neutral-700">
+      <DialogContent className="sm:max-w-[400px] bg-[var(--surface-1)] border-[var(--border-default)]">
         <DialogHeader>
           <DialogTitle className="text-white">Add Marker</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label className="text-neutral-300">Time</Label>
-            <div className="text-sm font-mono text-neutral-400 bg-neutral-800 px-3 py-2 rounded">
+            <Label className="text-[var(--text-secondary)]">Time</Label>
+            <div className="text-sm font-mono text-[var(--text-tertiary)] bg-[var(--surface-2)] px-3 py-2 rounded">
               {formatTime(time)}
             </div>
           </div>
           <div className="space-y-2">
-            <Label className="text-neutral-300">Label</Label>
+            <Label className="text-[var(--text-secondary)]">Label</Label>
             <Input
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder="Enter marker label..."
-              className="bg-neutral-800 border-neutral-700 text-white"
+              className="bg-[var(--surface-2)] border-[var(--border-default)] text-white"
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-neutral-300">Color</Label>
+            <Label className="text-[var(--text-secondary)]">Color</Label>
             <div className="flex gap-2">
               {COLORS.map((c) => (
                 <button
@@ -84,10 +84,10 @@ export function AddMarkerDialog({ isOpen, onClose, onAdd, time }: AddMarkerDialo
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose} className="text-neutral-400">
+          <Button variant="ghost" onClick={onClose} className="text-[var(--text-tertiary)]">
             Cancel
           </Button>
-          <Button onClick={handleAdd} className="bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)]">
+          <Button onClick={handleAdd} className="bg-[var(--tertiary)] hover:bg-[var(--tertiary-hover)]">
             Add Marker
           </Button>
         </DialogFooter>

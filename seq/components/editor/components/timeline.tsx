@@ -301,7 +301,7 @@ export const Timeline = memo(function Timeline({
 
   return (
     <div
-      className={`${className || ""} bg-[var(--surface-0)] border-t border-[var(--border-default)] flex flex-col shrink-0 select-none relative z-10 transition-none overflow-hidden`}
+      className={`${className || ""} bg-[var(--surface-0)] flex flex-col shrink-0 select-none relative z-10 transition-none overflow-hidden`}
       style={style || { height: 320 }}
       role="region"
       aria-label="Video timeline"
@@ -381,7 +381,7 @@ export const Timeline = memo(function Timeline({
               headerContainerRef.current.scrollTop = scrollContainerRef.current.scrollTop
             }
           }}
-          className="flex-1 overflow-x-auto overflow-y-auto relative bg-[#080808] custom-scrollbar"
+          className="flex-1 overflow-x-auto overflow-y-auto relative bg-[var(--surface-0)] custom-scrollbar"
           onMouseDown={(e) => {
             const target = e.target as HTMLElement
             if (!target.closest("[data-clip]")) {
@@ -391,13 +391,13 @@ export const Timeline = memo(function Timeline({
         >
           {hasNoClips ? (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-3 text-neutral-500">
-                <div className="w-12 h-12 rounded-full bg-neutral-800/50 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-3 text-[var(--text-muted)]">
+                <div className="w-12 h-12 rounded-full bg-[var(--surface-2)] flex items-center justify-center">
                   <FilmIcon className="w-6 h-6" />
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-medium text-neutral-400">No clips yet</p>
-                  <p className="text-xs mt-1 text-neutral-600">
+                  <p className="text-sm font-medium text-[var(--text-secondary)]">No clips yet</p>
+                  <p className="text-xs mt-1 text-[var(--text-tertiary)]">
                     Drag media from the library or generate content to get started
                   </p>
                 </div>
@@ -490,11 +490,11 @@ export const Timeline = memo(function Timeline({
                   return (
                     <div
                       key={track.id}
-                      className={`${trackHeight} border-b border-[var(--border-subtle)] relative group/track bg-[#080808]`}
+                      className={`${trackHeight} border-b border-[var(--border-subtle)] relative group/track bg-[var(--surface-0)]`}
                       onDoubleClick={(e) => handleTrackDoubleClick(e, track)}
                     >
                       <div
-                        className="absolute inset-0 bg-[linear-gradient(90deg,transparent_99%,#1a1a1a_100%)] opacity-10 pointer-events-none"
+                        className="absolute inset-0 bg-[linear-gradient(90deg,transparent_99%,var(--border-subtle)_100%)] opacity-10 pointer-events-none"
                         style={{ backgroundSize: `${zoomLevel}px 100%` }}
                       />
 

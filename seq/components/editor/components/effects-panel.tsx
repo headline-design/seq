@@ -41,8 +41,8 @@ const EffectSlider = memo(function EffectSlider({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] text-neutral-500 uppercase font-medium">{label}</span>
-        <span className={`text-[10px] font-mono ${isModified ? "text-[var(--accent-text)]" : "text-neutral-600"}`}>
+        <span className="text-[10px] text-[var(--text-secondary)] uppercase font-medium">{label}</span>
+        <span className={`text-[10px] font-mono ${isModified ? "text-[var(--tertiary)]" : "text-[var(--text-muted)]"}`}>
           {value > 0 && min < 0 ? "+" : ""}
           {value}
           {unit}
@@ -64,10 +64,10 @@ const EffectSlider = memo(function EffectSlider({
             [&::-webkit-slider-thumb]:shadow-lg
             [&::-webkit-slider-thumb]:cursor-grab
             [&::-webkit-slider-thumb]:active:cursor-grabbing
-            [&::-webkit-slider-thumb]:hover:bg-[var(--accent-text)]
+            [&::-webkit-slider-thumb]:hover:bg-[var(--tertiary)]
             [&::-webkit-slider-thumb]:transition-colors"
           style={{
-            background: `linear-gradient(to right, var(--accent-primary) 0%, var(--accent-primary) ${percentage}%, rgba(255,255,255,0.06) ${percentage}%, rgba(255,255,255,0.06) 100%)`,
+            background: `linear-gradient(to right, var(--tertiary) 0%, var(--tertiary) ${percentage}%, rgba(255,255,255,0.06) ${percentage}%, rgba(255,255,255,0.06) 100%)`,
           }}
         />
         {/* Center marker for bipolar sliders */}
@@ -111,7 +111,7 @@ export const EffectsPanel = memo<EffectsPanelProps>(function EffectsPanel({ clip
   if (!clip) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-12 opacity-50">
-        <p className="text-xs text-neutral-500">Select a video clip to adjust effects</p>
+        <p className="text-xs text-[var(--text-secondary)]">Select a video clip to adjust effects</p>
       </div>
     )
   }
@@ -121,13 +121,15 @@ export const EffectsPanel = memo<EffectsPanelProps>(function EffectsPanel({ clip
       <div className="flex flex-col gap-4">
         {/* Header with reset */}
         <div className="flex items-center justify-between">
-          <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Color & Effects</h3>
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-tertiary)]">
+            Color & Effects
+          </h3>
           {hasModifications && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   onClick={resetEffects}
-                  className="p-1.5 rounded hover:bg-[var(--hover-overlay)] text-neutral-500 hover:text-white transition-colors"
+                  className="p-1.5 rounded hover:bg-[var(--hover-overlay)] text-[var(--text-secondary)] hover:text-white transition-colors"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                 </button>
@@ -141,7 +143,7 @@ export const EffectsPanel = memo<EffectsPanelProps>(function EffectsPanel({ clip
 
         {/* Color Adjustments */}
         <div className="bg-[var(--surface-3)] rounded-lg border border-[var(--border-default)] p-3 flex flex-col gap-4">
-          <span className="text-[9px] text-neutral-600 uppercase font-bold">Color</span>
+          <span className="text-[9px] text-[var(--text-muted)] uppercase font-bold">Color</span>
 
           <EffectSlider
             label="Brightness"
@@ -183,7 +185,7 @@ export const EffectsPanel = memo<EffectsPanelProps>(function EffectsPanel({ clip
 
         {/* Effects */}
         <div className="bg-[var(--surface-3)] rounded-lg border border-[var(--border-default)] p-3 flex flex-col gap-4">
-          <span className="text-[9px] text-neutral-600 uppercase font-bold">Effects</span>
+          <span className="text-[9px] text-[var(--text-muted)] uppercase font-bold">Effects</span>
 
           <EffectSlider
             label="Opacity"
@@ -208,7 +210,7 @@ export const EffectsPanel = memo<EffectsPanelProps>(function EffectsPanel({ clip
 
         {/* Quick Presets */}
         <div className="flex flex-col gap-2">
-          <span className="text-[9px] text-neutral-600 uppercase font-bold">Presets</span>
+          <span className="text-[9px] text-[var(--text-muted)] uppercase font-bold">Presets</span>
           <div className="grid grid-cols-3 gap-2">
             {[
               { name: "Vivid", effects: { saturation: 30, contrast: 15 } },
@@ -229,7 +231,7 @@ export const EffectsPanel = memo<EffectsPanelProps>(function EffectsPanel({ clip
                     },
                   })
                 }}
-                className="py-2 px-3 rounded-lg bg-[var(--hover-overlay)] border border-[var(--border-default)] text-[10px] font-medium text-neutral-400 hover:text-white hover:bg-[var(--active-overlay)] hover:border-[var(--border-strong)] transition-all"
+                className="py-2 px-3 rounded-lg bg-[var(--hover-overlay)] border border-[var(--border-default)] text-[10px] font-medium text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--active-overlay)] hover:border-[var(--border-strong)] transition-all"
               >
                 {preset.name}
               </button>

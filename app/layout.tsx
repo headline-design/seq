@@ -5,7 +5,6 @@ import { Suspense } from "react"
 import { ErrorBoundary } from "@/seq/components/error-boundary"
 import { Toaster, ToastProvider } from "@/seq/components/ui/sonner"
 import { DeploymentNotice } from "@/seq/components/deployment-notice"
-import { AccentColorProvider } from "@/seq/components/accent-color-provider"
 
 //@ts-ignore
 import "./globals.css"
@@ -92,15 +91,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="font-sans antialiased" style={{ backgroundColor: "#000000" }}>
-        <AccentColorProvider>
-          <ToastProvider>
-            <ErrorBoundary>
-              <Suspense fallback={null}>{children}</Suspense>
-            </ErrorBoundary>
-            <Toaster />
-            <DeploymentNotice />
-          </ToastProvider>
-        </AccentColorProvider>
+        <ToastProvider>
+          <ErrorBoundary>
+            <Suspense fallback={null}>{children}</Suspense>
+          </ErrorBoundary>
+          <Toaster />
+          <DeploymentNotice />
+        </ToastProvider>
       </body>
     </html>
   )

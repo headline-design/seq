@@ -19,11 +19,11 @@ export const PanelHeader = memo(function PanelHeader({
 }) {
   return (
     <div className="h-14 flex items-center px-4 justify-between shrink-0 border-b border-[var(--border-default)]">
-      <h2 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400">{title}</h2>
+      <h2 className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-tertiary)]">{title}</h2>
       <div className="flex items-center gap-2">
         {children}
         <button
-          className="p-1.5 rounded hover:bg-[var(--hover-overlay)] cursor-pointer text-neutral-500 transition-colors"
+          className="p-1.5 rounded hover:bg-[var(--hover-overlay)] cursor-pointer text-[var(--text-secondary)] transition-colors"
           onClick={onClose}
         >
           <PanelLeftClose className="w-4 h-4" />
@@ -58,12 +58,12 @@ export const PanelSectionBordered = memo(function PanelSectionBordered({
         className="w-full flex items-center gap-2 p-3 bg-[var(--hover-overlay)] hover:bg-[var(--active-overlay)] transition-colors rounded-t-lg"
       >
         {isOpen ? (
-          <ChevronDownIcon className="w-4 h-4 text-neutral-500" />
+          <ChevronDownIcon className="w-4 h-4 text-[var(--text-secondary)]" />
         ) : (
-          <ChevronRightIcon className="w-4 h-4 text-neutral-500" />
+          <ChevronRightIcon className="w-4 h-4 text-[var(--text-secondary)]" />
         )}
         {icon}
-        <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wide">{title}</span>
+        <span className="text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wide">{title}</span>
       </button>
       {isOpen && <div className="p-4 space-y-4 border-t border-[var(--border-default)] rounded-b-lg">{children}</div>}
     </div>
@@ -92,13 +92,13 @@ export const PanelSection = memo(function PanelSection({
     <div className="flex flex-col">
       <button type="button" onClick={() => setIsOpen(!isOpen)} className="flex items-center justify-between py-2 group">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] uppercase font-bold text-neutral-500 group-hover:text-neutral-400 transition-colors">
+          <span className="text-[10px] uppercase font-bold text-[var(--text-secondary)] group-hover:text-[var(--text-tertiary)] transition-colors">
             {title}
           </span>
           {badge}
         </div>
         <svg
-          className={`w-3 h-3 text-neutral-600 transition-transform ${isOpen ? "rotate-0" : "-rotate-90"}`}
+          className={`w-3 h-3 text-[var(--text-muted)] transition-transform ${isOpen ? "rotate-0" : "-rotate-90"}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -180,7 +180,7 @@ export const Toggle = memo(function Toggle({
       <div className="relative mt-0.5">
         <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="sr-only" />
         <div
-          className={`w-9 h-5 rounded-full transition-colors ${checked ? "bg-[var(--accent-primary)]" : "bg-neutral-700"}`}
+          className={`w-9 h-5 rounded-full transition-colors ${checked ? "bg-[var(--accent-primary)]" : "bg-[var(--surface-3)]"}`}
         />
         <div
           className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
@@ -189,8 +189,10 @@ export const Toggle = memo(function Toggle({
         />
       </div>
       <div className="flex-1">
-        <div className="text-sm text-neutral-200 group-hover:text-accent-text-white transition-colors">{label}</div>
-        {description && <div className="text-xs text-neutral-500 mt-0.5">{description}</div>}
+        <div className="text-sm text-[var(--text-primary)] group-hover:text-accent-text-white transition-colors">
+          {label}
+        </div>
+        {description && <div className="text-xs text-[var(--text-secondary)] mt-0.5">{description}</div>}
       </div>
     </label>
   )
@@ -214,11 +216,11 @@ export const Select = memo(function Select({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-xs text-neutral-400">{label}</label>
+      <label className="text-xs text-[var(--text-tertiary)]">{label}</label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-[var(--surface-0)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:border-[var(--accent-primary)] appearance-none cursor-pointer"
+        className="w-full bg-[var(--surface-0)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-primary)] appearance-none cursor-pointer"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
@@ -254,7 +256,7 @@ export const NumberInput = memo(function NumberInput({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-xs text-neutral-400">{label}</label>
+      <label className="text-xs text-[var(--text-tertiary)]">{label}</label>
       <div className="flex items-center gap-2">
         <input
           type="number"
@@ -263,9 +265,9 @@ export const NumberInput = memo(function NumberInput({
           step={step}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="flex-1 bg-[var(--surface-0)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:border-[var(--accent-primary)]"
+          className="flex-1 bg-[var(--surface-0)] border border-[var(--border-default)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-primary)]"
         />
-        {unit && <span className="text-xs text-neutral-500">{unit}</span>}
+        {unit && <span className="text-xs text-[var(--text-secondary)]">{unit}</span>}
       </div>
     </div>
   )
@@ -298,8 +300,8 @@ export const ActionButton = memo(function ActionButton({
         disabled
           ? "opacity-40 cursor-not-allowed border-[var(--border-default)] bg-[var(--hover-overlay)]"
           : variant === "danger"
-            ? "border-[var(--border-default)] hover:border-red-500/30 hover:bg-red-500/10 text-neutral-400 hover:text-red-400"
-            : "border-[var(--border-default)] hover:border-[var(--border-emphasis)] hover:bg-[var(--hover-overlay)] text-neutral-400 hover:text-white"
+            ? "border-[var(--border-default)] hover:border-red-500/30 hover:bg-red-500/10 text-[var(--text-tertiary)] hover:text-red-400"
+            : "border-[var(--border-default)] hover:border-[var(--border-emphasis)] hover:bg-[var(--hover-overlay)] text-[var(--text-tertiary)] hover:text-white"
       }`}
     >
       {icon}
@@ -341,8 +343,8 @@ export const InfoRow = memo(function InfoRow({
 }) {
   return (
     <div className="flex justify-between items-center text-xs">
-      <span className="text-neutral-500">{label}</span>
-      <span className="text-neutral-300 font-mono">{value}</span>
+      <span className="text-[var(--text-secondary)]">{label}</span>
+      <span className="text-[var(--text-primary)] font-mono">{value}</span>
     </div>
   )
 })

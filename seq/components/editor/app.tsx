@@ -56,8 +56,6 @@ function createDemoData() {
 
 export { createDemoData }
 
-
-
 function EditorContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -66,9 +64,7 @@ function EditorContent() {
 
   const isMobile = useIsMobile()
   if (isMobile) {
-    return (
-      <MobileEditorNotice />
-    )
+    return <MobileEditorNotice />
   }
 
   const demoData = loadDemo ? createDemoData() : null
@@ -89,7 +85,9 @@ function App() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center h-screen bg-neutral-950 text-white">Loading editor...</div>
+        <div className="flex items-center justify-center h-screen bg-[var(--surface-0)] text-white">
+          Loading editor...
+        </div>
       }
     >
       <EditorContent />

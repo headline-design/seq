@@ -72,21 +72,15 @@ export function StoryboardPanel({
   }
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] group relative h-full">
+    <div className="flex flex-col overflow-hidden rounded-lg bg-card border border-border group relative h-full">
       {/* Header */}
-      <div className="flex items-center justify-between p-2 border-b border-[var(--border-subtle)] bg-[var(--surface-0)]">
+      <div className="flex items-center justify-between p-2 border-b border-border bg-background">
         <div className="flex items-center gap-2">
-          <Badge
-            variant="outline"
-            className="text-xs bg-[var(--surface-2)] border-[var(--border-default)] text-[var(--text-secondary)]"
-          >
+          <Badge variant="outline" className="text-xs">
             Panel {index + 1}
           </Badge>
           {isTransitionPanel && (
-            <Badge
-              variant="secondary"
-              className="text-xs bg-[var(--surface-2)] border-[var(--border-default)] text-[var(--text-secondary)]"
-            >
+            <Badge variant="secondary" className="text-xs">
               <Link2 className="w-3 h-3" />
               First-Last
             </Badge>
@@ -95,7 +89,7 @@ export function StoryboardPanel({
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6 text-neutral-400 hover:text-red-400 hover:bg-[var(--hover-overlay)]"
+          className="h-6 w-6 text-muted-foreground hover:text-destructive"
           onClick={() => onRemove(panel.id)}
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -103,7 +97,7 @@ export function StoryboardPanel({
       </div>
 
       {/* Content Area */}
-      <div className="relative aspect-video bg-[var(--surface-0)] group/preview">
+      <div className="relative aspect-video bg-background group/preview">
         {panel.videoUrl ? (
           <div className="relative w-full h-full">
             <video
@@ -123,7 +117,7 @@ export function StoryboardPanel({
               <Button
                 size="icon"
                 variant="secondary"
-                className="h-12 w-12 bg-[var(--surface-2)]/80 hover:bg-[var(--accent-hover)] backdrop-blur-sm border border-[var(--border-default)]"
+                className="h-12 w-12 bg-muted/80 hover:bg-primary backdrop-blur-sm"
                 onClick={() => setIsPlaying(!isPlaying)}
               >
                 {isPlaying ? (
@@ -137,11 +131,7 @@ export function StoryboardPanel({
             {/* Download Action */}
             <div className="absolute top-2 right-2 opacity-0 group-hover/preview:opacity-100 transition-opacity">
               <a href={panel.videoUrl} download target="_blank" rel="noopener noreferrer">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 bg-[var(--surface-0)]/50 hover:bg-[var(--surface-0)]/70 text-white"
-                >
+                <Button size="icon" variant="ghost" className="h-8 w-8 bg-background/50 hover:bg-background/70">
                   <Download className="h-4 w-4" />
                 </Button>
               </a>
@@ -193,11 +183,13 @@ export function StoryboardPanel({
       </div>
 
       {/* Controls */}
-      <div className="p-3 flex flex-col gap-3 bg-[var(--surface-1)] flex-1">
+      <div className="p-3 flex flex-col gap-3 bg-card flex-1">
         <div className="space-y-1.5">
-          <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-semibold">Video Model</label>
+          <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+            Video Model
+          </label>
           <Select defaultValue="veo3.1-fast" onValueChange={(val) => onUpdate(panel.id, { model: val as any })}>
-            <SelectTrigger className="h-7 text-xs bg-[var(--surface-2)] border-[var(--border-default)] text-white">
+            <SelectTrigger className="h-7 text-xs">
               <SelectValue placeholder="veo3.1-fast" />
             </SelectTrigger>
             <SelectContent>
@@ -216,7 +208,7 @@ export function StoryboardPanel({
               )}
             </SelectContent>
           </Select>
-          <p className="text-[9px] text-white/30 leading-tight">
+          <p className="text-[9px] text-muted-foreground/50 leading-tight">
             {isTransitionPanel
               ? "Try WAN 2.2 if Veo 3.1 has strict content policies"
               : "Try WAN 2.5 if Veo 3.1 has strict content policies"}
@@ -225,13 +217,14 @@ export function StoryboardPanel({
 
         <div className="space-y-1.5 flex-1">
           <div className="flex items-center justify-between">
-            <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-semibold">Video Prompt</label>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+              Video Prompt
+            </label>
             <div className="flex items-center gap-2">
-              {/* Enhance Button */}
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-5 px-2 text-[10px] text-[var(--accent-secondary)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-secondary)]/10"
+                className="h-5 px-2 text-[10px] text-primary hover:text-primary hover:bg-primary/10"
                 onClick={handleEnhance}
                 disabled={isEnhancing || (!masterDescription.trim() && !panel.prompt.trim())}
               >
@@ -242,7 +235,7 @@ export function StoryboardPanel({
                 )}
                 Enhance
               </Button>
-              <span className="text-[10px] text-white/30">{panel.prompt.length} chars</span>
+              <span className="text-[10px] text-muted-foreground/50">{panel.prompt.length} chars</span>
             </div>
           </div>
           <Textarea
@@ -258,12 +251,12 @@ export function StoryboardPanel({
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-semibold">Duration</label>
+          <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Duration</label>
           <Select
             value={panel.duration?.toString() || "5"}
             onValueChange={(val) => onUpdate(panel.id, { duration: Number.parseInt(val) as 3 | 5 | 8 })}
           >
-            <SelectTrigger className="h-7 text-xs bg-[var(--surface-2)] border-[var(--border-default)] text-white">
+            <SelectTrigger className="h-7 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -277,7 +270,8 @@ export function StoryboardPanel({
         <div className="mt-auto pt-2">
           {panel.videoUrl ? (
             <Button
-              className="w-full text-xs h-8 bg-white/10 hover:bg-white/20 text-white border border-white/10"
+              variant="outline"
+              className="w-full text-xs h-8 bg-transparent"
               onClick={() => onGenerate(panel.id)}
               disabled={panel.isGenerating}
             >
@@ -286,7 +280,7 @@ export function StoryboardPanel({
             </Button>
           ) : (
             <Button
-              className="w-full text-xs h-8 bg-accent-gradient hover:opacity-90 text-accent-text-white border-0"
+              className="w-full text-xs h-8 bg-accent-gradient text-accent-text-white"
               onClick={() => onGenerate(panel.id)}
               disabled={panel.isGenerating || !panel.prompt.trim()}
             >
@@ -296,7 +290,7 @@ export function StoryboardPanel({
           )}
         </div>
 
-        {panel.error && <div className="text-[10px] text-red-400 mt-1 px-1">Error: {panel.error}</div>}
+        {panel.error && <div className="text-[10px] text-destructive mt-1 px-1">Error: {panel.error}</div>}
       </div>
     </div>
   )

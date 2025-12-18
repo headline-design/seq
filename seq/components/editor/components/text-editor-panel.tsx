@@ -59,7 +59,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
     <div className="space-y-4">
       {/* Text Content */}
       <div className="space-y-2">
-        <Label className="text-xs text-neutral-500">Text Content</Label>
+        <Label className="text-xs text-[var(--text-muted)]">Text Content</Label>
         <Textarea
           value={textOverlay.text}
           onChange={(e) => updateTextOverlay({ text: e.target.value })}
@@ -71,7 +71,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
       {/* Font Settings */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-500">Font Family</Label>
+          <Label className="text-xs text-[var(--text-muted)]">Font Family</Label>
           <Select value={textOverlay.fontFamily} onValueChange={(value) => updateTextOverlay({ fontFamily: value })}>
             <SelectTrigger className="h-8 text-xs bg-[var(--surface-0)] border-[var(--border-default)]">
               <SelectValue />
@@ -87,7 +87,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
         </div>
 
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-500">Font Size</Label>
+          <Label className="text-xs text-[var(--text-muted)]">Font Size</Label>
           <div className="flex items-center gap-2">
             <Slider
               value={[textOverlay.fontSize]}
@@ -97,7 +97,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
               step={1}
               className="flex-1"
             />
-            <span className="text-xs text-neutral-500 w-8">{textOverlay.fontSize}</span>
+            <span className="text-xs text-[var(--text-muted)] w-8">{textOverlay.fontSize}</span>
           </div>
         </div>
       </div>
@@ -105,7 +105,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
       {/* Font Weight & Alignment */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-500">Font Weight</Label>
+          <Label className="text-xs text-[var(--text-muted)]">Font Weight</Label>
           <Select
             value={String(textOverlay.fontWeight)}
             onValueChange={(value) => updateTextOverlay({ fontWeight: Number(value) as 400 | 500 | 600 | 700 | 800 })}
@@ -134,7 +134,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
         </div>
 
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-500">Text Align</Label>
+          <Label className="text-xs text-[var(--text-muted)]">Text Align</Label>
           <div className="flex gap-1.5">
             {(["left", "center", "right"] as const).map((align) => (
               <Button
@@ -144,8 +144,8 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
                 onClick={() => updateTextOverlay({ textAlign: align })}
                 className={`flex-1 h-8 ${
                   textOverlay.textAlign === align
-                    ? "bg-[var(--accent-bg-subtle)] border-[var(--accent-muted)] text-[var(--accent-text)]"
-                    : "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.06]"
+                    ? "bg-[var(--tertiary-muted)] border-[var(--tertiary)] text-[var(--tertiary)]"
+                    : "bg-[var(--hover-overlay)] border-[var(--border-default)] hover:bg-[var(--active-overlay)]"
                 }`}
               >
                 {align.charAt(0).toUpperCase() + align.slice(1)}
@@ -158,7 +158,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
       {/* Colors */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-500">Text Color</Label>
+          <Label className="text-xs text-[var(--text-muted)]">Text Color</Label>
           <div className="flex items-center gap-2">
             <input
               type="color"
@@ -175,7 +175,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
         </div>
 
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-500">Background Color</Label>
+          <Label className="text-xs text-[var(--text-muted)]">Background Color</Label>
           <div className="flex items-center gap-2">
             <input
               type="color"
@@ -194,7 +194,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
 
       {/* Background Opacity */}
       <div className="space-y-2">
-        <Label className="text-xs text-neutral-500">Background Opacity</Label>
+        <Label className="text-xs text-[var(--text-muted)]">Background Opacity</Label>
         <div className="flex items-center gap-2">
           <Slider
             value={[textOverlay.backgroundOpacity]}
@@ -204,13 +204,13 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
             step={5}
             className="flex-1"
           />
-          <span className="text-xs text-neutral-500 w-8">{textOverlay.backgroundOpacity}%</span>
+          <span className="text-xs text-[var(--text-muted)] w-8">{textOverlay.backgroundOpacity}%</span>
         </div>
       </div>
 
       {/* Position */}
       <div className="space-y-2">
-        <Label className="text-xs text-neutral-500">Position</Label>
+        <Label className="text-xs text-[var(--text-muted)]">Position</Label>
         <div className="grid grid-cols-3 gap-1">
           {PRESET_POSITIONS.map((pos) => (
             <Button
@@ -219,7 +219,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
               size="sm"
               className={`text-[10px] h-7 ${
                 textOverlay.position.x === pos.x && textOverlay.position.y === pos.y
-                  ? "bg-[var(--accent-bg-subtle)] border-[var(--accent-primary)]"
+                  ? "bg-[var(--tertiary-muted)] border-[var(--tertiary)]"
                   : "bg-[var(--surface-0)] border-[var(--border-default)]"
               }`}
               onClick={() => updateTextOverlay({ position: { x: pos.x, y: pos.y } })}
@@ -233,7 +233,7 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
       {/* Custom Position */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-500">X Position (%)</Label>
+          <Label className="text-xs text-[var(--text-muted)]">X Position (%)</Label>
           <div className="flex items-center gap-2">
             <Slider
               value={[textOverlay.position.x]}
@@ -243,12 +243,12 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
               step={1}
               className="flex-1"
             />
-            <span className="text-xs text-neutral-500 w-8">{textOverlay.position.x}</span>
+            <span className="text-xs text-[var(--text-muted)] w-8">{textOverlay.position.x}</span>
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label className="text-xs text-neutral-500">Y Position (%)</Label>
+          <Label className="text-xs text-[var(--text-muted)]">Y Position (%)</Label>
           <div className="flex items-center gap-2">
             <Slider
               value={[textOverlay.position.y]}
@@ -258,14 +258,14 @@ export const TextEditorPanel = memo(function TextEditorPanel({ clip, onUpdateCli
               step={1}
               className="flex-1"
             />
-            <span className="text-xs text-neutral-500 w-8">{textOverlay.position.y}</span>
+            <span className="text-xs text-[var(--text-muted)] w-8">{textOverlay.position.y}</span>
           </div>
         </div>
       </div>
 
       {/* Animation */}
       <div className="space-y-2">
-        <Label className="text-xs text-neutral-500">Animation</Label>
+        <Label className="text-xs text-[var(--text-muted)]">Animation</Label>
         <Select
           value={textOverlay.animation}
           onValueChange={(value) => updateTextOverlay({ animation: value as TextOverlayStyle["animation"] })}

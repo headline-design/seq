@@ -101,16 +101,28 @@ function EditorSidebarInner({ activeView, isPanelOpen, onViewChange, onTogglePan
                           <div
                             className={cn(
                               "p-1.5 rounded-md group-hover/sidebar-item:bg-[var(--hover-overlay)] transition-colors",
-                              isActive && "bg-accent-muted",
+                              isActive && "bg-[var(--tertiary-muted)]",
                             )}
                           >
-                            <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-accent" : "text-neutral-400")} />
+                            <Icon
+                              className={cn(
+                                "h-4 w-4 shrink-0",
+                                isActive ? "text-[var(--tertiary)]" : "text-[var(--text-tertiary)]",
+                              )}
+                            />
                           </div>
                           {isCollapsed && (
-                            <span className={cn(isActive ? "text-accent" : "text-neutral-400")}>{miniLabel}</span>
+                            <span className={cn(isActive ? "text-[var(--tertiary)]" : "text-[var(--text-tertiary)]")}>
+                              {miniLabel}
+                            </span>
                           )}
                           {!isCollapsed && (
-                            <span className={cn("text-sm", isActive ? "text-accent font-medium" : "text-neutral-400")}>
+                            <span
+                              className={cn(
+                                "text-sm",
+                                isActive ? "text-[var(--tertiary)] font-medium" : "text-[var(--text-tertiary)]",
+                              )}
+                            >
                               {label}
                             </span>
                           )}
@@ -119,7 +131,7 @@ function EditorSidebarInner({ activeView, isPanelOpen, onViewChange, onTogglePan
                       <TooltipContent side="right" sideOffset={8} hidden={!isCollapsed}>
                         <p>
                           {label}
-                          {shortcut && <span className="ml-2 text-neutral-500">({shortcut})</span>}
+                          {shortcut && <span className="ml-2 text-[var(--text-muted)]">({shortcut})</span>}
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -133,7 +145,7 @@ function EditorSidebarInner({ activeView, isPanelOpen, onViewChange, onTogglePan
 
       <SidebarFooter className="mt-auto border-t border-[var(--border-default)] p-3">
         {!isCollapsed && (
-          <div className="text-xs text-neutral-500">
+          <div className="text-xs text-[var(--text-muted)]">
             <span className="font-medium text-white">∞</span> Credits
           </div>
         )}

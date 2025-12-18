@@ -87,7 +87,7 @@ export function OutputSection({
         disabled={!generatedImage}
         variant="outline"
         size="sm"
-        className="text-xs h-7 px-2 md:px-3 bg-[var(--surface-2)]/80 backdrop-blur-sm border-[var(--border-default)] text-neutral-300 hover:bg-[var(--accent-muted)] hover:text-white hover:border-[var(--accent-border)] flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="text-xs h-7 px-2 md:px-3 flex items-center gap-1 bg-transparent"
         title="Use as Input"
       >
         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,7 +100,7 @@ export function OutputSection({
         disabled={!generatedImage}
         variant="outline"
         size="sm"
-        className="text-xs h-7 px-2 md:px-3 bg-[var(--surface-2)]/80 backdrop-blur-sm border-[var(--border-default)] text-neutral-300 hover:bg-[var(--accent-muted)] hover:text-white hover:border-[var(--accent-border)] flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="text-xs h-7 px-2 md:px-3 flex items-center gap-1 bg-transparent"
         title="Copy to clipboard"
       >
         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,7 +114,7 @@ export function OutputSection({
         disabled={!generatedImage}
         variant="outline"
         size="sm"
-        className="text-xs h-7 px-2 md:px-3 bg-[var(--surface-2)]/80 backdrop-blur-sm border-[var(--border-default)] text-neutral-300 hover:bg-[var(--accent-muted)] hover:text-white hover:border-[var(--accent-border)] flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="text-xs h-7 px-2 md:px-3 flex items-center gap-1 bg-transparent"
         title="Download image"
       >
         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,14 +134,14 @@ export function OutputSection({
     <div className="flex flex-col h-full min-h-0 select-none relative group/output">
       <div className="relative flex-1 min-h-0 flex flex-col">
         {selectedGeneration?.status === "loading" ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-[var(--surface-0)]/50 backdrop-blur-sm">
+          <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
             <ProgressBar
               progress={selectedGeneration.progress}
               onCancel={() => onCancelGeneration(selectedGeneration.id)}
             />
           </div>
         ) : isConvertingHeic ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-[var(--surface-0)]/50 backdrop-blur-sm">
+          <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
             <ProgressBar progress={heicProgress} onCancel={() => {}} isConverting />
           </div>
         ) : generatedImage ? (
@@ -161,11 +161,11 @@ export function OutputSection({
             </div>
           </div>
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-center py-6 select-none bg-[var(--surface-1)]/50 border border-dashed border-[var(--border-default)]">
+          <div className="absolute inset-0 flex items-center justify-center text-center py-6 select-none bg-card/50 border border-dashed border-border">
             <div>
-              <div className="w-8 h-8 md:w-16 md:h-16 mx-auto mb-3 border border-[var(--border-default)] flex items-center justify-center bg-[var(--surface-2)]">
+              <div className="w-8 h-8 md:w-16 md:h-16 mx-auto mb-3 border border-border flex items-center justify-center w-full flex flex-col bg-[var(--surface-0)]">
                 <svg
-                  className="w-4 h-4 md:w-8 md:h-8 text-neutral-500"
+                  className="w-4 h-4 md:w-8 md:h-8 text-muted-foreground"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -175,7 +175,7 @@ export function OutputSection({
                   <polyline points="21,15 16,10 5,21" />
                 </svg>
               </div>
-              <p className="text-xs text-neutral-500 font-medium py-1 md:py-2">Ready to generate</p>
+              <p className="text-xs text-muted-foreground font-medium py-1 md:py-2">Ready to generate</p>
             </div>
           </div>
         )}

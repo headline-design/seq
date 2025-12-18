@@ -15,8 +15,8 @@ export function ImageUploadBox({ imageNumber, preview, onDrop, onClear, onSelect
   return (
     <div
       className={cn(
-        "w-full h-[60px] sm:h-[80px] md:h-[100px] lg:h-[12vh] xl:h-[14vh] flex items-center justify-center cursor-pointer hover:border-[var(--accent-border)] transition-all bg-[var(--surface-2)] relative group border border-[var(--border-default)] rounded-lg",
-        preview && "border-[var(--accent-primary)]",
+        "w-full h-[60px] sm:h-[80px] md:h-[100px] lg:h-[12vh] xl:h-[14vh] flex items-center justify-center cursor-pointer hover:border-accent transition-all bg-card relative group border border-border rounded-lg",
+        preview && "border-accent",
       )}
       onDrop={onDrop}
       onDragOver={(e) => e.preventDefault()}
@@ -38,7 +38,7 @@ export function ImageUploadBox({ imageNumber, preview, onDrop, onClear, onSelect
               e.stopPropagation()
               onClear()
             }}
-            className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-10 bg-[var(--surface-3)]/90 hover:bg-[var(--accent-primary)] text-neutral-300 hover:text-white p-1 sm:p-1.5 rounded transition-all shadow-lg border border-[var(--border-default)]"
+            className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-10 bg-muted/90 hover:bg-accent text-muted-foreground hover:text-accent-foreground p-1 sm:p-1.5 rounded transition-all shadow-lg border border-border"
             aria-label={`Clear image ${imageNumber}`}
           >
             <svg
@@ -60,7 +60,7 @@ export function ImageUploadBox({ imageNumber, preview, onDrop, onClear, onSelect
           />
         </div>
       ) : (
-        <div className="text-center text-neutral-400 py-1 sm:py-4">
+        <div className="text-center text-muted-foreground py-1 sm:py-4">
           <svg
             className="w-3 h-3 sm:w-5 sm:h-5 md:w-6 md:h-6 mx-auto mb-1"
             fill="none"
@@ -76,7 +76,7 @@ export function ImageUploadBox({ imageNumber, preview, onDrop, onClear, onSelect
             />
           </svg>
           <p className="text-xs">{imageNumber === 1 ? "Upload Image" : "Second Image"}</p>
-          <p className="text-[10px] text-neutral-600 mt-0.5 hidden lg:block">(or drag & drop)</p>
+          <p className="text-[10px] text-muted-foreground/70 mt-0.5 hidden lg:block">(or drag & drop)</p>
         </div>
       )}
     </div>

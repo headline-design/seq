@@ -231,7 +231,7 @@ export const PreviewPlayer = memo(function PreviewPlayer({
   return (
     <TooltipProvider delayDuration={300}>
       <div
-        className="flex-1 w-full bg-[#040404] relative flex items-center justify-center p-4 overflow-hidden min-h-[200px]"
+        className="flex-1 w-full bg-[var(--surface-1)] relative flex items-center justify-center p-4 overflow-hidden min-h-[200px]"
         role="region"
         aria-label="Video preview player"
         aria-description="Preview area for video playback and frame capture"
@@ -253,7 +253,7 @@ export const PreviewPlayer = memo(function PreviewPlayer({
                 <TooltipTrigger asChild>
                   <DropdownMenuTrigger asChild>
                     <button
-                      className={`p-1.5 text-neutral-400 hover:text-white transition-colors flex items-center gap-0.5 rounded hover:bg-white/10 ${isSavingFrame ? "opacity-50" : ""}`}
+                      className={`p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-0.5 rounded hover:bg-white/10 ${isSavingFrame ? "opacity-50" : ""}`}
                       disabled={isSavingFrame}
                     >
                       <ImageIcon className="w-3.5 h-3.5" />
@@ -266,24 +266,24 @@ export const PreviewPlayer = memo(function PreviewPlayer({
                 </TooltipContent>
               </Tooltip>
               <DropdownMenuContent align="end" className="min-w-[160px]">
-                <DropdownMenuLabel className="text-xs text-neutral-400">Export Format</DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs text-[var(--text-secondary)]">Export Format</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => handleSaveFrame("png")} className="text-xs">
                   <span className="flex-1">PNG (Lossless)</span>
-                  <span className="text-neutral-500">Best Quality</span>
+                  <span className="text-[var(--text-tertiary)]">Best Quality</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleSaveFrame("jpeg", 0.95)} className="text-xs">
                   <span className="flex-1">JPEG (95%)</span>
-                  <span className="text-neutral-500">Smaller File</span>
+                  <span className="text-[var(--text-tertiary)]">Smaller File</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleSaveFrame("webp", 0.95)} className="text-xs">
                   <span className="flex-1">WebP (95%)</span>
-                  <span className="text-neutral-500">Modern Format</span>
+                  <span className="text-[var(--text-tertiary)]">Modern Format</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => handleSaveFrame("jpeg", 1.0)} className="text-xs">
                   <span className="flex-1">JPEG (100%)</span>
-                  <span className="text-neutral-500">Max JPEG</span>
+                  <span className="text-[var(--text-tertiary)]">Max JPEG</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -291,19 +291,19 @@ export const PreviewPlayer = memo(function PreviewPlayer({
             <div className="w-px h-4 bg-white/[0.1]" />
             <button
               onClick={onZoomReset}
-              className="text-[10px] text-neutral-400 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors"
+              className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] px-2 py-1 rounded hover:bg-white/10 transition-colors"
             >
               Fit
             </button>
             <button
               onClick={onToggleSafeGuides}
-              className={`p-1.5 rounded transition-colors ${isSafeGuidesVisible ? "text-[var(--accent-text)] bg-[var(--accent-muted)]" : "text-neutral-400 hover:text-white hover:bg-white/10"}`}
+              className={`p-1.5 rounded transition-colors ${isSafeGuidesVisible ? "text-[var(--accent-text)] bg-[var(--accent-muted)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/10"}`}
             >
               <Grid3x3Icon className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={onToggleCinemaMode}
-              className="p-1.5 text-neutral-400 hover:text-white rounded hover:bg-white/10 transition-colors"
+              className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded hover:bg-white/10 transition-colors"
             >
               <MaximizeIcon className="w-3.5 h-3.5" />
             </button>
@@ -316,10 +316,10 @@ export const PreviewPlayer = memo(function PreviewPlayer({
           style={{ transform: `scale(${playerZoom})` }}
         >
           {!hasClips && !isExporting && !isRendering && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-30 text-neutral-500">
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-30 text-[var(--text-tertiary)]">
               <VideoIcon className="w-16 h-16 mb-4 opacity-20" />
-              <p className="text-sm font-medium text-neutral-400">No clips in timeline</p>
-              <p className="text-xs text-neutral-600 mt-1">Add media or generate content to preview</p>
+              <p className="text-sm font-medium text-[var(--text-secondary)]">No clips in timeline</p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">Add media or generate content to preview</p>
             </div>
           )}
 

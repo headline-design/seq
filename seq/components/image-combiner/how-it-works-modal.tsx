@@ -10,13 +10,13 @@ interface HowItWorksModalProps {
 export function HowItWorksModal({ open, onOpenChange }: HowItWorksModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-[var(--surface-1)] border border-[var(--border-default)] text-white rounded-xl">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">How it works</DialogTitle>
         </DialogHeader>
-        <div className="space-y-6 text-sm text-neutral-300 max-h-[60vh] overflow-y-auto pr-2">
-          <div className="bg-[var(--accent-muted)] border border-[var(--accent-border)] rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-[var(--accent-primary)] mb-2">Setup Required</h3>
+        <div className="space-y-6 text-sm text-muted-foreground max-h-[60vh] overflow-y-auto pr-2">
+          <div className="bg-accent/10 border border-accent rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-accent mb-2">Setup Required</h3>
             <p className="leading-relaxed mb-3">
               To use this playground, you need to add your Vercel AI Gateway API key as an environment variable:
             </p>
@@ -27,22 +27,21 @@ export function HowItWorksModal({ open, onOpenChange }: HowItWorksModalProps) {
                   href="https://vercel.com/ai-gateway"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[var(--accent-primary)] hover:text-[var(--accent-hover)] underline"
+                  className="text-accent hover:underline"
                 >
                   Vercel AI Gateway
                 </a>
               </li>
               <li>
                 Add the environment variable{" "}
-                <code className="px-1.5 py-0.5 bg-[var(--surface-2)] rounded text-xs">AI_GATEWAY_API_KEY</code> to your
-                project
+                <code className="px-1.5 py-0.5 bg-muted rounded text-xs">AI_GATEWAY_API_KEY</code> to your project
               </li>
               <li>Publish or Deploy</li>
             </ol>
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-white mb-2">About Nano Banana Pro</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">About Nano Banana Pro</h3>
             <p className="leading-relaxed">
               Nano Banana Pro is Google's newest and most advanced AI image generation model. Built on cutting-edge
               diffusion technology, it delivers exceptional quality, speed, and creative control for both text-to-image
@@ -51,7 +50,7 @@ export function HowItWorksModal({ open, onOpenChange }: HowItWorksModalProps) {
                 href="https://vercel.com/ai-gateway"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[var(--accent-primary)] hover:text-[var(--accent-hover)] underline"
+                className="text-accent hover:underline"
               >
                 Vercel AI Gateway
               </a>
@@ -60,7 +59,7 @@ export function HowItWorksModal({ open, onOpenChange }: HowItWorksModalProps) {
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-white mb-2">Text-to-Image Generation</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Text-to-Image Generation</h3>
             <p className="leading-relaxed">
               Simply describe what you want to create in the prompt box and click Run. Nano Banana Pro will generate
               high-quality, photorealistic images from your text descriptions in seconds.
@@ -68,7 +67,7 @@ export function HowItWorksModal({ open, onOpenChange }: HowItWorksModalProps) {
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-white mb-2">Image Editing</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Image Editing</h3>
             <p className="leading-relaxed mb-2">
               Upload one or two images and describe the changes you want to make. The AI will intelligently edit your
               images based on your instructions.
@@ -81,7 +80,7 @@ export function HowItWorksModal({ open, onOpenChange }: HowItWorksModalProps) {
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-white mb-2">Aspect Ratios</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Aspect Ratios</h3>
             <p className="leading-relaxed">
               Choose from multiple aspect ratios (1:1, 16:9, 9:16, 4:3, 3:4) to fit your needs. When uploading images,
               the app automatically detects the best aspect ratio.
@@ -89,7 +88,7 @@ export function HowItWorksModal({ open, onOpenChange }: HowItWorksModalProps) {
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-white mb-2">Generation History</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Generation History</h3>
             <p className="leading-relaxed mb-2">All your generations are saved locally in your browser. You can:</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>View and switch between previous generations</li>
@@ -100,37 +99,27 @@ export function HowItWorksModal({ open, onOpenChange }: HowItWorksModalProps) {
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-white mb-2">Keyboard Shortcuts</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Keyboard Shortcuts</h3>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>
-                <kbd className="px-1.5 py-0.5 bg-[var(--surface-2)] border border-[var(--border-default)] rounded text-xs">
-                  ⌘/Ctrl + Enter
-                </kbd>{" "}
-                - Generate image
+                <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs">⌘/Ctrl + Enter</kbd> -
+                Generate image
               </li>
               <li>
-                <kbd className="px-1.5 py-0.5 bg-[var(--surface-2)] border border-[var(--border-default)] rounded text-xs">
-                  ⌘/Ctrl + C
-                </kbd>{" "}
-                - Copy image to clipboard
+                <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs">⌘/Ctrl + C</kbd> - Copy
+                image to clipboard
               </li>
               <li>
-                <kbd className="px-1.5 py-0.5 bg-[var(--surface-2)] border border-[var(--border-default)] rounded text-xs">
-                  ⌘/Ctrl + D
-                </kbd>{" "}
-                - Download image
+                <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs">⌘/Ctrl + D</kbd> - Download
+                image
               </li>
               <li>
-                <kbd className="px-1.5 py-0.5 bg-[var(--surface-2)] border border-[var(--border-default)] rounded text-xs">
-                  ⌘/Ctrl + U
-                </kbd>{" "}
-                - Load generated image as input
+                <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs">⌘/Ctrl + U</kbd> - Load
+                generated image as input
               </li>
               <li>
-                <kbd className="px-1.5 py-0.5 bg-[var(--surface-2)] border border-[var(--border-default)] rounded text-xs">
-                  Esc
-                </kbd>{" "}
-                - Close fullscreen viewer
+                <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs">Esc</kbd> - Close
+                fullscreen viewer
               </li>
             </ul>
           </div>

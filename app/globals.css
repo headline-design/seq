@@ -3,197 +3,145 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* 
+ * Vercel-style Neutral Theme
+ * Single, consistent dark theme with blue tertiary accent
+ */
+
 :root {
-  --background: #0a0a0a;
-  --foreground: #ffffff;
-  --card: #0c0c0e;
-  --card-foreground: #ffffff;
-  --popover: #0c0c0e;
-  --popover-foreground: #ffffff;
+  /* Core colors */
+  --background: #000000;
+  --foreground: #ededed;
+  --card: #0a0a0a;
+  --card-foreground: #ededed;
+  --popover: #0a0a0a;
+  --popover-foreground: #ededed;
+
+  /* Primary - white for dark theme */
   --primary: #ffffff;
-  --primary-foreground: #0a0a0a;
-  --secondary: #18181b;
-  --secondary-foreground: #ffffff;
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
-  --accent: #27272a;
-  --accent-foreground: #ffffff;
-  --destructive: #ef4444;
+  --primary-foreground: #000000;
+
+  /* Secondary */
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ededed;
+
+  /* Muted */
+  --muted: #262626;
+  --muted-foreground: #a1a1a1;
+
+  /* Accent - subtle highlight */
+  --accent: #262626;
+  --accent-foreground: #ededed;
+
+  /* Destructive */
+  --destructive: #ff4444;
   --destructive-foreground: #ffffff;
-  --border: rgba(255, 255, 255, 0.06);
-  --input: #18181b;
-  /* Updated default ring to neutral white */
-  --ring: #ffffff;
+
+  /* Border & Input */
+  --border: #262626;
+  --input: #1a1a1a;
+  --ring: #0070f3;
+
+  /* Radius */
   --radius: 0.5rem;
-  --font-inter: "Inter", sans-serif;
-  --font-jetbrains-mono: "JetBrains Mono", monospace;
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
 
-  /* Sidebar tokens - Updated to neutral defaults */
-  --sidebar: #0a0a0a;
-  --sidebar-foreground: #fafafa;
+  /* Fonts */
+  --font-inter: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-jetbrains-mono: "JetBrains Mono", "SF Mono", Monaco, "Inconsolata", monospace;
+
+  /* Charts */
+  --chart-1: #0070f3;
+  --chart-2: #00a67e;
+  --chart-3: #f5a623;
+  --chart-4: #e00;
+  --chart-5: #7928ca;
+
+  /* Sidebar */
+  --sidebar: #000000;
+  --sidebar-foreground: #ededed;
   --sidebar-primary: #ffffff;
-  --sidebar-primary-foreground: #0a0a0a;
-  --sidebar-accent: rgba(255, 255, 255, 0.06);
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #ffffff;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #1a1a1a;
+  --sidebar-accent-foreground: #ededed;
+  --sidebar-border: #262626;
+  --sidebar-ring: #0070f3;
 
-  /* Extended themeable accent system - neutral defaults (Vercel-style) */
-  --accent-primary: #ffffff;
-  --accent-hover: #e5e5e5;
-  --accent-muted: rgba(255, 255, 255, 0.1);
-  --accent-secondary: #a1a1aa;
-  /* Flat color instead of gradient for neutral theme */
-  --accent-gradient: #ffffff;
-  --accent-ring: rgba(255, 255, 255, 0.25);
-  --accent-text: #ffffff;
-  --accent-text-muted: #a1a1aa;
-  --accent-white: #fff;
-  --accent-border: rgba(255, 255, 255, 0.15);
-  --accent-bg-subtle: rgba(255, 255, 255, 0.05);
-  --accent-bg-emphasis: rgba(255, 255, 255, 0.1);
-  --accent-shadow: rgba(0, 0, 0, 0.25);
+  /* Tertiary - Vercel Blue for interactive elements */
+  --tertiary: #0070f3;
+  --tertiary-hover: #0060df;
+  --tertiary-muted: rgba(0, 112, 243, 0.15);
+  --tertiary-ring: rgba(0, 112, 243, 0.4);
+  --tertiary-foreground: #ffffff;
 
-  /* Legacy accent tokens (kept for backwards compatibility) */
-  --accent-pink: var(--accent-primary);
-  --accent-pink-hover: var(--accent-hover);
-  --accent-pink-muted: var(--accent-muted);
-  --accent-rose: var(--accent-secondary);
-
-  /* Surface elevation levels */
-  --surface-0: #0a0a0a;
-  --surface-1: #0c0c0e;
-  --surface-2: #111114;
-  --surface-3: #18181b;
-  --surface-4: #1f1f23;
+  /* Surface elevation - Vercel style */
+  --surface-0: #000000;
+  --surface-1: #0a0a0a;
+  --surface-2: #111111;
+  --surface-3: #1a1a1a;
+  --surface-4: #262626;
 
   /* Border variations */
-  --border-subtle: rgba(255, 255, 255, 0.04);
-  --border-default: rgba(255, 255, 255, 0.06);
-  --border-emphasis: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.12);
+  --border-subtle: #1a1a1a;
+  --border-default: #262626;
+  --border-emphasis: #333333;
+  --border-strong: #444444;
 
   /* Interactive overlays */
-  --hover-overlay: rgba(255, 255, 255, 0.04);
-  --active-overlay: rgba(255, 255, 255, 0.08);
-  --focus-ring: var(--accent-ring);
+  --hover-overlay: rgba(255, 255, 255, 0.05);
+  --active-overlay: rgba(255, 255, 255, 0.1);
+  --focus-ring: rgba(0, 112, 243, 0.5);
 
-  /* Text hierarchy */
-  --text-primary: #ffffff;
-  --text-secondary: #a1a1aa;
-  --text-tertiary: #71717a;
-  --text-muted: #52525b;
+  /* Text hierarchy - Vercel style (matching Tailwind neutral scale) */
+  --text-primary: #ededed; /* neutral-200 equivalent */
+  --text-secondary: #a1a1a1; /* neutral-400 equivalent */
+  --text-tertiary: #737373; /* neutral-500 equivalent */
+  --text-muted: #525252; /* neutral-600 equivalent */
+  --text-faint: #404040; /* neutral-700 equivalent */
 
   /* Semantic colors */
-  --success: #22c55e;
-  --success-muted: rgba(34, 197, 94, 0.15);
-  --warning: #f59e0b;
-  --warning-muted: rgba(245, 158, 11, 0.15);
-  --error: #ef4444;
-  --error-muted: rgba(239, 68, 68, 0.15);
-  --info: #3b82f6;
-  --info-muted: rgba(59, 130, 246, 0.15);
+  --success: #00a67e;
+  --success-muted: rgba(0, 166, 126, 0.15);
+  --warning: #f5a623;
+  --warning-muted: rgba(245, 166, 35, 0.15);
+  --error: #ee0000;
+  --error-muted: rgba(238, 0, 0, 0.15);
+  --info: #0070f3;
+  --info-muted: rgba(0, 112, 243, 0.15);
+
+  /* Legacy accent variables for backwards compatibility */
+  --accent-primary: #0070f3;
+  --accent-hover: #0060df;
+  --accent-muted: rgba(0, 112, 243, 0.15);
+  --accent-text: #ffffff;
+  --accent-text-muted: rgba(255, 255, 255, 0.7);
+  --accent-border: rgba(0, 112, 243, 0.3);
+  --accent-ring: rgba(0, 112, 243, 0.4);
+  --accent-bg-subtle: rgba(0, 112, 243, 0.08);
+  --accent-bg-emphasis: rgba(0, 112, 243, 0.2);
+  --accent-shadow: rgba(0, 112, 243, 0.25);
 }
 
+/* Dark mode uses same values - app is dark-only */
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ffffff;
-  --card: #0c0c0e;
-  --card-foreground: #ffffff;
-  --popover: #0c0c0e;
-  --popover-foreground: #ffffff;
+  --background: #000000;
+  --foreground: #ededed;
+  --card: #0a0a0a;
+  --card-foreground: #ededed;
+  --popover: #0a0a0a;
+  --popover-foreground: #ededed;
   --primary: #ffffff;
-  --primary-foreground: #0a0a0a;
-  --secondary: #18181b;
-  --secondary-foreground: #ffffff;
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
-  --accent: #27272a;
-  --accent-foreground: #ffffff;
-  --accent-white: #000;
-  --destructive: #ef4444;
+  --primary-foreground: #000000;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ededed;
+  --muted: #262626;
+  --muted-foreground: #a1a1a1;
+  --accent: #262626;
+  --accent-foreground: #ededed;
+  --destructive: #ff4444;
   --destructive-foreground: #ffffff;
-  --border: rgba(255, 255, 255, 0.06);
-  --input: #18181b;
-  --ring: var(--accent-primary);
-  --font-inter: "Inter", sans-serif;
-  --font-jetbrains-mono: "JetBrains Mono", monospace;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-
-  /* Sidebar tokens - Updated to neutral defaults */
-  --sidebar: #0a0a0a;
-  --sidebar-foreground: #fafafa;
-  --sidebar-primary: var(--accent-primary);
-  --sidebar-primary-foreground: #0a0a0a;
-  --sidebar-accent: rgba(255, 255, 255, 0.06);
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: var(--accent-primary);
-
-  /* Extended themeable accent system for dark mode - neutral defaults */
-  --accent-primary: #ffffff;
-  --accent-hover: #e5e5e5;
-  --accent-muted: rgba(255, 255, 255, 0.1);
-  --accent-secondary: #a1a1aa;
-  /* Flat color instead of gradient for neutral theme */
-  --accent-gradient: #ffffff;
-  --accent-ring: rgba(255, 255, 255, 0.25);
-  --accent-text: #ffffff;
-
-  --accent-text-muted: #a1a1aa;
-  --accent-border: rgba(255, 255, 255, 0.15);
-  --accent-bg-subtle: rgba(255, 255, 255, 0.05);
-  --accent-bg-emphasis: rgba(255, 255, 255, 0.1);
-  --accent-shadow: rgba(0, 0, 0, 0.25);
-
-  /* Legacy tokens */
-  --accent-pink: var(--accent-primary);
-  --accent-pink-hover: var(--accent-hover);
-  --accent-pink-muted: var(--accent-muted);
-  --accent-rose: var(--accent-secondary);
-
-  /* Surface elevation levels */
-  --surface-0: #0a0a0a;
-  --surface-1: #0c0c0e;
-  --surface-2: #111114;
-  --surface-3: #18181b;
-  --surface-4: #1f1f23;
-
-  /* Border variations */
-  --border-subtle: rgba(255, 255, 255, 0.04);
-  --border-default: rgba(255, 255, 255, 0.06);
-  --border-emphasis: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.12);
-
-  /* Interactive overlays */
-  --hover-overlay: rgba(255, 255, 255, 0.04);
-  --active-overlay: rgba(255, 255, 255, 0.08);
-  --focus-ring: var(--accent-ring);
-
-  /* Text hierarchy */
-  --text-primary: #ffffff;
-  --text-secondary: #a1a1aa;
-  --text-tertiary: #71717a;
-  --text-muted: #52525b;
-
-  /* Semantic colors */
-  --success: #22c55e;
-  --success-muted: rgba(34, 197, 94, 0.15);
-  --warning: #f59e0b;
-  --warning-muted: rgba(245, 158, 11, 0.15);
-  --error: #ef4444;
-  --error-muted: rgba(239, 68, 68, 0.15);
-  --info: #3b82f6;
-  --info-muted: rgba(59, 130, 246, 0.15);
+  --border: #262626;
+  --input: #1a1a1a;
+  --ring: #0070f3;
 }
 
 @theme inline {
@@ -235,355 +183,181 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-hover: var(--tertiary-hover);
+  --color-tertiary-muted: var(--tertiary-muted);
+  --color-tertiary-foreground: var(--tertiary-foreground);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    --tw-ring-color: var(--tertiary);
   }
 
   html {
-    background-color: #0a0a0a !important;
+    background-color: #000000 !important;
   }
 
   body {
     @apply bg-background text-foreground;
-    background-color: #0a0a0a !important;
-  }
-
-  .shader-background {
-    contain: layout style paint;
-    will-change: transform;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-  }
-
-  .smooth-transition {
-    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-  }
-
-  .auth-persist {
-    position: relative;
-    z-index: 1;
-  }
-
-  .dropdown-content,
-  .dialog-content,
-  .popover-content {
-    transform: translateZ(0);
-    will-change: transform, opacity;
+    background-color: #000000 !important;
   }
 }
 
 @layer utilities {
-  .prevent-shift {
-    min-height: 100vh;
-    position: relative;
-  }
-
-  .gpu-accelerate {
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    perspective: 1000px;
-  }
-
-  /* Comprehensive themeable accent utilities */
-  .text-accent {
-    color: var(--accent-primary);
-  }
-
-   .text-accent-text-white {
-    color: var(--accent-text-white);
-  }
-
-  .text-accent-hover {
-    color: var(--accent-hover);
-  }
-
-  .text-accent-muted {
-    color: var(--accent-text-muted);
-  }
-
-  .bg-accent-theme {
-    background-color: var(--accent-primary);
-  }
-
-  .bg-accent-hover {
-    background-color: var(--accent-hover);
-  }
-
-  .bg-accent-muted {
-    background-color: var(--accent-muted);
-  }
-
-  .bg-accent-subtle {
-    background-color: var(--accent-bg-subtle);
-  }
-
-  .bg-accent-emphasis {
-    background-color: var(--accent-bg-emphasis);
-  }
-
-  .bg-accent-gradient {
-    background: var(--accent-gradient);
-  }
-
-  .border-accent {
-    border-color: var(--accent-primary);
-  }
-
-  .border-accent-muted {
-    border-color: var(--accent-border);
-  }
-
-  .ring-accent {
-    --tw-ring-color: var(--accent-primary);
-  }
-
-  .ring-accent-muted {
-    --tw-ring-color: var(--accent-ring);
-  }
-
-  .shadow-accent {
-    box-shadow: 0 4px 14px 0 var(--accent-shadow);
-  }
-
-  .shadow-accent-sm {
-    box-shadow: 0 2px 8px 0 var(--accent-shadow);
-  }
-
-  .shadow-accent-lg {
-    box-shadow: 0 8px 24px 0 var(--accent-shadow);
-  }
-
-  /* Focus states using accent */
-  .focus-accent:focus {
-    border-color: var(--accent-primary);
-    outline: none;
-    box-shadow: 0 0 0 2px var(--accent-ring);
-  }
-
-  /* Hover states */
-  .hover-accent:hover {
-    background-color: var(--accent-bg-subtle);
-  }
-
-  /* Active states */
-  .active-accent {
-    background-color: var(--accent-bg-emphasis);
-    border-color: var(--accent-primary);
-  }
-
-  /* Selection highlight */
-  .selection-accent::selection {
-    background-color: var(--accent-muted);
-  }
-
-  /* Slider thumb using accent */
-  .slider-accent::-webkit-slider-thumb {
-    background-color: var(--accent-primary);
-  }
-
-  .slider-accent::-moz-range-thumb {
-    background-color: var(--accent-primary);
-  }
-
-  /* Checkbox/Radio using accent */
-  .check-accent:checked {
-    background-color: var(--accent-primary);
-    border-color: var(--accent-primary);
-  }
-
-  /* Progress bar accent */
-  .progress-accent::-webkit-progress-value {
-    background-color: var(--accent-primary);
-  }
-
-  .progress-accent::-moz-progress-bar {
-    background-color: var(--accent-primary);
-  }
-
-  /* Spinner border using accent */
-  .spinner-accent {
-    border-color: var(--accent-primary);
-    border-top-color: transparent;
-  }
-
-  /* Button variants using accent */
-  .btn-accent {
-    background-color: var(--accent-primary);
-    color: white;
-  }
-
-  .btn-accent:hover {
-    background-color: var(--accent-hover);
-  }
-
-  .btn-accent-outline {
-    background-color: transparent;
-    border: 1px solid var(--accent-border);
-    color: var(--accent-text);
-  }
-
-  .btn-accent-outline:hover {
-    background-color: var(--accent-bg-subtle);
-  }
-
-  .btn-accent-ghost {
-    background-color: transparent;
-    color: var(--accent-text);
-  }
-
-  .btn-accent-ghost:hover {
-    background-color: var(--accent-bg-subtle);
-  }
-
-  /* Tab active state using accent */
-  .tab-accent-active {
-    border-bottom-color: var(--accent-primary);
-    color: white;
-  }
-
-  /* Badge using accent */
-  .badge-accent {
-    background-color: var(--accent-muted);
-    border: 1px solid var(--accent-border);
-    color: var(--accent-text);
-  }
-
-  /* Indicator dot using accent */
-  .dot-accent {
-    background-color: var(--accent-primary);
-  }
-
-  .dot-accent-pulse {
-    background-color: var(--accent-primary);
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  /* Legacy accent utilities (kept for backwards compatibility) */
-  .text-accent-pink {
-    color: var(--accent-primary);
-  }
-
-  .bg-accent-pink {
-    background-color: var(--accent-primary);
-  }
-
-  .bg-accent-pink-muted {
-    background-color: var(--accent-muted);
-  }
-
   /* Surface utilities */
   .bg-surface-0 {
     background-color: var(--surface-0);
   }
-
   .bg-surface-1 {
     background-color: var(--surface-1);
   }
-
   .bg-surface-2 {
     background-color: var(--surface-2);
   }
-
   .bg-surface-3 {
     background-color: var(--surface-3);
+  }
+  .bg-surface-4 {
+    background-color: var(--surface-4);
   }
 
   /* Border utilities */
   .border-subtle {
     border-color: var(--border-subtle);
   }
-
+  .border-default {
+    border-color: var(--border-default);
+  }
   .border-emphasis {
     border-color: var(--border-emphasis);
   }
-
   .border-strong {
     border-color: var(--border-strong);
   }
 
-  /* Typography Scale - Standardized */
+  /* Text utilities mapped to CSS variables for consistency */
+  .text-primary {
+    color: var(--text-primary);
+  }
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+  .text-tertiary-color {
+    color: var(--text-tertiary);
+  }
+  .text-muted-color {
+    color: var(--text-muted);
+  }
+  .text-faint {
+    color: var(--text-faint);
+  }
+
+  /* Tertiary (blue) utilities for interactive elements */
+  .text-tertiary {
+    color: var(--tertiary);
+  }
+  .bg-tertiary {
+    background-color: var(--tertiary);
+  }
+  .bg-tertiary-hover {
+    background-color: var(--tertiary-hover);
+  }
+  .bg-tertiary-muted {
+    background-color: var(--tertiary-muted);
+  }
+  .border-tertiary {
+    border-color: var(--tertiary);
+  }
+  .ring-tertiary {
+    --tw-ring-color: var(--tertiary);
+  }
+
+  /* Hover overlay */
+  .hover-overlay:hover {
+    background-color: var(--hover-overlay);
+  }
+  .active-overlay:active {
+    background-color: var(--active-overlay);
+  }
+
+  /* Focus states */
+  .focus-ring:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--focus-ring);
+  }
+
+  /* Typography Scale */
   .text-page-title {
-    @apply text-2xl font-semibold text-white;
+    @apply text-2xl font-semibold;
+    color: var(--text-primary);
   }
-
   .text-section-title {
-    @apply text-xl font-semibold text-white;
+    @apply text-xl font-semibold;
+    color: var(--text-primary);
   }
-
   .text-subsection-title {
-    @apply text-base font-medium text-white;
+    @apply text-base font-medium;
+    color: var(--text-primary);
   }
-
   .text-body {
-    @apply text-sm text-neutral-300;
+    @apply text-sm;
+    color: var(--text-secondary);
   }
-
   .text-caption {
-    @apply text-xs text-neutral-400;
+    @apply text-xs;
+    color: var(--text-tertiary);
   }
-
   .text-label {
-    @apply text-xs font-medium text-neutral-300;
+    @apply text-xs font-medium;
+    color: var(--text-secondary);
   }
 
-  /* Standard Layout Classes */
+  /* Layout utilities */
   .page-container {
     @apply max-w-6xl mx-auto px-6 py-6;
   }
-
   .section-container {
     @apply max-w-6xl mx-auto px-6;
   }
-
-  /* Standard Spacing */
   .section-spacing {
     @apply py-8;
   }
-
   .content-spacing {
     @apply space-y-6;
   }
-
   .item-spacing {
     @apply space-y-4;
   }
 
-  /* Badge variants - using themeable accent */
+  /* Badge variants */
   .badge-primary {
     @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
-    background-color: var(--accent-muted);
-    border: 1px solid var(--accent-border);
-    color: var(--accent-hover);
+    background-color: var(--tertiary-muted);
+    border: 1px solid var(--tertiary);
+    color: var(--tertiary);
   }
 
   .badge-secondary {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.625rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    line-height: 1rem;
-    font-weight: 500;
-    background-color: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: rgb(212, 212, 216);
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
+    background-color: var(--surface-3);
+    border: 1px solid var(--border-default);
+    color: var(--text-secondary);
   }
 
   .badge-success {
     @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
-    background-color: rgba(16, 185, 129, 0.2);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    color: rgb(52, 211, 153);
+    background-color: var(--success-muted);
+    border: 1px solid var(--success);
+    color: var(--success);
   }
 }
 
+/* Scrollbar */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  scrollbar-color: #333333 transparent;
 }
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
@@ -593,9 +367,9 @@
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: #333333;
   border-radius: 3px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: #444444;
 }

@@ -34,16 +34,16 @@ export function DeploymentNotice() {
         isDismissed ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
       }`}
     >
-      <div className="bg-zinc-900 border border-zinc-700 rounded-lg shadow-2xl overflow-hidden">
-        {/* Header - use accent CSS variables */}
-        <div className="bg-[var(--accent-bg-subtle)] border-b border-[var(--accent-border)] px-4 py-2 flex items-center justify-between">
+      <div className="bg-[var(--surface-1)] border border-[var(--border-default)] rounded-lg shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="bg-[var(--tertiary-muted)] border-b border-[var(--tertiary)]/30 px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-[var(--accent-primary)] animate-pulse" />
-            <span className="text-[var(--accent-text)] text-sm font-medium">Demo Instance</span>
+            <div className="w-2 h-2 rounded-full bg-[var(--tertiary)] animate-pulse" />
+            <span className="text-[var(--tertiary)] text-sm font-medium">Demo Instance</span>
           </div>
           <button
             onClick={handleDismiss}
-            className="text-zinc-400 hover:text-white transition-colors p-1 -mr-1"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-1 -mr-1"
             aria-label="Dismiss notice"
           >
             <X className="w-4 h-4" />
@@ -52,7 +52,7 @@ export function DeploymentNotice() {
 
         {/* Content */}
         <div className="p-4 space-y-3">
-          <p className="text-zinc-300 text-sm leading-relaxed">
+          <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
             This is a demo deployment. To use Seq with full functionality, deploy your own instance and add your API
             keys.
           </p>
@@ -62,27 +62,27 @@ export function DeploymentNotice() {
               href="https://github.com/your-repo/seq"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
+              className="flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
             >
               <Github className="w-4 h-4" />
               <span>Clone from GitHub</span>
             </a>
-            <div className="flex items-center gap-2 text-sm text-zinc-500">
+            <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
               <Key className="w-4 h-4" />
               <span>Required: FAL_KEY, GOOGLE_GENERATIVE_AI_API_KEY</span>
             </div>
           </div>
         </div>
 
-        {/* Footer - use accent CSS variables */}
-        <div className="px-4 py-3 bg-zinc-800/50 border-t border-zinc-700">
+        {/* Footer */}
+        <div className="px-4 py-3 bg-[var(--surface-2)] border-t border-[var(--border-default)]">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-zinc-500">One-click deploy:</span>
+            <span className="text-xs text-[var(--text-muted)]">One-click deploy:</span>
             <a
               href="https://vercel.com/new/clone?repository-url=https://github.com/your-repo/seq"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--accent-gradient)] text-white text-xs font-medium rounded hover:opacity-90 transition-all shadow-lg shadow-[var(--accent-shadow)]"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--tertiary)] hover:bg-[var(--tertiary-hover)] text-white text-xs font-medium rounded transition-all"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 76 65" fill="currentColor">
                 <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" />

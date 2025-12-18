@@ -83,19 +83,19 @@ export const TimelineTrackHeaders = memo(function TimelineTrackHeaders({
           <div className="flex flex-col gap-1 w-full">
             <button
               onClick={() => onAddTrack("video")}
-              className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-neutral-800 hover:bg-neutral-800 text-[10px] text-neutral-500 hover:text-neutral-300 transition-colors"
+              className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-[var(--border-default)] hover:bg-[var(--surface-3)] text-[10px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
             >
               <PlusIcon className="w-3 h-3" /> Video
             </button>
             <button
               onClick={() => onAddTrack("audio")}
-              className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-neutral-800 hover:bg-neutral-800 text-[10px] text-neutral-500 hover:text-neutral-300 transition-colors"
+              className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-[var(--border-default)] hover:bg-[var(--surface-3)] text-[10px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
             >
               <PlusIcon className="w-3 h-3" /> Audio
             </button>
             <button
               onClick={() => onAddTrack("text")}
-              className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-neutral-800 hover:bg-neutral-800 text-[10px] text-neutral-500 hover:text-neutral-300 transition-colors"
+              className="flex items-center justify-center gap-2 w-full py-1.5 rounded border border-[var(--border-default)] hover:bg-[var(--surface-3)] text-[10px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
             >
               <PlusIcon className="w-3 h-3" /> Text
             </button>
@@ -130,7 +130,7 @@ export const TimelineTrackHeaders = memo(function TimelineTrackHeaders({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <div className="cursor-grab active:cursor-grabbing text-neutral-600 hover:text-neutral-400 opacity-0 group-hover/header:opacity-100 transition-opacity">
+                <div className="cursor-grab active:cursor-grabbing text-[var(--text-muted)] hover:text-[var(--text-secondary)] opacity-0 group-hover/header:opacity-100 transition-opacity">
                   <GripVerticalIcon className="w-3 h-3" />
                 </div>
                 {isAudio ? (
@@ -139,7 +139,7 @@ export const TimelineTrackHeaders = memo(function TimelineTrackHeaders({
                   <TypeIcon className="w-3 h-3 text-purple-500" />
                 ) : null}
                 <span
-                  className="text-[11px] text-neutral-400 font-semibold uppercase tracking-wider truncate"
+                  className="text-[11px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider truncate"
                   title={track.name}
                 >
                   {track.name}
@@ -148,20 +148,20 @@ export const TimelineTrackHeaders = memo(function TimelineTrackHeaders({
               <div className="flex items-center gap-1 opacity-0 group-hover/header:opacity-100 transition-opacity">
                 <button
                   onClick={() => onTrackUpdate(track.id, { isLocked: !track.isLocked })}
-                  className={`p-1 rounded hover:bg-neutral-800 ${track.isLocked ? "text-amber-500" : "text-neutral-600"}`}
+                  className={`p-1 rounded hover:bg-[var(--surface-3)] ${track.isLocked ? "text-amber-500" : "text-[var(--text-muted)]"}`}
                 >
                   {track.isLocked ? <LockIcon className="w-3 h-3" /> : <UnlockIcon className="w-3 h-3" />}
                 </button>
                 <button
                   onClick={() => onTrackUpdate(track.id, { isMuted: !track.isMuted })}
-                  className={`p-1 rounded hover:bg-neutral-800 ${track.isMuted ? "text-red-400" : "text-neutral-600"}`}
+                  className={`p-1 rounded hover:bg-[var(--surface-3)] ${track.isMuted ? "text-red-400" : "text-[var(--text-muted)]"}`}
                 >
                   <MuteIcon className="w-3 h-3" />
                 </button>
               </div>
             </div>
 
-            <div className="flex-1 bg-neutral-900/30 rounded border border-neutral-800/50 flex flex-col items-center justify-center overflow-hidden relative">
+            <div className="flex-1 bg-[var(--surface-1)] rounded border border-[var(--border-subtle)] flex flex-col items-center justify-center overflow-hidden relative">
               {isAudio ? (
                 <div
                   className={`w-full h-full flex flex-col items-center justify-center px-2 gap-1 transition-opacity ${
@@ -169,7 +169,7 @@ export const TimelineTrackHeaders = memo(function TimelineTrackHeaders({
                   }`}
                 >
                   <div className="flex items-center gap-2 w-full">
-                    <VolumeIcon className="w-3 h-3 text-neutral-500" />
+                    <VolumeIcon className="w-3 h-3 text-[var(--text-tertiary)]" />
                     <input
                       type="range"
                       min="0"
@@ -178,7 +178,7 @@ export const TimelineTrackHeaders = memo(function TimelineTrackHeaders({
                       value={track.volume ?? 1}
                       disabled={track.isLocked}
                       onChange={(e) => onTrackUpdate(track.id, { volume: Number.parseFloat(e.target.value) })}
-                      className="w-full h-1 bg-neutral-700 rounded-lg appearance-none cursor-pointer focus:outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:bg-emerald-500 [&::-webkit-slider-thumb]:rounded-full"
+                      className="w-full h-1 bg-[var(--surface-3)] rounded-lg appearance-none cursor-pointer focus:outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:bg-emerald-500 [&::-webkit-slider-thumb]:rounded-full"
                     />
                   </div>
                 </div>
@@ -187,13 +187,17 @@ export const TimelineTrackHeaders = memo(function TimelineTrackHeaders({
               ) : (
                 <div className={`flex items-end gap-0.5 h-3 ${track.isMuted ? "opacity-10" : "opacity-20"}`}>
                   {[...Array(10)].map((_, i) => (
-                    <div key={i} className="w-1 bg-neutral-500" style={{ height: `${Math.random() * 100}%` }} />
+                    <div
+                      key={i}
+                      className="w-1 bg-[var(--text-secondary)]"
+                      style={{ height: `${Math.random() * 100}%` }}
+                    />
                   ))}
                 </div>
               )}
               {track.isLocked && (
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
-                  <LockIcon className="w-4 h-4 text-neutral-500" />
+                  <LockIcon className="w-4 h-4 text-[var(--text-tertiary)]" />
                 </div>
               )}
             </div>

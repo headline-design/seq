@@ -29,8 +29,6 @@ interface InspectorPanelProps {
   onSplitClip?: (id: string, time: number) => void
 }
 
-// Removed unused components: Section, QuickAction, NumberField, NumericInput
-
 export const InspectorPanel = memo(function InspectorPanel({
   onClose,
   selectedClipId,
@@ -78,8 +76,8 @@ export const InspectorPanel = memo(function InspectorPanel({
             onClick={() => setActiveTab("properties")}
             className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${
               activeTab === "properties"
-                ? "text-white border-b-2 border-[var(--accent-primary)]"
-                : "text-neutral-500 hover:text-neutral-300"
+                ? "text-white border-b-2 border-[var(--tertiary)]"
+                : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
             }`}
           >
             Properties
@@ -88,13 +86,13 @@ export const InspectorPanel = memo(function InspectorPanel({
             onClick={() => setActiveTab("effects")}
             className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 ${
               activeTab === "effects"
-                ? "text-white border-b-2 border-[var(--accent-primary)]"
-                : "text-neutral-500 hover:text-neutral-300"
+                ? "text-white border-b-2 border-[var(--tertiary)]"
+                : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
             }`}
           >
             <Palette className="w-3 h-3" />
             Effects
-            {hasEffects && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)]"></span>}
+            {hasEffects && <span className="w-1.5 h-1.5 rounded-full bg-[var(--tertiary)]"></span>}
           </button>
         </div>
       )}
@@ -102,19 +100,19 @@ export const InspectorPanel = memo(function InspectorPanel({
       <PanelContent>
         {!clip ? (
           <div className="flex flex-col items-center justify-center gap-3 py-20 opacity-50">
-            <InfoIcon className="w-8 h-8 text-neutral-600" />
-            <p className="text-xs text-neutral-500">Select a clip to view properties</p>
+            <InfoIcon className="w-8 h-8 text-[var(--text-muted)]" />
+            <p className="text-xs text-[var(--text-tertiary)]">Select a clip to view properties</p>
           </div>
         ) : isTextClip ? (
           <>
             {/* Text Clip Header */}
             <div className="flex items-center gap-3 pb-3 border-b border-[var(--border-default)]">
-              <div className="w-10 h-10 rounded-lg bg-[var(--accent-muted)] flex items-center justify-center">
-                <TypeIcon className="w-5 h-5 text-[var(--accent-text)]" />
+              <div className="w-10 h-10 rounded-lg bg-[var(--tertiary-muted)] flex items-center justify-center">
+                <TypeIcon className="w-5 h-5 text-[var(--tertiary)]" />
               </div>
               <div className="flex flex-col">
-                <h3 className="text-sm font-semibold text-neutral-200">Text Overlay</h3>
-                <span className="text-[10px] text-neutral-500 font-mono">{clip.id}</span>
+                <h3 className="text-sm font-semibold text-[var(--text-primary)]">Text Overlay</h3>
+                <span className="text-[10px] text-[var(--text-tertiary)] font-mono">{clip.id}</span>
               </div>
             </div>
 
@@ -164,7 +162,7 @@ export const InspectorPanel = memo(function InspectorPanel({
             <PanelSection title="Timing">
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[9px] text-neutral-600 uppercase">Start</label>
+                  <label className="text-[9px] text-[var(--text-muted)] uppercase">Start</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -172,13 +170,15 @@ export const InspectorPanel = memo(function InspectorPanel({
                       onChange={(e) => onUpdateClip(clip.id, { start: Number(e.target.value) })}
                       min={0}
                       step={0.01}
-                      className="w-full p-2 pr-6 bg-[var(--surface-0)] rounded border border-[var(--border-default)] text-xs font-mono text-neutral-300 focus:outline-none focus:border-[var(--accent-primary)]/50 focus:ring-1 focus:ring-[var(--focus-ring)]"
+                      className="w-full p-2 pr-6 bg-[var(--surface-0)] rounded border border-[var(--border-default)] text-xs font-mono text-[var(--text-secondary)] focus:outline-none focus:border-[var(--tertiary)]/50 focus:ring-1 focus:ring-[var(--focus-ring)]"
                     />
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-neutral-600">s</span>
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-muted)]">
+                      s
+                    </span>
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[9px] text-neutral-600 uppercase">Duration</label>
+                  <label className="text-[9px] text-[var(--text-muted)] uppercase">Duration</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -186,9 +186,11 @@ export const InspectorPanel = memo(function InspectorPanel({
                       onChange={(e) => onUpdateClip(clip.id, { duration: Number(e.target.value) })}
                       min={0.1}
                       step={0.01}
-                      className="w-full p-2 pr-6 bg-[var(--surface-0)] rounded border border-[var(--border-default)] text-xs font-mono text-neutral-300 focus:outline-none focus:border-[var(--accent-primary)]/50 focus:ring-1 focus:ring-[var(--focus-ring)]"
+                      className="w-full p-2 pr-6 bg-[var(--surface-0)] rounded border border-[var(--border-default)] text-xs font-mono text-[var(--text-secondary)] focus:outline-none focus:border-[var(--tertiary)]/50 focus:ring-1 focus:ring-[var(--focus-ring)]"
                     />
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-neutral-600">s</span>
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-muted)]">
+                      s
+                    </span>
                   </div>
                 </div>
               </div>
@@ -196,8 +198,8 @@ export const InspectorPanel = memo(function InspectorPanel({
           </>
         ) : !media ? (
           <div className="flex flex-col items-center justify-center gap-3 py-20 opacity-50">
-            <InfoIcon className="w-8 h-8 text-neutral-600" />
-            <p className="text-xs text-neutral-500">Media not found</p>
+            <InfoIcon className="w-8 h-8 text-[var(--text-muted)]" />
+            <p className="text-xs text-[var(--text-tertiary)]">Media not found</p>
           </div>
         ) : activeTab === "effects" && media.type === "video" ? (
           <EffectsPanel clip={clip} onUpdateClip={onUpdateClip} />
@@ -235,15 +237,15 @@ export const InspectorPanel = memo(function InspectorPanel({
                   </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <MusicIcon className="w-12 h-12 text-neutral-600" />
+                    <MusicIcon className="w-12 h-12 text-[var(--text-muted)]" />
                   </div>
                 )}
               </div>
               <div className="flex flex-col gap-1">
-                <h3 className="text-sm font-semibold text-neutral-200 truncate" title={media.prompt}>
+                <h3 className="text-sm font-semibold text-[var(--text-primary)] truncate" title={media.prompt}>
                   {media.prompt || "Untitled Clip"}
                 </h3>
-                <span className="text-[10px] text-neutral-500 font-mono">{clip.id}</span>
+                <span className="text-[10px] text-[var(--text-tertiary)] font-mono">{clip.id}</span>
               </div>
             </div>
 
@@ -299,7 +301,7 @@ export const InspectorPanel = memo(function InspectorPanel({
               title="Speed"
               badge={
                 clip.speed !== 1 ? (
-                  <span className="px-1.5 py-0.5 bg-[var(--accent-muted)] text-[var(--accent-text)] text-[9px] font-bold rounded">
+                  <span className="px-1.5 py-0.5 bg-[var(--tertiary-muted)] text-[var(--tertiary)] text-[9px] font-bold rounded">
                     {clip.speed}x
                   </span>
                 ) : null
@@ -313,8 +315,8 @@ export const InspectorPanel = memo(function InspectorPanel({
                     onClick={() => handleSpeedChange(speed)}
                     className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
                       (clip.speed ?? 1) === speed
-                        ? "bg-[var(--accent-primary)] text-accent-text-white"
-                        : "bg-[var(--hover-overlay)] text-neutral-500 hover:bg-[var(--active-overlay)] hover:text-accent-text-white"
+                        ? "bg-[var(--tertiary)] text-white"
+                        : "bg-[var(--hover-overlay)] text-[var(--text-tertiary)] hover:bg-[var(--active-overlay)] hover:text-white"
                     }`}
                   >
                     {speed}x
@@ -322,7 +324,7 @@ export const InspectorPanel = memo(function InspectorPanel({
                 ))}
               </div>
               <div className="flex items-center gap-2 mt-2">
-                <Zap className="w-3.5 h-3.5 text-neutral-500" />
+                <Zap className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
                 <input
                   type="range"
                   min="0.1"
@@ -330,9 +332,9 @@ export const InspectorPanel = memo(function InspectorPanel({
                   step="0.1"
                   value={clip.speed ?? 1}
                   onChange={(e) => handleSpeedChange(Number.parseFloat(e.target.value))}
-                  className="flex-1 h-1 bg-neutral-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[var(--accent-primary)] [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-lg"
+                  className="flex-1 h-1 bg-[var(--surface-4)] rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[var(--tertiary)] [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-lg"
                 />
-                <span className="text-xs font-mono text-neutral-400 w-10 text-right">
+                <span className="text-xs font-mono text-[var(--text-secondary)] w-10 text-right">
                   {(clip.speed ?? 1).toFixed(1)}x
                 </span>
               </div>
@@ -344,11 +346,13 @@ export const InspectorPanel = memo(function InspectorPanel({
             <PanelSection title="Audio">
               <InfoCard className="flex flex-col gap-3">
                 <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 text-neutral-300">
-                    <VolumeIcon className="w-3.5 h-3.5 text-neutral-500" />
+                  <div className="flex items-center gap-2 text-[var(--text-secondary)]">
+                    <VolumeIcon className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
                     <span>Volume</span>
                   </div>
-                  <span className="font-mono text-neutral-400">{Math.round((clip.volume ?? 1) * 100)}%</span>
+                  <span className="font-mono text-[var(--text-secondary)]">
+                    {Math.round((clip.volume ?? 1) * 100)}%
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -357,7 +361,7 @@ export const InspectorPanel = memo(function InspectorPanel({
                   step="0.01"
                   value={clip.volume ?? 1}
                   onChange={(e) => onUpdateClip(clip.id, { volume: Number.parseFloat(e.target.value) })}
-                  className="w-full h-1 bg-neutral-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
+                  className="w-full h-1 bg-[var(--surface-4)] rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
                 />
                 <div className="flex gap-1.5">
                   {[0, 0.25, 0.5, 0.75, 1].map((vol) => (
@@ -368,7 +372,7 @@ export const InspectorPanel = memo(function InspectorPanel({
                       className={`flex-1 py-1 rounded text-[10px] font-medium transition-all ${
                         (clip.volume ?? 1) === vol
                           ? "bg-white text-black"
-                          : "bg-[var(--hover-overlay)] text-neutral-500 hover:bg-[var(--active-overlay)] hover:text-white"
+                          : "bg-[var(--hover-overlay)] text-[var(--text-tertiary)] hover:bg-[var(--active-overlay)] hover:text-white"
                       }`}
                     >
                       {vol === 0 ? "Mute" : `${Math.round(vol * 100)}%`}
@@ -379,7 +383,7 @@ export const InspectorPanel = memo(function InspectorPanel({
                 {/* Fade In/Out Controls */}
                 <div className="pt-2 border-t border-[var(--border-default)] flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-neutral-500">Fade In</span>
+                    <span className="text-[10px] text-[var(--text-tertiary)]">Fade In</span>
                     <div className="flex items-center gap-2">
                       <input
                         type="range"
@@ -388,15 +392,15 @@ export const InspectorPanel = memo(function InspectorPanel({
                         step="0.1"
                         value={clip.fadeIn ?? 0}
                         onChange={(e) => onUpdateClip(clip.id, { fadeIn: Number.parseFloat(e.target.value) })}
-                        className="w-20 h-1 bg-neutral-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
+                        className="w-20 h-1 bg-[var(--surface-4)] rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
                       />
-                      <span className="text-[10px] font-mono text-neutral-400 w-8">
+                      <span className="text-[10px] font-mono text-[var(--text-secondary)] w-8">
                         {(clip.fadeIn ?? 0).toFixed(1)}s
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-neutral-500">Fade Out</span>
+                    <span className="text-[10px] text-[var(--text-tertiary)]">Fade Out</span>
                     <div className="flex items-center gap-2">
                       <input
                         type="range"
@@ -405,9 +409,9 @@ export const InspectorPanel = memo(function InspectorPanel({
                         step="0.1"
                         value={clip.fadeOut ?? 0}
                         onChange={(e) => onUpdateClip(clip.id, { fadeOut: Number.parseFloat(e.target.value) })}
-                        className="w-20 h-1 bg-neutral-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
+                        className="w-20 h-1 bg-[var(--surface-4)] rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
                       />
-                      <span className="text-[10px] font-mono text-neutral-400 w-8">
+                      <span className="text-[10px] font-mono text-[var(--text-secondary)] w-8">
                         {(clip.fadeOut ?? 0).toFixed(1)}s
                       </span>
                     </div>
@@ -421,7 +425,7 @@ export const InspectorPanel = memo(function InspectorPanel({
                         className={`flex-1 py-1 rounded text-[9px] font-medium transition-all ${
                           (clip.fadeIn ?? 0) === val && (clip.fadeOut ?? 0) === val
                             ? "bg-white text-black"
-                            : "bg-[var(--hover-overlay)] text-neutral-500 hover:bg-[var(--active-overlay)] hover:text-white"
+                            : "bg-[var(--hover-overlay)] text-[var(--text-tertiary)] hover:bg-[var(--active-overlay)] hover:text-white"
                         }`}
                       >
                         {val === 0 ? "None" : `${val}s`}
@@ -438,18 +442,18 @@ export const InspectorPanel = memo(function InspectorPanel({
             <PanelSection title="Info" defaultOpen={false}>
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[9px] text-neutral-600 uppercase">Track</label>
-                  <div className="p-2 bg-[var(--surface-2)] rounded border border-[var(--border-default)] text-xs text-neutral-300">
+                  <label className="text-[9px] text-[var(--text-muted)] uppercase">Track</label>
+                  <div className="p-2 bg-[var(--surface-2)] rounded border border-[var(--border-default)] text-xs text-[var(--text-secondary)]">
                     {track?.name || clip.trackId}
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[9px] text-neutral-600 uppercase">Type</label>
-                  <div className="p-2 bg-[var(--surface-2)] rounded border border-[var(--border-default)] text-xs text-neutral-300 flex items-center gap-2">
+                  <label className="text-[9px] text-[var(--text-muted)] uppercase">Type</label>
+                  <div className="p-2 bg-[var(--surface-2)] rounded border border-[var(--border-default)] text-xs text-[var(--text-secondary)] flex items-center gap-2">
                     {media.type === "video" ? (
-                      <FilmIcon className="w-3 h-3 text-[var(--accent-text)]" />
+                      <FilmIcon className="w-3 h-3 text-[var(--tertiary)]" />
                     ) : (
-                      <MusicIcon className="w-3 h-3 text-emerald-400" />
+                      <MusicIcon className="w-3 h-3 text-[var(--success)]" />
                     )}
                     <span className="capitalize">{media.type}</span>
                   </div>
@@ -469,14 +473,14 @@ export const InspectorPanel = memo(function InspectorPanel({
               <>
                 <PanelDivider />
                 <PanelSection title="Transition">
-                  <div className="bg-[var(--accent-bg-subtle)] rounded-lg border border-[var(--accent-border)] p-3 flex items-center justify-between">
+                  <div className="bg-[var(--tertiary-muted)] rounded-lg border border-[var(--tertiary)]/30 p-3 flex items-center justify-between">
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-[var(--accent-text)] capitalize">
+                      <span className="text-xs font-medium text-[var(--tertiary)] capitalize">
                         {clip.transition.type.replace("-", " ")}
                       </span>
-                      <span className="text-[10px] text-neutral-500">Applied to this clip</span>
+                      <span className="text-[10px] text-[var(--text-tertiary)]">Applied to this clip</span>
                     </div>
-                    <div className="text-xs font-mono text-[var(--accent-text-muted)]">{clip.transition.duration}s</div>
+                    <div className="text-xs font-mono text-[var(--tertiary)]">{clip.transition.duration}s</div>
                   </div>
                 </PanelSection>
               </>

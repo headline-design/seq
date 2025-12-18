@@ -215,8 +215,8 @@ export function TransitionGenerator({
   return (
     <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-500">
       <div className="text-center space-y-3 mb-8">
-        <h2 className="text-3xl font-bold tracking-tight">Generate Transition Frames</h2>
-        <p className="text-neutral-400 max-w-2xl mx-auto">
+        <h2 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">Generate Transition Frames</h2>
+        <p className="text-[var(--text-secondary)] max-w-2xl mx-auto">
           Your main storyboard contains intermediate transition states. Generate clean first/last frames for smooth
           transitions.
         </p>
@@ -224,30 +224,20 @@ export function TransitionGenerator({
 
       {!generatedUrl && (
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Card
-            className="p-4 border"
-            style={{ backgroundColor: "var(--surface-2)", borderColor: "var(--border-default)" }}
-          >
-            <Label className="text-sm text-neutral-400 mb-2">Main Storyboard Reference</Label>
-            <div
-              className="aspect-3/2 relative rounded-lg overflow-hidden border"
-              style={{ borderColor: "var(--border-default)" }}
-            >
+          <Card className="p-4 bg-[var(--surface-2)] border-[var(--border-default)]">
+            <Label className="text-sm text-[var(--text-secondary)] mb-2">Main Storyboard Reference</Label>
+            <div className="aspect-3/2 relative rounded-lg overflow-hidden border border-[var(--border-default)]">
               <Image src={masterUrl || "/placeholder.svg"} alt="Main Storyboard" fill className="object-cover" />
             </div>
-            <p className="text-xs text-neutral-500 mt-2 line-clamp-2">{masterPrompt}</p>
+            <p className="text-xs text-[var(--text-muted)] mt-2 line-clamp-2">{masterPrompt}</p>
           </Card>
 
-          <Card
-            className="p-6 border space-y-4"
-            style={{ backgroundColor: "var(--surface-2)", borderColor: "var(--border-default)" }}
-          >
+          <Card className="p-6 bg-[var(--surface-2)] border-[var(--border-default)] space-y-4">
             <div className="space-y-2">
               <Label>Describe Transition Frames Needed</Label>
               <Textarea
                 placeholder="E.g., There are 2 transition panels. For transition 1, I need the first frame to be identical to panel 4 but without the warp effect..."
-                className="min-h-[140px] border resize-none text-neutral-200 placeholder:text-neutral-500 focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-primary)]"
-                style={{ backgroundColor: "var(--surface-3)", borderColor: "var(--border-default)" }}
+                className="min-h-[140px] bg-[var(--surface-3)] border-[var(--border-default)] resize-none text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
                 value={transitionPrompt}
                 onChange={(e) => setTransitionPrompt(e.target.value)}
               />
@@ -257,7 +247,7 @@ export function TransitionGenerator({
               <Button
                 onClick={handleGenerate}
                 disabled={!transitionPrompt.trim() || isGenerating}
-                className="flex-1 h-11 font-medium bg-[var(--accent-gradient)] hover:opacity-90 text-accent-text-white"
+                className="flex-1 h-11 font-medium bg-[var(--tertiary)] hover:bg-[var(--tertiary-hover)] text-white"
               >
                 {isGenerating ? (
                   <>
@@ -276,7 +266,7 @@ export function TransitionGenerator({
                 onClick={loadDemoTransitions}
                 variant="outline"
                 disabled={isGenerating}
-                className="border-[var(--accent-border)] bg-[var(--accent-bg-subtle)] hover:bg-[var(--accent-hover)] text-[var(--accent-text)] hover:text-accent-text-white"
+                className="border-[var(--border-default)] bg-[var(--surface-2)] hover:bg-[var(--hover-overlay)] text-[var(--text-secondary)]"
               >
                 Load Demo
               </Button>
@@ -287,8 +277,8 @@ export function TransitionGenerator({
 
       {generatedUrl && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-          <Card className="p-4 bg-zinc-900 border-zinc-800">
-            <div className="aspect-3/2 relative rounded-lg overflow-hidden border border-zinc-700">
+          <Card className="p-4 bg-[var(--surface-1)] border-[var(--border-default)]">
+            <div className="aspect-3/2 relative rounded-lg overflow-hidden border border-[var(--border-default)]">
               <Image src={generatedUrl || "/placeholder.svg"} alt="Transition Master" fill className="object-cover" />
               <div className="absolute top-2 right-2 bg-black/70 px-3 py-1 rounded text-xs font-medium text-white backdrop-blur-sm flex items-center gap-2">
                 {isAnalyzing ? (
@@ -298,14 +288,14 @@ export function TransitionGenerator({
                   </>
                 ) : (
                   <>
-                    <Check className="w-3 h-3 text-green-400" />
+                    <Check className="w-3 h-3 text-[var(--success)]" />
                     {isEditingCount ? (
                       <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                         <Input
                           type="number"
                           min={1}
                           max={12}
-                          className="h-6 w-16 text-xs bg-zinc-800 border-zinc-600"
+                          className="h-6 w-16 text-xs bg-[var(--surface-3)] border-[var(--border-emphasis)]"
                           value={analyzedCount || 4}
                           onChange={(e) => setAnalyzedCount(Number.parseInt(e.target.value) || 4)}
                         />
@@ -320,7 +310,7 @@ export function TransitionGenerator({
                       </div>
                     ) : (
                       <div
-                        className="flex items-center gap-2 cursor-pointer hover:text-zinc-300"
+                        className="flex items-center gap-2 cursor-pointer hover:text-[var(--text-secondary)]"
                         onClick={() => setIsEditingCount(true)}
                       >
                         <span>{analyzedCount ? `${analyzedCount} Panels` : "Ready"}</span>
@@ -336,7 +326,12 @@ export function TransitionGenerator({
           <div className="space-y-6">
             {status === "ready" && (
               <div className="flex justify-center gap-3">
-                <Button size="lg" onClick={processPanels} disabled={!analyzedCount} className="gap-2">
+                <Button
+                  size="lg"
+                  onClick={processPanels}
+                  disabled={!analyzedCount}
+                  className="gap-2 bg-[var(--tertiary)] hover:bg-[var(--tertiary-hover)] text-white"
+                >
                   <Play className="w-5 h-5" />
                   Start Extraction
                 </Button>
@@ -344,7 +339,7 @@ export function TransitionGenerator({
                   size="lg"
                   variant="outline"
                   onClick={loadDemoExtractedPanels}
-                  className="border-zinc-700 bg-zinc-900 hover:bg-zinc-800 gap-2"
+                  className="border-[var(--border-default)] bg-[var(--surface-1)] hover:bg-[var(--hover-overlay)] gap-2"
                 >
                   <Sparkles className="w-5 h-5" />
                   Use Demo
@@ -355,14 +350,17 @@ export function TransitionGenerator({
             {status === "processing" && (
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Status</span>
-                  <span className="text-white font-medium flex items-center gap-2">
+                  <span className="text-[var(--text-secondary)]">Status</span>
+                  <span className="text-[var(--text-primary)] font-medium flex items-center gap-2">
                     <Loader2 className="w-3 h-3 animate-spin" />
                     Extracting {panels.length + 1}/{analyzedCount}...
                   </span>
                 </div>
-                <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-white transition-all duration-500" style={{ width: `${progress}%` }} />
+                <div className="h-2 bg-[var(--surface-3)] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-[var(--tertiary)] transition-all duration-500"
+                    style={{ width: `${progress}%` }}
+                  />
                 </div>
               </div>
             )}
@@ -371,7 +369,7 @@ export function TransitionGenerator({
               {Array.from({ length: analyzedCount || 4 }).map((_, i) => (
                 <div
                   key={i}
-                  className="aspect-video relative rounded bg-zinc-800 overflow-hidden border border-zinc-700 group"
+                  className="aspect-video relative rounded bg-[var(--surface-3)] overflow-hidden border border-[var(--border-default)] group"
                 >
                   {panels[i] ? (
                     <>
@@ -382,9 +380,8 @@ export function TransitionGenerator({
                         className="object-cover"
                       />
                       <div className="absolute top-1 right-1">
-                        <CheckCircle2 className="w-4 h-4 text-green-500 bg-black rounded-full" />
+                        <CheckCircle2 className="w-4 h-4 text-[var(--success)] bg-black rounded-full" />
                       </div>
-                      {/* Regenerate overlay - now properly inside the panel */}
                       {status === "complete" && (
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
                           <Button
@@ -404,7 +401,7 @@ export function TransitionGenerator({
                     </>
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-xs text-zinc-500">Panel {i + 1}</span>
+                      <span className="text-xs text-[var(--text-muted)]">Panel {i + 1}</span>
                     </div>
                   )}
 
@@ -418,8 +415,12 @@ export function TransitionGenerator({
         </div>
       )}
 
-      <div className="flex justify-center pt-6 border-t border-zinc-800">
-        <Button variant="outline" onClick={onSkip} className="border-zinc-700 hover:bg-zinc-800 bg-transparent">
+      <div className="flex justify-center pt-6 border-t border-[var(--border-default)]">
+        <Button
+          variant="outline"
+          onClick={onSkip}
+          className="border-[var(--border-default)] hover:bg-[var(--hover-overlay)] bg-transparent"
+        >
           Skip - No Transitions Needed
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>

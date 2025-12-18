@@ -3,7 +3,7 @@ import { memo, useState, useRef, useEffect } from "react"
 import { DownloadIcon, UndoIcon, RedoIcon, SaveIcon, FolderOpenIcon } from "./icons"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/seq/components/ui/tooltip"
 import { useSidebar } from "@/seq/components/ui/sidebar"
-import { cn } from "@/seq/lib/utils" // Assuming cn is a utility function for class names
+import { cn } from "@/seq/lib/utils"
 import { ArrowLeftFromLine, PanelLeft } from "lucide-react"
 import { IconTypelogo } from "../../typelogo"
 
@@ -72,7 +72,7 @@ export const EditorHeader = memo(function EditorHeader({
 
           <IconTypelogo className="text-white" />
 
-          <span className="text-[10px] text-neutral-500 border border-neutral-700 rounded-full px-2 py-0.5">
+          <span className="text-[10px] text-[var(--text-tertiary)] border border-[var(--border-emphasis)] rounded-full px-2 py-0.5">
             Beta V0.2
           </span>
         </div>
@@ -84,7 +84,7 @@ export const EditorHeader = memo(function EditorHeader({
               <TooltipTrigger asChild>
                 <button
                   onClick={() => setIsFileMenuOpen(!isFileMenuOpen)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-neutral-400 hover:text-white hover:bg-[var(--hover-overlay)] rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[var(--text-secondary)] hover:text-white hover:bg-[var(--hover-overlay)] rounded-lg transition-colors"
                 >
                   <FolderOpenIcon className="w-4 h-4" />
                   <span className="text-xs">File</span>
@@ -114,22 +114,22 @@ export const EditorHeader = memo(function EditorHeader({
                     setIsFileMenuOpen(false)
                   }}
                   disabled={isSaving}
-                  className="w-full px-3 py-2 text-left text-sm text-neutral-300 hover:bg-[var(--hover-overlay)] hover:text-white flex items-center gap-2 disabled:opacity-50"
+                  className="w-full px-3 py-2 text-left text-sm text-[var(--text-secondary)] hover:bg-[var(--hover-overlay)] hover:text-white flex items-center gap-2 disabled:opacity-50"
                 >
                   <SaveIcon className={`w-4 h-4 ${isSaving ? "animate-pulse" : ""}`} />
                   Save Project
-                  <span className="ml-auto text-xs text-neutral-500">⌘S</span>
+                  <span className="ml-auto text-xs text-[var(--text-tertiary)]">⌘S</span>
                 </button>
                 <button
                   onClick={() => {
                     onLoad()
                     setIsFileMenuOpen(false)
                   }}
-                  className="w-full px-3 py-2 text-left text-sm text-neutral-300 hover:bg-[var(--hover-overlay)] hover:text-white flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-sm text-[var(--text-secondary)] hover:bg-[var(--hover-overlay)] hover:text-white flex items-center gap-2"
                 >
                   <FolderOpenIcon className="w-4 h-4" />
                   Open Project
-                  <span className="ml-auto text-xs text-neutral-500">⌘O</span>
+                  <span className="ml-auto text-xs text-[var(--text-tertiary)]">⌘O</span>
                 </button>
                 <div className="h-px bg-[var(--border-default)] my-1" />
                 <button
@@ -137,7 +137,7 @@ export const EditorHeader = memo(function EditorHeader({
                     onLoadDemo()
                     setIsFileMenuOpen(false)
                   }}
-                  className="w-full px-3 py-2 text-left text-sm text-neutral-300 hover:bg-[var(--hover-overlay)] hover:text-accent-text-white flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-sm text-[var(--text-secondary)] hover:bg-[var(--hover-overlay)] hover:text-white flex items-center gap-2"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
@@ -156,13 +156,13 @@ export const EditorHeader = memo(function EditorHeader({
                 <button
                   onClick={onUndo}
                   disabled={!canUndo}
-                  className="p-2 text-neutral-500 hover:text-white hover:bg-[var(--hover-overlay)] rounded-lg disabled:opacity-30 transition-colors"
+                  className="p-2 text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--hover-overlay)] rounded-lg disabled:opacity-30 transition-colors"
                 >
                   <UndoIcon className="w-4 h-4" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">
-                Undo <span className="text-neutral-500">(⌘Z)</span>
+                Undo <span className="text-[var(--text-tertiary)]">(⌘Z)</span>
               </TooltipContent>
             </Tooltip>
 
@@ -171,13 +171,13 @@ export const EditorHeader = memo(function EditorHeader({
                 <button
                   onClick={onRedo}
                   disabled={!canRedo}
-                  className="p-2 text-neutral-500 hover:text-white hover:bg-[var(--hover-overlay)] rounded-lg disabled:opacity-30 transition-colors"
+                  className="p-2 text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--hover-overlay)] rounded-lg disabled:opacity-30 transition-colors"
                 >
                   <RedoIcon className="w-4 h-4" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">
-                Redo <span className="text-neutral-500">(⌘⇧Z)</span>
+                Redo <span className="text-[var(--text-tertiary)]">(⌘⇧Z)</span>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -189,7 +189,7 @@ export const EditorHeader = memo(function EditorHeader({
             <TooltipTrigger asChild>
               <button
                 onClick={onShowShortcuts}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-neutral-400 hover:text-white border border-[var(--border-emphasis)] hover:border-[var(--border-strong)] rounded-full text-xs transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-[var(--text-secondary)] hover:text-white border border-[var(--border-emphasis)] hover:border-[var(--border-strong)] rounded-full text-xs transition-colors"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10" />
@@ -215,7 +215,7 @@ export const EditorHeader = memo(function EditorHeader({
               </button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
-              Export Project <span className="text-neutral-500">(⌘E)</span>
+              Export Project <span className="text-[var(--text-tertiary)]">(⌘E)</span>
             </TooltipContent>
           </Tooltip>
         </div>

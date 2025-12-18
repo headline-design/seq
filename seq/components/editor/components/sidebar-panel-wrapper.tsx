@@ -34,10 +34,11 @@ export function SidebarPanelWrapper({
     >
       {children}
       <div
-        className="absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize hover:bg-[var(--accent-primary)]/40 transition-colors group"
+        className="absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize hover:bg-[var(--accent-primary)]/40 focus:bg-[var(--accent-primary)]/40 active:bg-[var(--accent-primary)]/40 transition-colors group"
         onMouseDown={onResizeStart}
+
       >
-        <div className="absolute right-0 top-0 bottom-0 w-px bg-[var(--border-default)] group-hover:bg-[var(--accent-primary)]/60" />
+        <div className="absolute right-0 top-0 bottom-0 w-px bg-[var(--border-default)] group-hover:bg-[var(--accent-primary)]/60 group-focus:bg-[var(--accent-primary)]/60 group-active:bg-[var(--accent-primary)]/60" />
       </div>
     </div>
   )

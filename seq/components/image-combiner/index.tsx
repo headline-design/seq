@@ -14,13 +14,12 @@ import { ToastNotification } from "./toast-notification"
 import { GenerationHistory } from "./generation-history"
 import { GlobalDropZone } from "./global-drop-zone"
 import { FullscreenViewer } from "./fullscreen-viewer"
-import { Badge } from "../ui/badge"
 
 function EmptyFooterHistory() {
   return (
     <div className="flex flex-col items-center justify-center py-2 px-4 text-center">
-      <h3 className="text-lg font-medium text-white mb-1">No Generations Yet</h3>
-      <p className="text-sm text-neutral-400 max-w-sm">Start generating images to see them appear here.</p>
+      <h3 className="text-lg font-medium text-foreground mb-1">No Generations Yet</h3>
+      <p className="text-sm text-muted-foreground max-w-sm">Start generating images to see them appear here.</p>
     </div>
   )
 }
@@ -549,7 +548,7 @@ export function ImageCombiner() {
   }, [isResizing, handleMouseMove, handleMouseUp])
 
   return (
-    <div className="h-screen bg-[var(--surface-0)] flex flex-col">
+    <div className="h-screen w-full flex flex-col bg-[var(--surface-0)] h-full  flex flex-col">
       {toast && <ToastNotification message={toast.message} type={toast.type as any} />}
 
       {isDraggingOver && (
@@ -561,44 +560,30 @@ export function ImageCombiner() {
         className="flex-1 flex overflow-hidden"
         style={{ userSelect: isResizing ? "none" : "auto" }}
       >
-        <div
-          className="flex flex-col overflow-hidden bg-[var(--surface-1)]"
-          style={{ width: `${leftWidth}%`, minWidth: "300px" }}
-        >
-          <div className="flex-shrink-0 h-16 px-4 flex items-center justify-between border-b border-[var(--border-subtle)]">
-            <div className="flex items-center gap-3">
-
-              <div className="flex items-center bg-[var(--surface-2)] rounded-lg p-0.5">
-                <button
-                  onClick={() => setMode("simple")}
-                  className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${mode === "simple" ? "bg-[var(--surface-3)] text-white" : "text-neutral-400 hover:text-neutral-200"
-                    }`}
-                >
-                  Simple
-                </button>
-                <button
-                  onClick={() => setMode("custom")}
-                  className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${mode === "custom" ? "bg-[var(--surface-3)] text-white" : "text-neutral-400 hover:text-neutral-200"
-                    }`}
-                >
-                  Custom
-                </button>
-              </div>
-              {apiKeyMissing && (
-                <span className="text-[10px] px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded">
-                  API Key Missing
-                </span>
-              )}
+        <div className="flex flex-col overflow-hidden w-full flex flex-col bg-[var(--surface-0)] relative" style={{ width: `${leftWidth}%`, minWidth: "300px" }}>
+          <div className="flex-shrink-0 h-16 px-4 flex items-center justify-between border-b border-border relative">
+            <div className="flex items-center bg-background rounded-lg p-0.5">
+              <button
+                onClick={() => setMode("simple")}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${mode === "simple" ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"
+                  }`}
+              >
+                Simple
+              </button>
+              <button
+                onClick={() => setMode("custom")}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${mode === "custom" ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"
+                  }`}
+              >
+                Custom
+              </button>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs px-2 py-1">
-                {currentMode === "text-to-image" ? "Text to Image" : "Image Editing"}
-              </Badge>
-
-
-            </div>
+            {apiKeyMissing && (
+              <span className="text-[10px] px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded">
+                API Key Missing
+              </span>
+            )}
           </div>
-
 
           <>
             <InputSection
@@ -641,22 +626,24 @@ export function ImageCombiner() {
               isLoadingMore={isLoadingMore}
             />
           </>
+          <div
+            className="absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize hover:bg-[var(--accent-primary)]/40 focus:bg-[var(--accent-primary)]/40 active:bg-[var(--accent-primary)]/40 transition-colors group"
+            onMouseDown={handleMouseDown}
+            onDoubleClick={handleDoubleClick}
 
-
-
+          >
+            <div className="absolute right-0 top-0 bottom-0 w-px bg-[var(--border-default)] group-hover:bg-[var(--accent-primary)]/60 group-focus:bg-[var(--accent-primary)]/60 group-active:bg-[var(--accent-primary)]/60" />
+          </div>
         </div>
 
-        <div
-          className="relative w-1 cursor-col-resize flex-shrink-0 hover:bg-[var(--accent-hover)] transition-colors bg-[var(--border-default)]"
-          onMouseDown={handleMouseDown}
-          onDoubleClick={handleDoubleClick}
-        />
 
-        <div className="flex-1 flex flex-col overflow-hidden bg-[var(--surface-0)]" style={{ minWidth: "300px" }}>
-          <div className="flex-shrink-0 h-16 px-4 flex items-center justify-between">
-            <span className="text-base font-medium text-neutral-200">Output</span>
+
+
+        <div className="flex-1 flex flex-col overflow-hidden bg-background" style={{ minWidth: "300px" }}>
+          <div className="flex-shrink-0 h-16 px-4 flex items-center justify-between ">
+            <span className="text-sm font-medium text-foreground">Output</span>
             {persistedGenerations.length > 0 && (
-              <span className="text-xs text-neutral-400">
+              <span className="text-xs text-muted-foreground">
                 {persistedGenerations.filter((g) => g.status === "complete").length} generated
               </span>
             )}
@@ -682,13 +669,10 @@ export function ImageCombiner() {
                 onOpenInNewTab={openImageInNewTab}
               />
             </div>
-
           </div>
           {/* History Panel */}
           {persistedGenerations.length > 0 && (
-            <div className="border-t border-[var(--border-default)] bg-[var(--surface-1)] px-4 py-2 pt-4">
-
-
+            <div className="border-t border-border w-full flex flex-col bg-[var(--surface-0)] px-4 py-2 pt-4">
               <GenerationHistory
                 generations={persistedGenerations}
                 selectedId={selectedGenerationId}

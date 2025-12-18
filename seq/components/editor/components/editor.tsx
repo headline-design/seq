@@ -1551,18 +1551,21 @@ export const Editor: React.FC<EditorProps> = ({ initialMedia, initialClips, init
                 {!isCinemaMode && (
                   <PanelErrorBoundary fallbackTitle="Timeline Error">
                     <div
-                      className="border-t border-neutral-800 flex flex-col shrink-0"
+                      className="border-t border-neutral-800 flex flex-col shrink-0 relative"
                       style={{ height: timelineHeight }}
                     >
                       {/* Resize handle */}
                       {/* Updated timeline resize handle hover from indigo to pink */}
                       <div
-                        className="h-1 min-h-1 cursor-ns-resize hover:bg-[var(--accent-hover)] transition-colors"
+                        className="absolute z-20 top-0 right-0 left-0  h-1.5 cursor-n-resize hover:bg-[var(--accent-primary)]/40 focus:bg-[var(--accent-primary)]/40 active:bg-[var(--accent-primary)]/40 transition-colors group"
                         onMouseDown={(e) => {
                           setIsResizingTimeline(true)
                           resizeRef.current = { startY: e.clientY, startHeight: timelineHeight }
                         }}
-                      />
+
+                      >
+                        <div className="absolute top-0 right-0 left-0  h-px group-hover:bg-[var(--accent-primary)]/60 group-focus:bg-[var(--accent-primary)]/60 group-active:bg-[var(--accent-primary)]/60" />
+                      </div>
                       <Timeline
                         tracks={timeline.tracks}
                         clips={timeline.timelineClips}
