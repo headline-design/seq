@@ -101,18 +101,18 @@ function EditorSidebarInner({ activeView, isPanelOpen, onViewChange, onTogglePan
                           <div
                             className={cn(
                               "p-1.5 rounded-md group-hover/sidebar-item:bg-[var(--hover-overlay)] transition-colors",
-                              isActive && "bg-[var(--tertiary-muted)]",
+                              isActive && "bg-[var(--hover-overlay)]",
                             )}
                           >
                             <Icon
                               className={cn(
                                 "h-4 w-4 shrink-0",
-                                isActive ? "text-[var(--tertiary)]" : "text-[var(--text-tertiary)]",
+                                isActive ? "text-primary" : "text-[var(--text-tertiary)] group-hover/sidebar-item:text-primary/70",
                               )}
                             />
                           </div>
                           {isCollapsed && (
-                            <span className={cn(isActive ? "text-[var(--tertiary)]" : "text-[var(--text-tertiary)]")}>
+                            <span className={cn(isActive ? "text-primary" : "text-[var(--text-tertiary)]")}>
                               {miniLabel}
                             </span>
                           )}
@@ -120,7 +120,7 @@ function EditorSidebarInner({ activeView, isPanelOpen, onViewChange, onTogglePan
                             <span
                               className={cn(
                                 "text-sm",
-                                isActive ? "text-[var(--tertiary)] font-medium" : "text-[var(--text-tertiary)]",
+                                isActive ? "text-primary font-medium" : "text-[var(--text-tertiary)]",
                               )}
                             >
                               {label}
